@@ -23,7 +23,7 @@ All text above, and the splash screen must be included in any redistribution
 #define OLED_RESET 0  // GPIO0
 Adafruit_SSD1306 display(OLED_RESET); // define display
 
-#define DELAY 200
+#define DELAY 250
 
 #if (SSD1306_LCDHEIGHT != 48)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
@@ -40,7 +40,7 @@ void setup()   {
   // Since the buffer is intialized with an Adafruit splashscreen
   // internally, this will display the splashscreen.
   display.display();
-  delay(2000);
+  delay(DELAY);
 
    // Clear the buffer.
   display.clearDisplay();
@@ -71,6 +71,12 @@ void loop() {
   delay(DELAY);
 
   display.print("!");
+  display.display();
+  delay(DELAY);
+
+  display.setTextSize(1);
+  display.setCursor(28,40);
+  display.println("...bye");
   display.display();
   delay(DELAY);
   
