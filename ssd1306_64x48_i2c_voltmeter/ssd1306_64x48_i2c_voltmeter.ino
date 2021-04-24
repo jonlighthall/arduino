@@ -10,7 +10,7 @@ This example is for a 64x48 size display using I2C to communicate
 Adafruit invests time and resources providing this open source code,
 please support Adafruit and open-source hardware by purchasing
 products from Adafruit!
-f
+
 Written by Limor Fried/Ladyada  for Adafruit Industries.
 BSD license, check license.txt for more information
 All text above, and the splash screen must be included in any redistribution
@@ -39,71 +39,79 @@ void setup()   {
 }
 
 void loop() {
-display.clearDisplay();
-display.setCursor(0,0); 
-display.setTextSize(1);
-display.setTextColor(BLACK, WHITE);
-display.print("A0");
-display.setTextColor(WHITE);
-display.print("ADC ");
+  display.clearDisplay();
+  display.setCursor(0,0); 
+  display.setTextSize(1);
+  display.setTextColor(BLACK, WHITE);
+  display.print("A0");
+  display.setTextColor(WHITE);
+  display.print("ADC ");
 
-//read sensor
-int sensorValue = analogRead(A0);
-char buf[64];
-sprintf(buf,"%04d\n\n",sensorValue);
-display.print(buf); 
-float scale = sensorValue/1023.;
-sprintf(buf,"%7.3f%%\n",scale*100.);
-//display.print(buf); 
-float vmax=3.3;
-float voltage = (scale)*vmax; 
+  //read sensor
+  int sensorValue = analogRead(A0);
+  char buf[64];
+  sprintf(buf,"%04d\n\n",sensorValue);
+  display.print(buf); 
+  float scale = sensorValue/1023.;
+  sprintf(buf,"%7.3f%%\n",scale*100.);
+  //display.print(buf); 
+  float vmax=3.3;
+  float voltage = (scale)*vmax; 
 
-//calibration
-const float m=0.945365548;
-const float b=-0.029950454;
+  //calibration
+  const float m=0.945365548;
+  const float b=-0.029950454;
 
-float volt_cal=m*voltage+b;
+  float volt_cal=m*voltage+b;
 
-display.setTextSize(2);
-sprintf(buf,"%.3f\n",volt_cal);
-display.print(buf); 
+  display.setTextSize(2);
+  display.setCursor(2,14);
+  sprintf(buf,"%.3f\n",volt_cal);
+  display.print(buf); 
 
-display.setTextSize(1);
-sprintf(buf,"%6.1f mV\n",volt_cal*1000.);
-//display.print(buf); 
+  display.setTextSize(1);
+  sprintf(buf,"%6.1f mV\n",volt_cal*1000.);
+  //display.print(buf); 
 
-int pscale=scale*WIDE;
+  int pscale=scale*WIDE;
 
-int bar=35;
-// bar graph
+  int bar=35;
+  // bar graph
   for (uint8_t i=0; i< pscale; i++) {
-  display.drawPixel(i,bar,WHITE);
+    display.drawPixel(i,bar,WHITE);
   }
 
- // volt grid
- for (uint8_t i=0; i< int(volt_cal)+1; i++) {
-  int pgrid = i/vmax*WIDE;
-  display.drawPixel(pgrid,bar+1,WHITE);
-  display.drawPixel(pgrid,bar+2,WHITE);
+  // volt grid
+  for (uint8_t i=0; i< int(volt_cal)+1; i++) {
+    int pgrid = i/vmax*WIDE;
+    display.drawPixel(pgrid,bar+1,WHITE);
+    display.drawPixel(pgrid,bar+2,WHITE);
 
-  //labels
-  int xoff=-2;
-  if (i>0) 
-  display.setCursor(pgrid+xoff,40); 
-  else
-  display.setCursor(pgrid,40); 
-  
-  display.print(i);
+    //labels
+    int xoff=-2;
+    if (i>0) 
+      display.setCursor(pgrid+xoff,40); 
+    else
+      display.setCursor(pgrid,40); 
+    display.print(i);
   }
 
-// half-volt grid
-   for (float i=0; i< volt_cal; i=i+0.5) {
-  int pgrid = i/vmax*WIDE;
-  display.drawPixel(pgrid,bar+1,WHITE);
+  // half-volt grid
+  for (float i=0; i< volt_cal; i=i+0.5) {
+    int pgrid = i/vmax*WIDE;
+    display.drawPixel(pgrid,bar+1,WHITE);
   }
 
- 
-
-display.display();
-delay(DELAY);
+  // fixed labels
+  for (uint8_t i=0; i< 4; i=i+3) {
+    int pgrid = i/vmax*WIDE;
+    int xoff=-2;
+    if (i>0) 
+      display.setCursor(pgrid+xoff,40); 
+    else
+      display.setCursor(pgrid,40); 
+    //display.print(i);
+  }
+  display.display();
+  delay(DELAY);
 }
