@@ -30,6 +30,8 @@ Adafruit_SSD1306 display(OLED_RESET); // define display
 #endif
 
 void setup()   {
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
   Serial.begin(9600);
 
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
@@ -82,5 +84,9 @@ void loop() {
   
   display.clearDisplay();
   display.display();
+  digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
+  				    // but actually the LED is on; this is because
+  				    // it is active low on the ESP-01)
   delay(DELAY);
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 }
