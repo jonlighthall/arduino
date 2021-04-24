@@ -23,22 +23,18 @@ All text above, and the splash screen must be included in any redistribution
 #define OLED_RESET 0  // GPIO0
 Adafruit_SSD1306 display(OLED_RESET); // define display
 
-#define DELAY 250
-
 #if (SSD1306_LCDHEIGHT != 48)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
-//const int analogInPin = A0;  // ESP8266 Analog Pin ADC0 = A0
-
-//int sensorValue = 0;  // value read from the pot
+// refresh delay
+#define DELAY 42
 
 void setup()   {
   Serial.begin(9600);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 64x48)
   display.display();
   delay(DELAY);
-  display.clearDisplay();
 }
 
 void loop() {
@@ -46,20 +42,30 @@ display.clearDisplay();
 display.setCursor(0,0); 
 display.setTextSize(1);
 display.setTextColor(WHITE);
-display.println("Reading A0");
+display.print("ADC");
+display.setTextColor(BLACK, WHITE);
+display.print("A0");
+display.setTextColor(WHITE);
 
 //read sensor
 int sensorValue = analogRead(A0);
 char buf[64];
-sprintf(buf,"%04d\n",sensorValue);
+sprintf(buf," %04d\n\n",sensorValue);
 display.print(buf); 
 float scale = sensorValue/1023.;
 sprintf(buf,"%7.3f%%\n",scale*100.);
-display.print(buf); 
+//display.print(buf); 
 float vmax=3.3;
 float voltage = (scale)*vmax; 
-sprintf(buf,"%5.4f V\n",voltage);
+
+display.setTextSize(2);
+sprintf(buf,"%.2fV\n",voltage);
 display.print(buf); 
+
+display.setTextSize(1);
+sprintf(buf,"\n%6.1f mV\n",voltage*1000.);
+display.print(buf); 
+
 display.display();
-delay(42);
+delay(DELAY);
 }
