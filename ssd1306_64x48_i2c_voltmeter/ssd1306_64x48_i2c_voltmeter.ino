@@ -29,6 +29,7 @@ Adafruit_SSD1306 display(OLED_RESET); // define display
 
 // refresh delay
 #define DELAY 42
+#define WIDE 64
 
 void setup()   {
   Serial.begin(9600);
@@ -61,10 +62,26 @@ float voltage = (scale)*vmax;
 display.setTextSize(2);
 sprintf(buf,"%.2fV\n",voltage);
 display.print(buf); 
-
+/*
 display.setTextSize(1);
-sprintf(buf,"\n%6.1f mV\n",voltage*1000.);
+sprintf(buf,"%6.1f mV\n",voltage*1000.);
 display.print(buf); 
+*/
+int pscale=scale*WIDE;
+/*
+sprintf(buf,"%d\n",pscale);
+display.print(buf); 
+*/
+
+ for (uint8_t i=0; i< 4; i++) {
+  int pgrid = i/vmax*WIDE;
+  display.drawPixel(pgrid,45,WHITE);
+  }
+
+  for (uint8_t i=0; i< pscale; i++) {
+  display.drawPixel(i,46,WHITE);
+  display.drawPixel(i,47,WHITE);
+  }
 
 display.display();
 delay(DELAY);
