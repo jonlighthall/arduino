@@ -28,7 +28,7 @@ Adafruit_SSD1306 display(OLED_RESET); // define display
 #endif
 
 // refresh delay
-#define DELAY 400
+#define DELAY 800
 #define WIDE 64
 
 void setup()   {
@@ -42,16 +42,15 @@ void loop() {
 display.clearDisplay();
 display.setCursor(0,0); 
 display.setTextSize(1);
-display.setTextColor(WHITE);
-display.print("ADC");
 display.setTextColor(BLACK, WHITE);
 display.print("A0");
 display.setTextColor(WHITE);
+display.print("ADC ");
 
 //read sensor
 int sensorValue = analogRead(A0);
 char buf[64];
-sprintf(buf," %04d\n\n",sensorValue);
+sprintf(buf,"%04d\n\n",sensorValue);
 display.print(buf); 
 float scale = sensorValue/1023.;
 sprintf(buf,"%7.3f%%\n",scale*100.);
@@ -71,29 +70,39 @@ display.print(buf);
 
 display.setTextSize(1);
 sprintf(buf,"%6.1f mV\n",volt_cal*1000.);
-display.print(buf); 
+//display.print(buf); 
 
 int pscale=scale*WIDE;
+
+int bar=35;
+// bar graph
+  for (uint8_t i=0; i< pscale; i++) {
+  display.drawPixel(i,bar,WHITE);
+  }
 
  // volt grid
  for (uint8_t i=0; i< int(volt_cal)+1; i++) {
   int pgrid = i/vmax*WIDE;
-  display.drawPixel(pgrid,46,WHITE);
-  display.drawPixel(pgrid,47,WHITE);
+  display.drawPixel(pgrid,bar+1,WHITE);
+  display.drawPixel(pgrid,bar+2,WHITE);
+
+  //labels
+  int xoff=-2;
+  if (i>0) 
+  display.setCursor(pgrid+xoff,40); 
+  else
+  display.setCursor(pgrid,40); 
+  
+  display.print(i);
   }
 
 // half-volt grid
    for (float i=0; i< volt_cal; i=i+0.5) {
   int pgrid = i/vmax*WIDE;
-  display.drawPixel(pgrid,46,WHITE);
-  
+  display.drawPixel(pgrid,bar+1,WHITE);
   }
 
-
-  for (uint8_t i=0; i< pscale; i++) {
-  display.drawPixel(i,45,WHITE);
-  
-  }
+ 
 
 display.display();
 delay(DELAY);
