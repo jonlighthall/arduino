@@ -74,18 +74,24 @@ sprintf(buf,"%6.1f mV\n",volt_cal*1000.);
 display.print(buf); 
 
 int pscale=scale*WIDE;
-/*
-sprintf(buf,"%d\n",pscale);
-display.print(buf); 
-*/
 
+ // volt grid
  for (uint8_t i=0; i< int(volt_cal)+1; i++) {
   int pgrid = i/vmax*WIDE;
+  display.drawPixel(pgrid,46,WHITE);
   display.drawPixel(pgrid,47,WHITE);
   }
 
+// half-volt grid
+   for (float i=0; i< volt_cal; i=i+0.5) {
+  int pgrid = i/vmax*WIDE;
+  display.drawPixel(pgrid,46,WHITE);
+  
+  }
+
+
   for (uint8_t i=0; i< pscale; i++) {
-  display.drawPixel(i,46,WHITE);
+  display.drawPixel(i,45,WHITE);
   
   }
 
