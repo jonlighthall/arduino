@@ -44,6 +44,7 @@ void loop() {
   display.setTextSize(1);
   display.setTextColor(BLACK, WHITE);
   display.print("A0");
+  display.setCursor(15,0); 
   display.setTextColor(WHITE);
   display.print("ADC ");
 
