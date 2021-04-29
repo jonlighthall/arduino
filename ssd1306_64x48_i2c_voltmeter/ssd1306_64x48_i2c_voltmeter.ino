@@ -66,7 +66,10 @@ void loop() {
 
   display.setTextSize(2);
   display.setCursor(2,14);
-  sprintf(buf,"%.3f\n",volt_cal);
+  if (volt_cal>=0) 
+    sprintf(buf,"%.3f\n",volt_cal);
+  else
+    sprintf(buf,"%.2f\n",volt_cal);
   display.print(buf); 
 
   display.setTextSize(1);
