@@ -56,7 +56,6 @@ const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
 
 const char* NTP_SERVER = "ch.pool.ntp.org";
-//const char* TZ_INFO    = "GMT+0BST-1,M3.5.0/01:00:00,M10.5.0/02:00:00";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
 const char* TZ_INFO    = "CST6CDT";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
 
 tm timeinfo;
@@ -68,20 +67,19 @@ U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.
 
 void setup() 
 {
-  u8x8.begin();
-  u8x8.setFont(u8x8_font_8x13_1x2_f);
-  u8x8.home();
-  u8x8.print("hello\n");
-  delay(DELAY);
-  
   Serial.begin(115200);
+
+  u8x8.begin();
+  u8x8.setFont(u8x8_font_8x13_1x2_f); 
   u8x8.clear();
-  u8x8.println("NTP Time");
+  u8x8.home();
+  u8x8.print("NTP Time");
   delay(DELAY);
   WiFi.begin(ssid, password);
 
   u8x8.clear();
-  u8x8.println("Connecting to network");
+  u8x8.home();
+  u8x8.print("Connecting to network");
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) 
   {
@@ -91,6 +89,7 @@ void setup()
     u8x8.print( "." );
   }
   u8x8.clear();
+  u8x8.home();
   u8x8.println("WiFi connected");
 
   configTime(0, 0, NTP_SERVER);
@@ -140,23 +139,6 @@ bool getNTPtime(int sec)
 
 void showTime(tm *localTime) 
 {
-  /*
-  //print to serial terminal
-  Serial.print(localTime->tm_mday);
-  Serial.print('/');
-  Serial.print(localTime->tm_mon + 1);
-  Serial.print('/');
-  Serial.print(localTime->tm_year - 100);
-  Serial.print('-');
-  Serial.print(localTime->tm_hour);
-  Serial.print(':');
-  Serial.print(localTime->tm_min);
-  Serial.print(':');
-  Serial.print(localTime->tm_sec);
-  Serial.print(" Day of Week ");
-  Serial.println(localTime->tm_wday);
-  Serial.println();
-*/
   //display on OLED
   char time_output[30];
   
@@ -165,7 +147,7 @@ void showTime(tm *localTime)
   u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.println(time_output);
-    sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
+  sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
   u8x8.println(time_output);
   u8x8.println(getDOW(localTime->tm_wday));
 }
