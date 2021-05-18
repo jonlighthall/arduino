@@ -6,22 +6,6 @@
  *  YouTube Video: https://youtu.be/3LkKYtQqzKo
  *  BnBe Post: https://www.bitsnblobs.com/network-time-using-esp8266
  *************************************************************************************************************************************************/
-
-  /********************************************************************************************************************
- *  Board Settings:
- *  Board: "WeMos D1 R1 or Mini"
- *  Upload Speed: "921600"
- *  CPU Frequency: "80MHz"
- *  Flash Size: "4MB (FS:@MB OTA:~1019KB)"
- *  Debug Port: "Disabled"
- *  Debug Level: "None"
- *  VTables: "Flash"
- *  IwIP Variant: "v2 Lower Memory"
- *  Exception: "Legacy (new can return nullptr)"
- *  Erase Flash: "Only Sketch"
- *  SSL Support: "All SSL ciphers (most compatible)"
- *  COM Port: Depends *On Your System*
- *********************************************************************************************************************/
  
  /*
   This is an example file for using the time function in ESP8266 or ESP32 tu get NTP time
@@ -66,6 +50,8 @@
 #include <U8x8lib.h>
 #include "credentials.h"
 
+#define DELAY 250
+
 const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
 
@@ -78,32 +64,34 @@ time_t now;
 long unsigned lastNTPtime;
 unsigned long lastEntryTime;
 
-//U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);   // OLEDs without Reset of the Display
 U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
-
 
 void setup() 
 {
   u8x8.begin();
-  u8x8.setFont(u8x8_font_8x13_1x2_f );
+  u8x8.setFont(u8x8_font_8x13_1x2_f);
   u8x8.home();
   u8x8.print("hello\n");
-  delay(250);
+  delay(DELAY);
   
   Serial.begin(115200);
-  Serial.println("\n\nNTP Time Test\n");
+  u8x8.clear();
+  u8x8.println("NTP Time");
+  delay(DELAY);
   WiFi.begin(ssid, password);
 
-  Serial.print("Connecting to network");
+  u8x8.clear();
+  u8x8.println("Connecting to network");
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) 
   {
     delay(200);    
     if (++counter > 100) 
       ESP.restart();
-    Serial.print( "." );
+    u8x8.print( "." );
   }
-  Serial.println("\nWiFi connected\n\n");
+  u8x8.clear();
+  u8x8.println("WiFi connected");
 
   configTime(0, 0, NTP_SERVER);
   // See https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv for Timezone codes for your region
@@ -115,7 +103,7 @@ void setup()
   } 
   else 
   {
-    Serial.println("Time not set");
+    u8x8.println("Time not set");
     ESP.restart();
   }
   showTime(&timeinfo);
@@ -144,8 +132,8 @@ bool getNTPtime(int sec)
     if (timeinfo.tm_year <= (2016 - 1900)) 
         return false;  // the NTP call was not successful
     
-    Serial.print("Time Now: ");  
-    Serial.println(now); 
+    u8x8.print("Time Now: ");  
+    u8x8.println(now); 
   }
   return true;
 }
@@ -173,18 +161,13 @@ void showTime(tm *localTime)
   char time_output[30];
   
   u8x8.setFont(u8x8_font_8x13_1x2_f );
+  u8x8.clear();
   u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
-  u8x8.print(time_output);
-  /*
-  u8x8.setFont(u8x8_font_8x13_1x2_f);
-  u8x8.setCursor(4,4);
-  sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
-  u8x8.print(time_output);
-  
-  u8x8.setCursor(4,6);
-  u8x8.print(getDOW(localTime->tm_wday));
-  */
+  u8x8.println(time_output);
+    sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
+  u8x8.println(time_output);
+  u8x8.println(getDOW(localTime->tm_wday));
 }
 
 char * getDOW(uint8_t tm_wday)
