@@ -70,7 +70,8 @@ const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
 
 const char* NTP_SERVER = "ch.pool.ntp.org";
-const char* TZ_INFO    = "GMT+0BST-1,M3.5.0/01:00:00,M10.5.0/02:00:00";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
+//const char* TZ_INFO    = "GMT+0BST-1,M3.5.0/01:00:00,M10.5.0/02:00:00";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
+const char* TZ_INFO    = "CST6CDT";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
 
 tm timeinfo;
 time_t now;
@@ -84,6 +85,10 @@ U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.
 void setup() 
 {
   u8x8.begin();
+  u8x8.setFont(u8x8_font_8x13_1x2_f );
+  u8x8.home();
+  u8x8.print("hello\n");
+  delay(250);
   
   Serial.begin(115200);
   Serial.println("\n\nNTP Time Test\n");
@@ -147,6 +152,7 @@ bool getNTPtime(int sec)
 
 void showTime(tm *localTime) 
 {
+  /*
   //print to serial terminal
   Serial.print(localTime->tm_mday);
   Serial.print('/');
@@ -162,15 +168,15 @@ void showTime(tm *localTime)
   Serial.print(" Day of Week ");
   Serial.println(localTime->tm_wday);
   Serial.println();
-
+*/
   //display on OLED
   char time_output[30];
   
   u8x8.setFont(u8x8_font_8x13_1x2_f );
-  u8x8.setCursor(0,0);
+  u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.print(time_output);
-  
+  /*
   u8x8.setFont(u8x8_font_8x13_1x2_f);
   u8x8.setCursor(4,4);
   sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
@@ -178,6 +184,7 @@ void showTime(tm *localTime)
   
   u8x8.setCursor(4,6);
   u8x8.print(getDOW(localTime->tm_wday));
+  */
 }
 
 char * getDOW(uint8_t tm_wday)
@@ -187,31 +194,24 @@ char * getDOW(uint8_t tm_wday)
     case 1:
       return "Monday";
       break;
-
     case 2:
       return "Tuesday";
       break;
-
     case 3:
       return "Wednesday";
       break;
-
     case 4:
       return "Thursday";
       break;
-
     case 5:
       return "Friday";
       break;
-
     case 6:
       return "Saturday";
       break;
-
     case 7:
       return "Sunday";
       break;
-
     default:
       return "Error";
       break;
