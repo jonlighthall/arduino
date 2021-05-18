@@ -166,12 +166,12 @@ void showTime(tm *localTime)
   //display on OLED
   char time_output[30];
   
-  u8x8.setFont(u8x8_font_courB18_2x3_f);
+  u8x8.setFont(u8x8_font_8x13_1x2_f );
   u8x8.setCursor(0,0);
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.print(time_output);
   
-  u8x8.setFont(u8x8_font_8x13B_1x2_f);
+  u8x8.setFont(u8x8_font_8x13_1x2_f);
   u8x8.setCursor(4,4);
   sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
   u8x8.print(time_output);
