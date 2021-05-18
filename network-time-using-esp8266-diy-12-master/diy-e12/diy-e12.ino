@@ -54,8 +54,7 @@
 
 const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
-
-const char* NTP_SERVER = "ch.pool.ntp.org";
+const char* NTP_SERVER = "us.pool.ntp.org";
 const char* TZ_INFO    = "CST6CDT";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
 
 tm timeinfo;
@@ -73,12 +72,10 @@ void setup()
   u8x8.setFont(u8x8_font_8x13_1x2_f); 
   u8x8.clear();
   u8x8.home();
-  u8x8.print("NTP Time");
+  u8x8.println("NTP Time");
   delay(DELAY);
   WiFi.begin(ssid, password);
 
-  u8x8.clear();
-  u8x8.home();
   u8x8.print("Connecting to network");
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) 
@@ -88,9 +85,8 @@ void setup()
       ESP.restart();
     u8x8.print( "." );
   }
-  u8x8.clear();
-  u8x8.home();
-  u8x8.println("WiFi connected");
+  u8x8.print("\nWiFi connected");
+  delay(DELAY);
 
   configTime(0, 0, NTP_SERVER);
   // See https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv for Timezone codes for your region
@@ -105,6 +101,7 @@ void setup()
     u8x8.println("Time not set");
     ESP.restart();
   }
+  u8x8.clear();
   showTime(&timeinfo);
   lastNTPtime = time(&now);
   lastEntryTime = millis();
@@ -143,7 +140,6 @@ void showTime(tm *localTime)
   char time_output[30];
   
   u8x8.setFont(u8x8_font_8x13_1x2_f );
-  u8x8.clear();
   u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.println(time_output);
