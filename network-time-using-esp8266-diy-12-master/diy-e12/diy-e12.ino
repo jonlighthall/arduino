@@ -9,17 +9,11 @@
  
  /*
   This is an example file for using the time function in ESP8266 or ESP32 tu get NTP time
-  It offers two functions:
-
+ 
   - getNTPtime(struct tm * info, uint32_t ms) where info is a structure which contains time
   information and ms is the time the service waits till it gets a response from NTP.
   Each time you cann this function it calls NTP over the net.
 
-  If you do not want to call an NTP service every second, you can use
-  - getTimeReducedTraffic(int ms) where ms is the the time between two physical NTP server calls. Betwwn these calls,
-  the time structure is updated with the (inaccurate) timer. If you call NTP every few minutes you should be ok
-
-  
   Showtime is an example on how you can use the time in your sketch
 
   The functions are inspired by work of G6EJD ( https://www.youtube.com/channel/UCgtlqH_lkMdIa4jZLItcsTg )
@@ -35,11 +29,11 @@
 #include "credentials.h"
 #include "date_time_fmt.h"
 
-#define DELAY 250
+#define DELAY 1
 
 const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
-const char* NTP_SERVER = "us.pool.ntp.org";
+const char* NTP_SERVER = "time.nist.gov";
 const char* TZ_INFO    = "CST6CDT";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
 
 tm timeinfo;
@@ -50,8 +44,11 @@ unsigned long lastEntryTime;
 U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
 
 void setup() {
-  Serial.begin(115200);
-
+  Serial.begin(9600);
+  Serial.println("hello world");
+  Serial.println("TimeNTP Example");
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
   u8x8.begin();
   u8x8.setFont(u8x8_font_8x13_1x2_f); 
   u8x8.clear();
@@ -67,6 +64,7 @@ void setup() {
     if (++counter > 100) 
       ESP.restart();
     u8x8.print( "." );
+    Serial.print("."); 
   }
   u8x8.print("\nWiFi connected");
   delay(DELAY);
@@ -88,39 +86,40 @@ void setup() {
   lastEntryTime = millis();
 }
 
-void loop() {
-  getNTPtime(10);
-  showTime(&timeinfo);
-  delay(1000);
-}
-
 bool getNTPtime(int sec) {
-    uint32_t start = millis();
-    do {
-      time(&now);
-      localtime_r(&now, &timeinfo);
-      delay(10);
-    } while (((millis() - start) <= (1000 * sec)) && (timeinfo.tm_year < (2016 - 1900)));
+  uint32_t start = millis();
+  do {
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    delay(1);
+  }
+  while (((millis() - start) <= (1000 * sec)) && (timeinfo.tm_year < (2016 - 1900)));
     
-    if (timeinfo.tm_year <= (2016 - 1900)) 
-        return false;  // the NTP call was not successful
+  if (timeinfo.tm_year <= (2016 - 1900)) 
+    return false;  // the NTP call was not successful
     
-    u8x8.print("Time Now: ");  
-    u8x8.println(now); 
+  u8x8.print("Time Now: ");  
+  u8x8.println(now); 
   return true;
 }
 
-void showTime(tm *localTime) {
+void showTime(tm *localTime) { 
   //display on OLED
   char time_output[30];
   
-  u8x8.setFont(u8x8_font_8x13_1x2_f );
+p  u8x8_font_8x13_1x2_f );
   u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.println(time_output);
   u8x8.println(getDOW(localTime->tm_wday));
   //sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
   //sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mon + 1, localTime->tm_mday, localTime->tm_year - 100);
-  sprintf(time_output, "  %s %02d", getMo(localTime->tm_mon + 1), localTime->tm_mday); 
+  sprintf(time_output, " %s %02d", getMo(localTime->tm_mon + 1), localTime->tm_mday); 
   u8x8.println(time_output);  
+}
+
+void loop() {
+  getNTPtime(1);
+  showTime(&timeinfo);
+  // delay(1000);
 }
