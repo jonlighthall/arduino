@@ -29,7 +29,7 @@
 #include "credentials.h"
 #include "date_time_fmt.h"
 
-#define DELAY 1
+#define PRINT_DELAY 1
 
 const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
@@ -45,29 +45,32 @@ U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("hello world");
+  Serial.println("\nhello world");
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
-  Serial.println(ssid);
+  Serial.print(ssid);
   u8x8.begin();
   u8x8.setFont(u8x8_font_8x13_1x2_f); 
   u8x8.clear();
   u8x8.home();
   u8x8.println("NTP Time");
-  delay(DELAY);
+  delay(PRINT_DELAY);
   WiFi.begin(ssid, password);
 
   u8x8.print("Connecting to network");
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(200);    
-    if (++counter > 100) 
+    if (++counter > 100) {
+      Serial.print("timeout");
       ESP.restart();
-    u8x8.print( "." );
+    }
+    u8x8.print(".");
     Serial.print("."); 
   }
+  Serial.println("done");
   u8x8.print("\nWiFi connected");
-  delay(DELAY);
+  delay(PRINT_DELAY);
 
   configTime(0, 0, NTP_SERVER);
   // See https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv for Timezone codes for your region
@@ -94,10 +97,8 @@ bool getNTPtime(int sec) {
     delay(1);
   }
   while (((millis() - start) <= (1000 * sec)) && (timeinfo.tm_year < (2016 - 1900)));
-    
   if (timeinfo.tm_year <= (2016 - 1900)) 
     return false;  // the NTP call was not successful
-    
   u8x8.print("Time Now: ");  
   u8x8.println(now); 
   return true;
@@ -106,20 +107,19 @@ bool getNTPtime(int sec) {
 void showTime(tm *localTime) { 
   //display on OLED
   char time_output[30];
-  
-p  u8x8_font_8x13_1x2_f );
+  u8x8.setFont(u8x8_font_8x13_1x2_f);
   u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.println(time_output);
   u8x8.println(getDOW(localTime->tm_wday));
-  //sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year - 100);
-  //sprintf(time_output, "%02d/%02d/%02d", localTime->tm_mon + 1, localTime->tm_mday, localTime->tm_year - 100);
   sprintf(time_output, " %s %02d", getMo(localTime->tm_mon + 1), localTime->tm_mday); 
   u8x8.println(time_output);  
 }
 
 void loop() {
+  Serial.println("Get time...");
   getNTPtime(1);
+  Serial.println("Show time...");
   showTime(&timeinfo);
   // delay(1000);
 }
