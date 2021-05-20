@@ -97,8 +97,10 @@ bool getNTPtime(int sec) {
     delay(1);
   }
   while (((millis() - start) <= (1000 * sec)) && (timeinfo.tm_year < (2016 - 1900)));
+    
   if (timeinfo.tm_year <= (2016 - 1900)) 
     return false;  // the NTP call was not successful
+    
   u8x8.print("Time Now: ");  
   u8x8.println(now); 
   return true;
@@ -107,7 +109,8 @@ bool getNTPtime(int sec) {
 void showTime(tm *localTime) { 
   //display on OLED
   char time_output[30];
-  u8x8.setFont(u8x8_font_8x13_1x2_f);
+  
+  u8x8.setFont(u8x8_font_8x13B_1x2_f);
   u8x8.home();
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.println(time_output);
