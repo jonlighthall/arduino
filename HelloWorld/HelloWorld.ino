@@ -1,8 +1,6 @@
 /*
   HelloWorld.ino
-
   Universal 8bit Graphics Library (https://github.com/olikraus/u8g2/)
-
   Copyright (c) 2016, olikraus@gmail.com
   All rights reserved.
 */
@@ -25,13 +23,8 @@
 */
 
 // Please UNCOMMENT one of the contructor lines below
-// U8g2 Contructor List (Frame Buffer)
-// The complete list is available here: https://github.com/olikraus/u8g2/wiki/u8g2setupcpp
 // Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
-//U8G2_NULL u8g2(U8G2_R0);	// null device, a 8x8 pixel display which does nothing
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
-
-// End of constructor list
 
 void setup(void) {
   u8g2.begin();
