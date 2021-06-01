@@ -8,9 +8,10 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include "credentials.h"
 
-const char ssid[] = "*************";  //  your network SSID (name)
-const char pass[] = "********";       // your network password
+const char* ssid =  mySSID;         //from credentials.h file
+const char* pass = myPASSWORD;      //from credentials.h file
 
 // NTP Servers:
 static const char ntpServerName[] = "us.pool.ntp.org";
@@ -34,8 +35,7 @@ void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 
-void setup()
-{
+void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(250);
@@ -48,7 +48,6 @@ void setup()
     delay(500);
     Serial.print(".");
   }
-
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
   Serial.println("Starting UDP");
@@ -62,8 +61,7 @@ void setup()
 
 time_t prevDisplay = 0; // when the digital clock was displayed
 
-void loop()
-{
+void loop() {
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
       prevDisplay = now();
@@ -72,8 +70,7 @@ void loop()
   }
 }
 
-void digitalClockDisplay()
-{
+void digitalClockDisplay() {
   // digital clock display of the time
   Serial.print(hour());
   printDigits(minute());
@@ -87,8 +84,7 @@ void digitalClockDisplay()
   Serial.println();
 }
 
-void printDigits(int digits)
-{
+void printDigits(int digits) {
   // utility for digital clock display: prints preceding colon and leading 0
   Serial.print(":");
   if (digits < 10)
@@ -101,8 +97,7 @@ void printDigits(int digits)
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
 byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
 
-time_t getNtpTime()
-{
+time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
@@ -133,8 +128,7 @@ time_t getNtpTime()
 }
 
 // send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress &address)
-{
+void sendNTPpacket(IPAddress &address) {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
