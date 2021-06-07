@@ -21,12 +21,15 @@ static const char ntpServerName[] = "time.nist.gov";
 //static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
 //static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
 
+// Set Standard time zone
 //const int timeZone = 0;  // GMT
-//const int timeZone = -4; // EDT
-const int timeZone = -5; // EST, CDT
-//const int timeZone = -6; // CST, MDT
-//const int timeZone = -7; // MST, PDT
+//const int timeZone = -5; // EST
+const int timeZone = -6; // CST
+//const int timeZone = -7; // MST
 //const int timeZone = -8; // PST
+
+int SetTimeZone = timeZone;
+const bool do_DST=true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -39,7 +42,7 @@ void sendNTPpacket(IPAddress &address);
 void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  testDST(); 
+  //testDST(); 
   delay(250);
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
@@ -59,10 +62,8 @@ void setup() {
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
-  setSyncInterval(300);
+  setSyncInterval(5);
 }
-
-
 
 time_t prevDisplay = 0; // when the digital clock was displayed
 
@@ -71,7 +72,14 @@ void loop() {
     if (now() != prevDisplay) { //update the display only if time has changed
       prevDisplay = now();
       digitalClockDisplay();
-      delay(3000);
+      //delay(3000);
+      Serial.print("do_DST = ");
+      Serial.println(do_DST);        
+      if (do_DST) {      
+        SetTimeZone = timeZone + isDST();
+      } else {
+        SetTimeZone = timeZone;
+      }
     }
   }
 }
@@ -116,8 +124,6 @@ void printDigits(int digits) {
   Serial.print(digits);
 }
 
-
-
 /*-------- NTP code ----------*/
 
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
@@ -135,6 +141,8 @@ time_t getNtpTime() {
   Serial.println(ntpServerIP);
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
+  Serial.print("SetTimeZone = ");
+  Serial.println(SetTimeZone);
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
@@ -146,7 +154,7 @@ time_t getNtpTime() {
       secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
       secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
       secsSince1900 |= (unsigned long)packetBuffer[43];
-      return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
+      return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
     }
   }
   Serial.println("No NTP Response :-(");
