@@ -14,18 +14,18 @@ const char* ssid =  mySSID;         //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
 
 // NTP Servers:
-static const char ntpServerName[] = "us.pool.ntp.org";
-//static const char ntpServerName[] = "time.nist.gov";
+//static const char ntpServerName[] = "us.pool.ntp.org";
+static const char ntpServerName[] = "time.nist.gov";
 //static const char ntpServerName[] = "time-a.timefreq.bldrdoc.gov";
 //static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
 //static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
 
-const int timeZone = 1;     // Central European Time
-//const int timeZone = -5;  // Eastern Standard Time (USA)
-//const int timeZone = -4;  // Eastern Daylight Time (USA)
-//const int timeZone = -8;  // Pacific Standard Time (USA)
-//const int timeZone = -7;  // Pacific Daylight Time (USA)
-
+//const int timeZone = 0;  // GMT
+//const int timeZone = -4; // EDT
+const int timeZone = -5; // EST, CDT
+//const int timeZone = -6; // CST, MDT
+//const int timeZone = -7; // MST, PDT
+//const int timeZone = -8; // PST
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -41,13 +41,14 @@ void setup() {
   delay(250);
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
-  Serial.println(ssid);
+  Serial.print(ssid);
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+  Serial.print("connected\n");
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
   Serial.println("Starting UDP");
@@ -66,6 +67,7 @@ void loop() {
     if (now() != prevDisplay) { //update the display only if time has changed
       prevDisplay = now();
       digitalClockDisplay();
+      delay(3000);
     }
   }
 }
@@ -81,6 +83,24 @@ void digitalClockDisplay() {
   Serial.print(month());
   Serial.print(".");
   Serial.print(year());
+  if (isAM()==1) {
+    Serial.print("am");
+  }
+  else {
+    Serial.print("pm");
+  }
+  Serial.print(" am:");
+  Serial.print(isAM());
+  Serial.print(" pm:");
+  Serial.print(isPM());
+  Serial.print(" weekday:");
+  Serial.print(weekday());
+  Serial.print(" daystr:");
+  Serial.print(dayStr(weekday()));
+  Serial.print(dayShortStr(weekday()));
+  Serial.print(monthStr(month()));
+  Serial.print(monthShortStr(month()));
+  isDST();
   Serial.println();
 }
 
@@ -90,6 +110,40 @@ void printDigits(int digits) {
   if (digits < 10)
     Serial.print('0');
   Serial.print(digits);
+}
+
+int isDST() {
+  if (month()>3 && month()<11) {
+    Serial.println("easy DST");
+    return 1;
+  } else if (month()==3) {
+    Serial.print("it is ");
+    Serial.print(monthStr(month()));
+    Serial.println("tricky DST");
+    if (day()<8) {
+      Serial.println("too early, no DST");
+      return 0;
+    } else if (day()>14) {
+      Serial.println("too late, no DST");
+      return 1;
+    
+    } else {
+      Serial.println("really tricky DST - code more");
+    }
+  } else if (month()==11) {
+    Serial.print("it is ");
+    Serial.print(monthStr(month()));
+    Serial.println("tricky DST");
+    if (day()>7) {
+      Serial.println("too late, no DST");
+      return 0;
+    } else {
+      Serial.println("really tricky DST - code more");
+    }   
+  } else {
+    Serial.println("easy not DST");
+    return 0;
+  }
 }
 
 /*-------- NTP code ----------*/
