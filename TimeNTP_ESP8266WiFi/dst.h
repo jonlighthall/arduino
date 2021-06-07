@@ -30,11 +30,11 @@ int isDST() {
         } else if (hour()==2) {
           Serial.println();
           Serial.println("--------------------------------------");
-          Serial.println("Happy DST!");
+          Serial.println("Hello DST!");
           Serial.println("--------------------------------------");
           return 1;
         } else {
-n          Serial.println("DST");
+          Serial.println("DST");
           return 1;
         }
       } else {
@@ -44,7 +44,7 @@ n          Serial.println("DST");
       }
     }
   } else if (month()==11) {
-n    char buff[50];
+    char buff[50];
     sprintf(buff,"It is %s %d, %d, tricky: ",monthStr(month()),day(),year());
     Serial.print(buff);
     if (day()>7) {
