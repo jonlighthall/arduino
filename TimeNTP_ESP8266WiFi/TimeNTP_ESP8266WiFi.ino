@@ -39,6 +39,7 @@ void sendNTPpacket(IPAddress &address);
 void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
+  testDST(); 
   delay(250);
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
@@ -59,15 +60,9 @@ void setup() {
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
   setSyncInterval(300);
-/*
-  char* buf;
-  for (int dy=1; dy<32;dy++) {
-  setTime(8,0,0,dy,3,2021);
-  sprintf(buf,"date is%d.%d.%d %d:%d\n",month(),day(),year(),hour(),minute());
-  Serial.print(buf);
-    isDST();
-*/
 }
+
+
 
 time_t prevDisplay = 0; // when the digital clock was displayed
 
