@@ -9,6 +9,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include "credentials.h"
+#include "dst.h"
 
 const char* ssid =  mySSID;         //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
@@ -58,6 +59,14 @@ void setup() {
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
   setSyncInterval(300);
+/*
+  char* buf;
+  for (int dy=1; dy<32;dy++) {
+  setTime(8,0,0,dy,3,2021);
+  sprintf(buf,"date is%d.%d.%d %d:%d\n",month(),day(),year(),hour(),minute());
+  Serial.print(buf);
+    isDST();
+*/
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -101,7 +110,7 @@ void digitalClockDisplay() {
   Serial.print(monthStr(month()));
   Serial.print(monthShortStr(month()));
   isDST();
-  Serial.println();
+  //Serial.println();
 }
 
 void printDigits(int digits) {
@@ -112,39 +121,7 @@ void printDigits(int digits) {
   Serial.print(digits);
 }
 
-int isDST() {
-  if (month()>3 && month()<11) {
-    Serial.println("easy DST");
-    return 1;
-  } else if (month()==3) {
-    Serial.print("it is ");
-    Serial.print(monthStr(month()));
-    Serial.println("tricky DST");
-    if (day()<8) {
-      Serial.println("too early, no DST");
-      return 0;
-    } else if (day()>14) {
-      Serial.println("too late, no DST");
-      return 1;
-    
-    } else {
-      Serial.println("really tricky DST - code more");
-    }
-  } else if (month()==11) {
-    Serial.print("it is ");
-    Serial.print(monthStr(month()));
-    Serial.println("tricky DST");
-    if (day()>7) {
-      Serial.println("too late, no DST");
-      return 0;
-    } else {
-      Serial.println("really tricky DST - code more");
-    }   
-  } else {
-    Serial.println("easy not DST");
-    return 0;
-  }
-}
+
 
 /*-------- NTP code ----------*/
 
