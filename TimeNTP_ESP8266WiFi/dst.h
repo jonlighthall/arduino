@@ -1,89 +1,132 @@
-int isDST() {
+int isDST(int debug=0) {
+  // first, test if we're in DST
   if (month()>3 && month()<11) {
-    Serial.println("easy: DST");
+    if (debug)
+      Serial.println("easy: DST");
     return 1;
   } else if (month()==3) {
+    // next, test in March
     char buff[50];
-    sprintf(buff,"It is %s %d, %d, tricky: ",monthStr(month()),day(),year());
-    Serial.print(buff); 
+    if (debug) {
+      sprintf(buff,"It is %s %d, %d, tricky: ",monthStr(month()),day(),year());
+      Serial.print(buff); 
+    }
     if (day()<8) {
-      Serial.println("case 1: too early, NO DST");
+      if (debug)
+        Serial.println("case 1: too early, NO DST");
       return 0;
     } else if (day()>14) {
-      Serial.println("case 2: too late, DST");
+      if (debug)
+        Serial.println("case 2: too late, DST");
       return 1;   
     } else {
-      Serial.print(" case 3: needs calculating: ");
+      if (debug)
+        Serial.print(" case 3: needs calculating: ");
       int daytest=day()-(weekday()+6);
-      sprintf(buff,"day test = %d ",daytest);
-      Serial.print(buff);     
+      if (debug) {
+        sprintf(buff,"day test = %d ",daytest);
+        Serial.print(buff);     
+      }
       if (daytest>0 && weekday()>1) {
-	Serial.print("case 3A : after second Sunday: DST ");
-	Serial.println(dayStr(weekday()));
+	if (debug) {
+	  Serial.print("case 3A : after second Sunday: DST ");
+	  Serial.println(dayStr(weekday()));
+	}
 	return 1;       
       } else if (weekday()==1) {
-        Serial.print("case 3B: date change day! ");
+        if (debug)
+          Serial.print("case 3B: date change day! ");
         if (hour()<2) {
-          Serial.print("wee morning: ");
-          Serial.println("NO DST");
+	  if (debug) {
+
+	    Serial.print("wee morning: ");
+	    Serial.println("NO DST");
+	  }
           return 0;
         } else if (hour()==2) {
-          Serial.println();
-          Serial.println("--------------------------------------");
-          Serial.println("Hello DST!");
-          Serial.println("--------------------------------------");
+	  if (debug) {
+
+	    Serial.println();
+	    Serial.println("--------------------------------------");
+	    Serial.println("Hello DST!");
+	    Serial.println("--------------------------------------");
+	  }
           return 1;
         } else {
-          Serial.println("DST");
+	  if (debug)
+	    Serial.println("DST");
           return 1;
         }
       } else {
-        Serial.print("case 3C: still too early: NO DST ");
-        Serial.println(dayStr(weekday()));
+	if (debug) {
+
+	  Serial.print("case 3C: still too early: NO DST ");
+	  Serial.println(dayStr(weekday()));
+	}
         return 0;
       }
     }
   } else if (month()==11) {
     char buff[50];
-    sprintf(buff,"It is %s %d, %d, tricky: ",monthStr(month()),day(),year());
-    Serial.print(buff);
+    if (debug) {
+
+      sprintf(buff,"It is %s %d, %d, tricky: ",monthStr(month()),day(),year());
+      Serial.print(buff);
+    }
     if (day()>7) {
-      Serial.println ("case 1: too late: NO DST");
+      if (debug)
+	Serial.println ("case 1: too late: NO DST");
       return 0;
     } else {
-      Serial.println("case 2: needs calulating: ");
+      if (debug)
+	Serial.println("case 2: needs calulating: ");
       int daytest=day()-(weekday()-1);
-      sprintf(buff,"day test = %d ",daytest);
-      Serial.print(buff);     
+      if (debug) {
+	sprintf(buff,"day test = %d ",daytest);
+	Serial.print(buff);  
+      }   
       if (daytest>0 && weekday()>1) {
-	Serial.print("case 3A : after first Sunday: NO DST ");
-	Serial.println(dayStr(weekday()));
+	if (debug) {
+
+	  Serial.print("case 3A : after first Sunday: NO DST ");
+	  Serial.println(dayStr(weekday()));
+	}
 	return 0;       
       } else if (weekday()==1) {
-	Serial.print("case 3B: date change day! ");
+	if (debug)
+	  Serial.print("case 3B: date change day! ");
 	if (hour()<2) {
-	  Serial.print("wee morning: ");
-	  Serial.println("DST");
+	  if (debug) {
+
+	    Serial.print("wee morning: ");
+	    Serial.println("DST");
+	  }
 	  return 1;
 	} else if (hour()==2) {
-	  Serial.println();
-	  Serial.println("--------------------------------------");
-	  Serial.println("Goodbye DST!");
-	  Serial.println("--------------------------------------");
+	  if (debug) {
+	    Serial.println();
+	    Serial.println("--------------------------------------");
+	    Serial.println("Goodbye DST!");
+	    Serial.println("--------------------------------------");
+	  }
 	  return 0;
 	} else {
-	  Serial.println("NO DST");
+	  if (debug)
+	    Serial.println("NO DST");
 	  return 0;
 	}
       }
       else {
-        Serial.print("case 3C: still too early: DST ");
-        Serial.println(dayStr(weekday()));
+	if (debug) {
+	  Serial.print("case 3C: still too early: DST ");
+	  Serial.println(dayStr(weekday()));
+	}
         return 1;
       }
     }   
   } else {
-    Serial.println("easy: NO DST");
+    if (debug)
+      Serial.println("easy: NO DST");
     return 0;
   }
 }
