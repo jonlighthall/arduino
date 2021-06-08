@@ -11,7 +11,7 @@
 #include "credentials.h"
 #include "dst.h"
 
-const char* ssid =  mySSID;         //from credentials.h file
+const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
 
 // NTP Servers:
@@ -42,7 +42,8 @@ void sendNTPpacket(IPAddress &address);
 void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  //testDST(); 
+  delay(1000);
+  testDST(); 
   delay(250);
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
@@ -62,7 +63,7 @@ void setup() {
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
-  setSyncInterval(5);
+  setSyncInterval(5); // refresh rate in seconds
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -72,9 +73,6 @@ void loop() {
     if (now() != prevDisplay) { //update the display only if time has changed
       prevDisplay = now();
       digitalClockDisplay();
-      //delay(3000);
-      Serial.print("do_DST = ");
-      Serial.println(do_DST);        
       if (do_DST) {      
         SetTimeZone = timeZone + isDST();
       } else {
@@ -112,8 +110,8 @@ void digitalClockDisplay() {
   Serial.print(dayShortStr(weekday()));
   Serial.print(monthStr(month()));
   Serial.print(monthShortStr(month()));
-  isDST();
-  //Serial.println();
+  isDST(1);
+  Serial.println();
 }
 
 void printDigits(int digits) {
