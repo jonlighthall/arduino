@@ -42,10 +42,10 @@ void sendNTPpacket(IPAddress &address);
 void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  delay(1000);
-  testDST(); 
+  //delay(1000);
+  //testDST(); 
   delay(250);
-  Serial.println("TimeNTP Example");
+  Serial.println("\nTimeNTP Example");
   Serial.print("Connecting to ");
   Serial.print(ssid);
   WiFi.begin(ssid, pass);
@@ -63,21 +63,42 @@ void setup() {
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
-  setSyncInterval(5); // refresh rate in seconds
+  setSyncInterval(15); // refresh rate in seconds
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
 
+uint32_t bufferTime;
+uint32_t printTime;
 void loop() {
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
+      char buff[50];
+      //   for (int i=0;i<100;i++) {
+      //  Serial.println(now());
+      //   }
+      /*  uint32_t tnow=now();
+	  Serial.println(tnow);
+	  Serial.println(prevDisplay);
+	  uint32_t elap=tnow-prevDisplay;
+	  Serial.println(elap);       
+        
+	  sprintf(buff,"prev = %d, now = %u, diff = %u\n",prevDisplay,now(),elap);
+	  Serial.print(buff);
+      */
       prevDisplay = now();
-      digitalClockDisplay();
       if (do_DST) {      
         SetTimeZone = timeZone + isDST();
       } else {
         SetTimeZone = timeZone;
       }
+      Serial.print("buffer time = ");
+      Serial.println(bufferTime);
+      printTime = millis();
+      Serial.print("print time = ");
+      Serial.println(printTime);
+      digitalClockDisplay();
+      Serial.println(millis());
     }
   }
 }
@@ -146,12 +167,25 @@ time_t getNtpTime() {
     if (size >= NTP_PACKET_SIZE) {
       Serial.println("Receive NTP Response");
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
+      bufferTime = millis();
       unsigned long secsSince1900;
       // convert four bytes starting at location 40 to a long integer
       secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
       secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
       secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
       secsSince1900 |= (unsigned long)packetBuffer[43];
+      // convert four bytes starting at location 44 to a long integer
+      unsigned long frac;
+      frac  = (unsigned long) packetBuffer[44] << 24;
+      frac |= (unsigned long) packetBuffer[45] << 16;
+      frac |= (unsigned long) packetBuffer[46] <<  8;
+      frac |= (unsigned long) packetBuffer[47];
+      
+      // convert the fractional part to milliseconds
+      uint16_t mssec = ((uint64_t) frac * 1000) >> 32;
+      Serial.print("ms1 = ");
+      Serial.println(mssec); 
+      
       return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
     }
   }
