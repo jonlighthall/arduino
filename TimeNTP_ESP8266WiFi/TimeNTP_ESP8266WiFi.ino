@@ -63,7 +63,29 @@ void setup() {
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
-  setSyncInterval(5); // refresh rate in seconds
+
+  if (timeStatus() == timeNotSet)
+    setSyncInterval(0);
+  while (timeStatus() == timeNotSet) {
+    ;
+  }
+  setSyncInterval(10);
+
+  if (do_DST) {
+    digitalClockDisplay();
+    Serial.print("checking DST status... ");
+    SetTimeZone = timeZone + isDST(1);
+    Serial.println();
+    if (isDST() > 0) {
+      setSyncInterval(1);
+      delay(1001);
+      digitalClockDisplay();
+    }
+  } else {
+    SetTimeZone = timeZone;
+  }
+  setSyncInterval(10); // refresh rate in seconds
+  Serial.println("starting...");
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -71,7 +93,7 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 uint32_t bufferTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
-int debug = 1;
+int debug = 0;
 void loop() {
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
@@ -96,7 +118,11 @@ void loop() {
 
       // check DST
       if (do_DST) {
-        SetTimeZone = timeZone + isDST();
+        if (debug > 0)
+          Serial.print("checking DST status... ");
+        SetTimeZone = timeZone + isDST(debug);
+        if (debug > 0)
+          Serial.println();
       } else {
         SetTimeZone = timeZone;
       }
