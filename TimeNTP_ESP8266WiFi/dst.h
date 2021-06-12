@@ -1,11 +1,10 @@
-int isDST(int ddebug = 0); // set default function value
+int isDST(int default_debugDST = 0); // set default function value
 /*
- * Set debug level
+ * Debug level
  * 0 - No debugging: isDST() returns 1 for DST and 0 for NOT DST
  * 1 - Print DST string only: isDST() prints "DST" or "NOT DST"
  * 2 - Print all debug
  */
-int debugDST=1;
 
 int isDST(int debugDST) {
   char buff[50];
@@ -161,13 +160,13 @@ int isDST(int debugDST) {
   }
 }
 
-bool testTime(int hr, int dy, int mo, int yr) {
+bool testTime(int hr, int dy, int mo, int yr, int dbg) {
   setTime(hr,0,0,dy,mo,yr);
   char buff[50];
   sprintf(buff,"date is %02d.%02d.%4d %02d:%02d ",month(),day(),year(),hour(),minute());
   Serial.print(buff);
-  sprintf(buff,": isDST() = %d\n",isDST(debugDST));
-  if (debugDST>1) {
+  sprintf(buff,": isDST() = %d\n",isDST(dbg));
+  if (dbg>1) {
     Serial.print(buff);
     return isDST();
   }
@@ -175,27 +174,31 @@ bool testTime(int hr, int dy, int mo, int yr) {
     Serial.println();
 }
 
-void testDST() {
+void testDST(int default_test_debugDST = 0); // set default function value
+
+void testDST(int test_debugDST) {
   char buff[50];
   sprintf(buff,"\nTesting DST function...\n");
   Serial.print(buff);
-  for (int yr = 2016; yr < 2025; yr++) {
+  sprintf(buff,"test DST debug = %d\n",test_debugDST);
+  Serial.print(buff);
+  for (int yr = 2020; yr < 2021; yr++) {
     // Test March
     for (int dy = 7; dy < 16; dy++) {
       sprintf(buff,"dy = %d\n",dy);
-      if (debugDST>1)
+      if (test_debugDST>1)
         Serial.print(buff);
       for (int hr = 1; hr < 4; hr++) {
-	testTime(hr,dy,3,yr);
+	testTime(hr,dy,3,yr,test_debugDST);
       }
     }    
     // Test November
     for (int dy = 1; dy < 9; dy++) {
       sprintf(buff,"dy = %d\n",dy);
-      if (debugDST>1)
+      if (test_debugDST>1)
 	Serial.print(buff);
       for (int hr = 1; hr < 4; hr++) {
-	testTime(hr,dy,11,yr);
+	testTime(hr,dy,11,yr,test_debugDST);
       }
     }
   }   
