@@ -71,25 +71,27 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 uint32_t bufferTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
+int debug = 1;
 void loop() {
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
       char buff[50];
 
-      // check time in seconds
-      uint32_t tprev = prevDisplay;
-      sprintf(buff, "prev = %d\n", tprev);
-      Serial.print(buff);
-      uint32_t tnow = now();
-      sprintf(buff, " now = %d\n", tnow);
-      Serial.print(buff);
-      uint32_t elap = tnow - prevDisplay;
-      sprintf(buff, "elap = %d\n", elap);
-      Serial.print(buff);
+      if (debug > 1) {
+        // check time in seconds
+        uint32_t tprev = prevDisplay;
+        sprintf(buff, "prev = %d\n", tprev);
+        Serial.print(buff);
+        uint32_t tnow = now();
+        sprintf(buff, " now = %d\n", tnow);
+        Serial.print(buff);
+        uint32_t elap = tnow - prevDisplay;
+        sprintf(buff, "elap = %d\n", elap);
+        Serial.print(buff);
 
-      sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
-      Serial.print(buff);
-
+        sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
+        Serial.print(buff);
+      }
       prevDisplay = now();
 
       // check DST
@@ -100,47 +102,52 @@ void loop() {
       }
 
       // check time in milliseconds
-      Serial.print("buffer time = ");
-      Serial.println(bufferTime);
       uint32_t printTime = millis();
-      Serial.print(" print time = ");
-      Serial.println(printTime);
       int delayTime = printTime - bufferTime;
-      Serial.print(" delay time = ");
-      Serial.println(delayTime);
-      sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
-      Serial.print(buff);
+      if (debug > 1) {
+        Serial.print("buffer time = ");
+        Serial.println(bufferTime);
+        Serial.print(" print time = ");
+        Serial.println(printTime);
+        Serial.print(" delay time = ");
+        Serial.println(delayTime);
+        sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
+        Serial.print(buff);
+      }
 
       // wait until top of second to print time
-      Serial.println(serdiv);
       if ((delayTime < 1000) && (delayTime > 0)) {
         int totalDelay = fracTime + delayTime;
-        sprintf(buff, "total delay = %d\n", totalDelay );
-        Serial.print(buff);
-
         int setDelay = totalDelay % 1000;
-        sprintf(buff, "  set delay = %d\n", setDelay  );
-        Serial.print(buff);
-
         int offsetTime = 1000 - setDelay;
-        Serial.print("offset time = ");
-        Serial.println(offsetTime);
-
-        sprintf(buff, "delaying display by %d...\n", offsetTime);
-        Serial.print(buff);
+        if (debug > 1) {
+          Serial.println(serdiv);
+          sprintf(buff, "total delay = %d\n", totalDelay );
+          Serial.print(buff);
+          sprintf(buff, "  set delay = %d\n", setDelay  );
+          Serial.print(buff);
+          Serial.print("offset time = ");
+          Serial.println(offsetTime);
+          sprintf(buff, "delaying display by %d...\n", offsetTime);
+          Serial.print(buff);
+          Serial.println(serdiv);
+        }
         delay(offsetTime);
       }
       else {
-        Serial.println("not first");
-        int delayError = delayTime % 1000;
-        sprintf(buff, "delay error = %d\n", delayError);
-        Serial.print(buff);
+        if (debug > 1) {
+          int delayError = delayTime % 1000;
+          Serial.println(serdiv);
+          sprintf(buff, "delay error = %d\n", delayError);
+          Serial.print(buff);
+          Serial.println(serdiv);
+        }
       }
-      Serial.println(serdiv);
-
       digitalClockDisplay();
-      Serial.print("end of loop, after deiplay: millis = ");
-      Serial.println(millis());
+      if (debug > 1) {
+        Serial.print("end of loop, after deiplay: millis = ");
+        Serial.println(millis());
+      }
     }
   }
 }
@@ -226,8 +233,10 @@ time_t getNtpTime() {
 
       // convert the fractional part to milliseconds
       fracTime = ((uint64_t) frac * 1000) >> 32;
-      Serial.print("fracTime = ");
-      Serial.println(fracTime);
+      if (debug > 1) {
+        Serial.print("fracTime = ");
+        Serial.println(fracTime);
+      }
       Serial.println(serdiv);
       return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
     }
