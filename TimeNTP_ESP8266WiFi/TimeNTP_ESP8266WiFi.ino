@@ -1,9 +1,9 @@
 /*
- * TimeNTP_ESP8266WiFi.ino
- * Example showing time sync to NTP time source
- *
- * This sketch uses the ESP8266WiFi library
- */
+   TimeNTP_ESP8266WiFi.ino
+   Example showing time sync to NTP time source
+
+   This sketch uses the ESP8266WiFi library
+*/
 
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
@@ -29,7 +29,7 @@ const int timeZone = -6; // CST
 //const int timeZone = -8; // PST
 
 int SetTimeZone = timeZone;
-const bool do_DST=true;
+const bool do_DST = true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -43,7 +43,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   //delay(1000);
-  //testDST(); 
+  //testDST();
   delay(250);
   Serial.println("\nTimeNTP Example");
   Serial.print("Connecting to ");
@@ -63,41 +63,83 @@ void setup() {
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
-  setSyncInterval(15); // refresh rate in seconds
+  setSyncInterval(5); // refresh rate in seconds
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
 
 uint32_t bufferTime;
-uint32_t printTime;
+uint32_t fracTime;
+char serdiv[] = "----------------------------"; // serial print divider
 void loop() {
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
       char buff[50];
-      //   for (int i=0;i<100;i++) {
-      //  Serial.println(now());
-      //   }
-      /*  uint32_t tnow=now();
-	  Serial.println(tnow);
-	  Serial.println(prevDisplay);
-	  uint32_t elap=tnow-prevDisplay;
-	  Serial.println(elap);       
-        
-	  sprintf(buff,"prev = %d, now = %u, diff = %u\n",prevDisplay,now(),elap);
-	  Serial.print(buff);
-      */
+
+      // check time in seconds
+      uint32_t tprev = prevDisplay;
+      sprintf(buff, "prev = %d\n", tprev);
+      Serial.print(buff);
+      uint32_t tnow = now();
+      sprintf(buff, " now = %d\n", tnow);
+      Serial.print(buff);
+      uint32_t elap = tnow - prevDisplay;
+      sprintf(buff, "elap = %d\n", elap);
+      Serial.print(buff);
+
+      sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
+      Serial.print(buff);
+
       prevDisplay = now();
-      if (do_DST) {      
+
+      // check DST
+      if (do_DST) {
         SetTimeZone = timeZone + isDST();
       } else {
         SetTimeZone = timeZone;
       }
+
+      // check time in milliseconds
       Serial.print("buffer time = ");
       Serial.println(bufferTime);
-      printTime = millis();
-      Serial.print("print time = ");
+      uint32_t printTime = millis();
+      Serial.print(" print time = ");
       Serial.println(printTime);
+      int delayTime = printTime - bufferTime;
+      Serial.print(" delay time = ");
+      Serial.println(delayTime);
+      sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
+      Serial.print(buff);
+
+      // wait until top of second to print time
+      Serial.println(serdiv);
+      if ((delayTime < 1000) && (delayTime > 0)) {
+        int totalDelay = fracTime + delayTime;
+        sprintf(buff, "total delay = %d\n", totalDelay );
+        Serial.print(buff);
+
+        int setDelay = totalDelay % 1000;
+        sprintf(buff, "  set delay = %d\n", setDelay  );
+        Serial.print(buff);
+
+        int offsetTime = 1000 - setDelay;
+        Serial.print("offset time = ");
+        Serial.println(offsetTime);
+
+        sprintf(buff, "delaying display by %d...\n", offsetTime);
+        Serial.print(buff);
+        delay(offsetTime);
+      }
+      else {
+        Serial.println("not first");
+        int delayError = delayTime % 1000;
+        sprintf(buff, "delay error = %d\n", delayError);
+        Serial.print(buff);
+      }
+      Serial.println(serdiv);
+
       digitalClockDisplay();
+      Serial.print("end of loop, after deiplay: millis = ");
       Serial.println(millis());
     }
   }
@@ -114,7 +156,7 @@ void digitalClockDisplay() {
   Serial.print(month());
   Serial.print(".");
   Serial.print(year());
-  if (isAM()==1) {
+  if (isAM() == 1) {
     Serial.print("am");
   }
   else {
@@ -152,6 +194,7 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
@@ -180,21 +223,22 @@ time_t getNtpTime() {
       frac |= (unsigned long) packetBuffer[45] << 16;
       frac |= (unsigned long) packetBuffer[46] <<  8;
       frac |= (unsigned long) packetBuffer[47];
-      
+
       // convert the fractional part to milliseconds
-      uint16_t mssec = ((uint64_t) frac * 1000) >> 32;
-      Serial.print("ms1 = ");
-      Serial.println(mssec); 
-      
+      fracTime = ((uint64_t) frac * 1000) >> 32;
+      Serial.print("fracTime = ");
+      Serial.println(fracTime);
+      Serial.println(serdiv);
       return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
     }
   }
   Serial.println("No NTP Response :-(");
+  Serial.println(serdiv);
   return 0; // return 0 if unable to get the time
 }
 
 // send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress &address) {
+void sendNTPpacket(IPAddress & address) {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
