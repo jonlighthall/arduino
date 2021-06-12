@@ -165,16 +165,19 @@ bool testTime(int hr, int dy, int mo, int yr, int dbg) {
   char buff[50];
   sprintf(buff,"date is %02d.%02d.%4d %02d:%02d ",month(),day(),year(),hour(),minute());
   Serial.print(buff);
+  sprintf(buff,"(test time debug = %d) ",dbg);
+  if (dbg>1)
+  Serial.print(buff);
   sprintf(buff,": isDST() = %d\n",isDST(dbg));
   if (dbg>1) {
     Serial.print(buff);
-    return isDST();
-  }
-  else
+  } else {
     Serial.println();
+  }
+   return isDST();
 }
 
-void testDST(int default_test_debugDST = 0); // set default function value
+void testDST(int default_test_debugDST = 1); // set default function value
 
 void testDST(int test_debugDST) {
   char buff[50];
