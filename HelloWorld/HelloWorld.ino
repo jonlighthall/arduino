@@ -44,7 +44,7 @@ void setup(void) {
 
   // get text dimensions
   int textwid = u8g2.getStrWidth(buff);
-  int texthei = u8g2.getMaxCharHeight();
+  int texthei = u8g2.getAscent();
 
   // set text position
   int xpos = (dispwid - textwid) / 2;
@@ -54,6 +54,10 @@ void setup(void) {
   u8g2.sendBuffer();			// transfer internal memory to the display
   delay(1000);
   
+  sprintf(buff, "text dimensions are %d x %d", textwid, texthei);
+  Serial.println(buff);
+  sprintf(buff, "text position is %d x %d", xpos, ypos);
+  Serial.println(buff);
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
   Serial.println(buff);
   sprintf(buff, "disp is %d x %d",dispwid,disphei);
@@ -71,12 +75,17 @@ void loop(void) {
   sprintf(buff, "12:00");
   Serial.println(buff);
   int textwid = u8g2.getStrWidth(buff);
-  int texthei = u8g2.getMaxCharHeight();
+  int texthei =  u8g2.getAscent();
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
   u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();         
-  delay(1000);  
+  delay(1000);
+  sprintf(buff, "text dimensions are %d x %d", textwid, texthei);
+  Serial.println(buff);
+  sprintf(buff, "text position is %d x %d", xpos, ypos);
+  Serial.println(buff);
+  
   u8g2.clearBuffer();        
   sprintf(buff, "12 00");
   Serial.println(buff);
