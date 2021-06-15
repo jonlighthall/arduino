@@ -30,19 +30,28 @@ void setup(void) {
   u8g2.begin();
   u8g2.clearBuffer();					// clear the internal memory
   u8g2.setFont(u8g2_font_timB08_tr);	// choose a suitable font
-  u8g2.drawStr(0,10,"Hello World!");	// write something to the internal memory
-  u8g2.sendBuffer();					// transfer internal memory to the display
-  delay(1000);  
-}
+  char buff[64];
+  sprintf(buff, "Hello World!");
+  Serial.begin(9600);
+  Serial.println(buff);
+  u8g2.drawStr(0,10,buff);        	// write something to the internal memory
+  u8g2.sendBuffer();			// transfer internal memory to the display
+  delay(1000);
+  }
 
 void loop(void) {
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_profont22_tn);
-  u8g2.drawStr(1,18,"12:00");
+  char buff[64];
+  sprintf(buff, "12:00");
+  Serial.println(buff);
+  u8g2.drawStr(1,18,buff);
   u8g2.sendBuffer();         
   delay(1000);  
   u8g2.clearBuffer();        
-  u8g2.drawStr(1,18,"12 00");
+  sprintf(buff, "12 00");
+  Serial.println(buff);
+  u8g2.drawStr(1,18,buff);
   u8g2.sendBuffer();         
   delay(1000);    
 }
