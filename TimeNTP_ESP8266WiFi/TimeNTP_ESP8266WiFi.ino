@@ -64,20 +64,21 @@ void setup() {
   Serial.println("waiting for sync");
   setSyncProvider(getNtpTime);
 
+  // wait for time to be set
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
     ;
   }
-  setSyncInterval(10);
+  setSyncInterval(1);
+  Serial.println("sync complete");
 
   if (do_DST) {
-    digitalClockDisplay();
+    SerialClockDisplay();
     Serial.print("checking DST status... ");
     SetTimeZone = timeZone + isDST(1);
     Serial.println();
     if (isDST() > 0) {
-      setSyncInterval(1);
       delay(1001);
       digitalClockDisplay();
     }
