@@ -10,6 +10,8 @@
 #include <WiFiUdp.h>
 #include "credentials.h"
 #include "dst.h"
+//#include <U8g2lib.h>
+//#include <Wire.h>
 
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
@@ -36,12 +38,24 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 time_t getNtpTime();
 void serialClockDisplay();
+void OLEDClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
+
+//U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
+//int dispwid;
+//int disphei;
 
 void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
+  //  u8g2.begin();
+  //  dispwid = u8g2.getDisplayWidth();
+  //  disphei = u8g2.getDisplayHeight();
+  //  char buff[50];
+  //  sprintf(buff, "display width is %d", dispwid);
+  //  Serial.println(buff);
+
   //delay(1000);
   //testDST();
   delay(250);
@@ -74,7 +88,7 @@ void setup() {
   Serial.println("sync complete");
 
   if (do_DST) {
-    SerialClockDisplay();
+    serialClockDisplay();
     Serial.print("checking DST status... ");
     SetTimeZone = timeZone + isDST(1);
     Serial.println();
@@ -171,6 +185,7 @@ void loop() {
         }
       }
       serialClockDisplay();
+      OLEDClockDisplay();
       if (debug > 1) {
         Serial.print("end of loop, after deiplay: millis = ");
         Serial.println(millis());
@@ -218,18 +233,18 @@ void printDigits(int digits) {
     Serial.print('0');
   Serial.print(digits);
 }
-//
-//void OLEDClockDisplay() {
-//  //  u8g2.clearBuffer();
-//  //  u8g2.setFont(u8g2_font_profont15_tn);
-//  char buff[dispwid];
-//  sprintf(buff, "%02d:02d:02d", hour(), minute(), second());
-//  Serial.println(buff);
-//  //  int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-//  //  int ypos = u8g2.getMaxCharHeight();
-//  //  u8g2.drawStr(xpos, ypos, buff);
-//  //  u8g2.sendBuffer();
-//}
+
+void OLEDClockDisplay() {
+  //  u8g2.clearBuffer();
+  //  u8g2.setFont(u8g2_font_profont15_tn);
+  char buff[64];
+  sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+  Serial.println(buff);
+  //  int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  //  int ypos = u8g2.getMaxCharHeight();
+  //  u8g2.drawStr(xpos, ypos, buff);
+  //  u8g2.sendBuffer();
+}
 
 /*-------- NTP code ----------*/
 
