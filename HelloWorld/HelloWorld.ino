@@ -29,20 +29,20 @@ U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // Ea
 void setup(void) {
   u8g2.begin();
   u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
+  u8g2.setFont(u8g2_font_timB08_tr);	// choose a suitable font
   u8g2.drawStr(0,10,"Hello World!");	// write something to the internal memory
   u8g2.sendBuffer();					// transfer internal memory to the display
   delay(1000);  
 }
 
 void loop(void) {
-  u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_profont22_tn);  // choose a suitable font
-  u8g2.drawStr(1,18,"12:00");  // write something to the internal memory
-  u8g2.sendBuffer();          // transfer internal memory to the display
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_profont22_tn);
+  u8g2.drawStr(1,18,"12:00");
+  u8g2.sendBuffer();         
   delay(1000);  
-  u8g2.clearBuffer();          // clear the internal memory
-  u8g2.drawStr(1,18,"12 00");  // write something to the internal memory
-  u8g2.sendBuffer();          // transfer internal memory 
+  u8g2.clearBuffer();        
+  u8g2.drawStr(1,18,"12 00");
+  u8g2.sendBuffer();         
   delay(1000);    
 }
