@@ -70,13 +70,17 @@ void loop(void) {
   char buff[dispwid];
   sprintf(buff, "12:00");
   Serial.println(buff);
-  u8g2.drawStr(1,18,buff);
+  int textwid = u8g2.getStrWidth(buff);
+  int texthei = u8g2.getMaxCharHeight();
+  int xpos = (dispwid - textwid) / 2;
+  int ypos = texthei;
+  u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();         
   delay(1000);  
   u8g2.clearBuffer();        
   sprintf(buff, "12 00");
   Serial.println(buff);
-  u8g2.drawStr(1,18,buff);
+  u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();         
   delay(1000);    
 }
