@@ -35,7 +35,7 @@ WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 time_t getNtpTime();
-void digitalClockDisplay();
+void serialClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 
@@ -80,7 +80,7 @@ void setup() {
     Serial.println();
     if (isDST() > 0) {
       delay(1001);
-      digitalClockDisplay();
+      serialClockDisplay();
     }
   } else {
     SetTimeZone = timeZone;
@@ -170,7 +170,7 @@ void loop() {
           Serial.println(serdiv);
         }
       }
-      digitalClockDisplay();
+      serialClockDisplay();
       if (debug > 1) {
         Serial.print("end of loop, after deiplay: millis = ");
         Serial.println(millis());
@@ -179,7 +179,7 @@ void loop() {
   }
 }
 
-void digitalClockDisplay() {
+void serialClockDisplay() {
   // digital clock display of the time
   Serial.print(hour());
   printDigits(minute());
@@ -218,6 +218,18 @@ void printDigits(int digits) {
     Serial.print('0');
   Serial.print(digits);
 }
+//
+//void OLEDClockDisplay() {
+//  //  u8g2.clearBuffer();
+//  //  u8g2.setFont(u8g2_font_profont15_tn);
+//  char buff[dispwid];
+//  sprintf(buff, "%02d:02d:02d", hour(), minute(), second());
+//  Serial.println(buff);
+//  //  int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+//  //  int ypos = u8g2.getMaxCharHeight();
+//  //  u8g2.drawStr(xpos, ypos, buff);
+//  //  u8g2.sendBuffer();
+//}
 
 /*-------- NTP code ----------*/
 
