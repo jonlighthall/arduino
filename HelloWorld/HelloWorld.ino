@@ -86,10 +86,15 @@ void loop(void) {
   sprintf(buff, "text position is %d x %d", xpos, ypos);
   Serial.println(buff);
   
-  u8g2.clearBuffer();        
-  sprintf(buff, "12 00");
+  // write seconds
+  u8g2.setFont(u8g2_font_profont15_tn);
+  sprintf(buff, "12:00:00");
   Serial.println(buff);
+  textwid = u8g2.getStrWidth(buff);
+  texthei =  u8g2.getAscent();
+  xpos = (dispwid - textwid) / 2;
+  ypos += texthei + 1;
   u8g2.drawStr(xpos,ypos,buff);
-  u8g2.sendBuffer();         
-  delay(1000);    
+  u8g2.sendBuffer();
+  delay(1000);  
 }
