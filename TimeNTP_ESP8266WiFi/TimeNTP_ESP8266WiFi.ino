@@ -8,10 +8,19 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+
+#include <Arduino.h>
+#include <U8g2lib.h>
+
+#ifdef U8X8_HAVE_HW_SPI
+#include <SPI.h>
+#endif
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif
+
 #include "credentials.h"
 #include "dst.h"
-//#include <U8g2lib.h>
-//#include <Wire.h>
 
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
@@ -42,24 +51,56 @@ void OLEDClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 
-//U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
-//int dispwid;
-//int disphei;
+// Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
+U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
+int dispwid;
+int disphei;
+
+#define DELAY 250
 
 void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  //  u8g2.begin();
-  //  dispwid = u8g2.getDisplayWidth();
-  //  disphei = u8g2.getDisplayHeight();
-  //  char buff[50];
-  //  sprintf(buff, "display width is %d", dispwid);
-  //  Serial.println(buff);
-
-  //delay(1000);
+  //delay(DELAY);
   //testDST();
-  delay(250);
-  Serial.println("\nTimeNTP Example");
+  delay(DELAY);
+  Serial.println();
+  char buff[64];
+  sprintf(buff, "\nTimeNTP Example");
+  Serial.println(buff);
+  
+  // display settings
+  u8g2.begin();
+  u8g2.clearBuffer();			// clear the internal memory
+
+  // get display dimensions
+  dispwid = u8g2.getDisplayWidth();
+  disphei = u8g2.getDisplayHeight();
+
+  u8g2.setFont(u8g2_font_timB08_tr);	// choose a suitable font
+  sprintf(buff, "NTP Time");
+  // get text dimensions
+  int textwid = u8g2.getStrWidth(buff);
+  int texthei = u8g2.getAscent();
+
+  // set text position
+  int xpos = (dispwid - textwid) / 2;
+  int ypos = texthei;
+  
+  u8g2.drawStr(xpos,ypos,buff);        	// write something to the internal memory
+  u8g2.sendBuffer();			// transfer internal memory to the display
+  delay(DELAY);
+  
+  sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
+  Serial.println(buff);
+  sprintf(buff, "disp is %d x %d",dispwid,disphei);
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos = 2*texthei+1;
+  u8g2.drawStr(xpos,ypos,buff);
+  u8g2.sendBuffer();      
+  delay(DELAY);
+ 
+  // Wi-Fi settings
   Serial.print("Connecting to ");
   Serial.print(ssid);
   WiFi.begin(ssid, pass);
