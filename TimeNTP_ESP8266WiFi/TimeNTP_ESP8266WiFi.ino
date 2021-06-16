@@ -309,6 +309,18 @@ void OLEDClockDisplay() {
   int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   int ypos = u8g2.getAscent();
   u8g2.drawStr(xpos, ypos, buff);
+
+  // draw seconds bar
+  ypos+=2;
+  for (int i=0;i<second();i++) {
+    u8g2.drawPixel(i+1,ypos);
+  }
+  for (int i=0;i<second();i=i+5) {
+    u8g2.drawPixel(i+1,ypos+1);
+  }
+  for (int i=0;i<second();i=i+15) {
+    u8g2.drawPixel(i+1,ypos+2);
+  }
   u8g2.sendBuffer();
 }
 
