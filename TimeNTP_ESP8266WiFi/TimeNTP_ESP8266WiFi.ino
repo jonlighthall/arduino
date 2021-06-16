@@ -165,7 +165,7 @@ void setup() {
   u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();      
   
-  setSyncInterval(10); // refresh rate in seconds
+  setSyncInterval(300); // refresh rate in seconds
   Serial.println("starting...");
 }
 
@@ -331,6 +331,23 @@ void OLEDClockDisplay() {
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   ypos += u8g2.getAscent() + 2;
   u8g2.drawStr(xpos, ypos, buff);
+  
+  // write day
+  u8g2.setFont(u8g2_font_timB08_tr);
+  sprintf(buff, "%s",dayStr(weekday()));
+  Serial.println(buff);
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos += u8g2.getAscent() + 2;
+  u8g2.drawStr(xpos, ypos, buff);
+  
+  // write date
+  //sprintf(buff, "%s %s %d",dayStr(weekday()),monthStr(month()),day());
+  sprintf(buff, "%s %d",monthStr(month()),day());
+  Serial.println(buff);
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos += u8g2.getAscent() + 1;
+  u8g2.drawStr(xpos, ypos, buff);
+  
   u8g2.sendBuffer();
 }
 
