@@ -301,15 +301,15 @@ void printDigits(int digits) {
 }
 
 void OLEDClockDisplay() {
-  //  u8g2.clearBuffer();
-  //  u8g2.setFont(u8g2_font_profont15_tn);
-  char buff[64];
-  sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_profont22_tn);
+  char buff[dispwid];
+  sprintf(buff, "%02d:%02d", hour(), minute());
   Serial.println(buff);
-  //  int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  //  int ypos = u8g2.getMaxCharHeight();
-  //  u8g2.drawStr(xpos, ypos, buff);
-  //  u8g2.sendBuffer();
+  int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  int ypos = u8g2.getAscent();
+  u8g2.drawStr(xpos, ypos, buff);
+  u8g2.sendBuffer();
 }
 
 /*-------- NTP code ----------*/
