@@ -59,6 +59,9 @@ int disphei;
 #define DELAY 250
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+  
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   //delay(DELAY);
@@ -364,6 +367,7 @@ time_t getNtpTime() {
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0,0,2,2);
   u8g2.sendBuffer();
+  digitalWrite(LED_BUILTIN, LOW); // on
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
@@ -377,8 +381,7 @@ time_t getNtpTime() {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
       Serial.println("Receive NTP Response");
-      u8g2.drawBox(0,dispwid-2,2,2);
-      u8g2.sendBuffer();
+      digitalWrite(LED_BUILTIN, HIGH); // off
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       bufferTime = millis();
       unsigned long secsSince1900;
@@ -406,6 +409,7 @@ time_t getNtpTime() {
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
+  digitalWrite(LED_BUILTIN, HIGH); // off
   return 0; // return 0 if unable to get the time
 }
 
