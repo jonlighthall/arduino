@@ -265,42 +265,18 @@ void loop() {
 
 void serialClockDisplay() {
   // digital clock display of the time
-  Serial.print(hour());
-  printDigits(minute());
-  printDigits(second());
-  Serial.print(" ");
-  Serial.print(day());
-  Serial.print(".");
-  Serial.print(month());
-  Serial.print(".");
-  Serial.print(year());
-  if (isAM() == 1) {
-    Serial.print("am");
-  }
-  else {
-    Serial.print("pm");
-  }
-  Serial.print(" am:");
-  Serial.print(isAM());
-  Serial.print(" pm:");
-  Serial.print(isPM());
+  char buff[128];
+  sprintf(buff, "%02d:%02d:%02d ", hour(), minute(),second());
+  Serial.print(buff);
+  sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
+  Serial.print(buff);
+  sprintf(buff, "%s, %s %d ",dayStr(weekday()),monthStr(month()),day());
+  Serial.print(buff);
+  
   Serial.print(" weekday:");
   Serial.print(weekday());
-  Serial.print(" daystr:");
-  Serial.print(dayStr(weekday()));
-  Serial.print(dayShortStr(weekday()));
-  Serial.print(monthStr(month()));
-  Serial.print(monthShortStr(month()));
   isDST(1);
   Serial.println();
-}
-
-void printDigits(int digits) {
-  // utility for digital clock display: prints preceding colon and leading 0
-  Serial.print(":");
-  if (digits < 10)
-    Serial.print('0');
-  Serial.print(digits);
 }
 
 void OLEDClockDisplay() {
@@ -356,6 +332,14 @@ void OLEDClockDisplay() {
   u8g2.drawStr(xpos, ypos, buff);
   
   u8g2.sendBuffer();
+
+  // set brightness
+  if ((hour()>=20)||(hour()<=6)) {
+    u8g2.setContrast(0);
+  }
+  else {
+    u8g2.setContrast(255);
+  } 
 }
 
 /*-------- NTP code ----------*/
