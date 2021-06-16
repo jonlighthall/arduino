@@ -95,7 +95,7 @@ void setup() {
   Serial.println(buff);
   sprintf(buff, "disp is %d x %d",dispwid,disphei);
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  ypos = 2*texthei+1;
+  ypos += texthei+1;
   u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();      
   delay(DELAY);
@@ -103,6 +103,11 @@ void setup() {
   // Wi-Fi settings
   Serial.print("Connecting to ");
   Serial.print(ssid);
+  sprintf(buff, "Connect...");
+  xpos = 0;
+  ypos += texthei+2;
+  u8g2.drawStr(xpos,ypos,buff);
+  u8g2.sendBuffer();      
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -110,6 +115,10 @@ void setup() {
     Serial.print(".");
   }
   Serial.print("connected\n");
+  sprintf(buff, "OK");
+  xpos = dispwid - u8g2.getStrWidth(buff);
+  u8g2.drawStr(xpos,ypos,buff);
+  u8g2.sendBuffer();      
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
   Serial.println("Starting UDP");
@@ -117,6 +126,11 @@ void setup() {
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
+  sprintf(buff, "NTP sync...");
+  xpos = 0;
+  ypos += texthei+1;
+  u8g2.drawStr(xpos,ypos,buff);
+  u8g2.sendBuffer();
   setSyncProvider(getNtpTime);
 
   // wait for time to be set
@@ -127,6 +141,10 @@ void setup() {
   }
   setSyncInterval(1);
   Serial.println("sync complete");
+  sprintf(buff, "OK");
+  xpos = dispwid - u8g2.getStrWidth(buff);
+  u8g2.drawStr(xpos,ypos,buff);
+  u8g2.sendBuffer();      
 
   if (do_DST) {
     serialClockDisplay();
@@ -140,6 +158,13 @@ void setup() {
   } else {
     SetTimeZone = timeZone;
   }
+  
+  sprintf(buff, "Timezone = %d",SetTimeZone);
+  xpos = dispwid - u8g2.getStrWidth(buff);
+  ypos += texthei+2;
+  u8g2.drawStr(xpos,ypos,buff);
+  u8g2.sendBuffer();      
+  
   setSyncInterval(10); // refresh rate in seconds
   Serial.println("starting...");
 }
