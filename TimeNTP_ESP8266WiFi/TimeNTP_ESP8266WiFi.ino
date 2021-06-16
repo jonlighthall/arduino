@@ -103,7 +103,7 @@ void setup() {
   // Wi-Fi settings
   Serial.print("Connecting to ");
   Serial.print(ssid);
-  sprintf(buff, "Connect...");
+  sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei+2;
   u8g2.drawStr(xpos,ypos,buff);
@@ -165,7 +165,7 @@ void setup() {
   u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();      
   
-  setSyncInterval(300); // refresh rate in seconds
+  setSyncInterval(10); // refresh rate in seconds
   Serial.println("starting...");
 }
 
@@ -362,6 +362,8 @@ time_t getNtpTime() {
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
+  u8g2.drawBox(0,0,2,2);
+  u8g2.sendBuffer();
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
@@ -375,6 +377,8 @@ time_t getNtpTime() {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
       Serial.println("Receive NTP Response");
+      u8g2.drawBox(0,dispwid-2,2,2);
+      u8g2.sendBuffer();
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       bufferTime = millis();
       unsigned long secsSince1900;
