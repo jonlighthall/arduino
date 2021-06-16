@@ -312,15 +312,25 @@ void OLEDClockDisplay() {
 
   // draw seconds bar
   ypos+=2;
-  for (int i=0;i<second();i++) {
-    u8g2.drawPixel(i+1,ypos);
+  for (int i=0;i<second()+1;i++) {
+    u8g2.drawPixel(i+3,ypos);
   }
-  for (int i=0;i<second();i=i+5) {
-    u8g2.drawPixel(i+1,ypos+1);
+  ypos+=1;
+  for (int i=0;i<second()+1;i=i+5) {
+    u8g2.drawPixel(i+3,ypos);
   }
-  for (int i=0;i<second();i=i+15) {
-    u8g2.drawPixel(i+1,ypos+2);
+  ypos+=1;
+  for (int i=0;i<second()+1;i=i+15) {
+    u8g2.drawPixel(i+3,ypos);
   }
+
+  // write seconds
+  u8g2.setFont(u8g2_font_profont15_tn);
+  sprintf(buff, "%02d:%02d:%02d", hour(), minute(),second());
+  Serial.println(buff);
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos += u8g2.getAscent() + 2;
+  u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
 }
 
