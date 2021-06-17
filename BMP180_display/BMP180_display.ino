@@ -47,32 +47,49 @@ void loop() {
   char buff[64];
   sprintf(buff, "T = %.1f", bmp.readTemperature());
   u8g2.drawStr(0, ypos, buff);
-
   Serial.print("Temperature = ");
   Serial.print(bmp.readTemperature());
   Serial.println(" *C");
 
+  sprintf(buff, "P = %d", bmp.readPressure());
+  ypos += texthei + 1;
+  u8g2.drawStr(0, ypos, buff);
   Serial.print("Pressure = ");
   Serial.print(bmp.readPressure());
   Serial.println(" Pa");
 
-  // Calculate altitude assuming 'standard' barometric
-  // pressure of 1013.25 millibar = 101325 Pascal
-  Serial.print("Altitude = ");
-  Serial.print(bmp.readAltitude());
-  Serial.println(" meters");
-
+  sprintf(buff, "Psea = %d", bmp.readSealevelPressure());
+  ypos += texthei + 1;
+  u8g2.drawStr(0, ypos, buff);
   Serial.print("Pressure at sealevel (calculated) = ");
   Serial.print(bmp.readSealevelPressure());
   Serial.println(" Pa");
+
+  // Calculate altitude assuming 'standard' barometric
+  // pressure of 1013.25 millibar = 101325 Pascal
+  sprintf(buff, "Alt = %.1f", bmp.readAltitude());
+  ypos += texthei + 1;
+  u8g2.drawStr(0, ypos, buff);
+  Serial.print("Altitude = ");
+  Serial.print(bmp.readAltitude());
+  Serial.println(" meters");
 
   // you can get a more precise measurement of altitude
   // if you know the current sea level pressure which will
   // vary with weather and such. If it is 1015 millibars
   // that is equal to 101500 Pascals.
+  sprintf(buff, "Alt = %.1f", bmp.readAltitude(101500));
+  ypos += texthei + 1;
+  u8g2.drawStr(0, ypos, buff);
   Serial.print("Real altitude = ");
   Serial.print(bmp.readAltitude(101500));
   Serial.println(" meters");
+
+  sprintf(buff, "T = %d", bmp.readRawTemperature());
+  ypos += texthei + 1;
+  u8g2.drawStr(0, ypos, buff);
+  Serial.print("Raw Temperature = ");
+  Serial.print(bmp.readRawTemperature());
 
   Serial.println();
   u8g2.sendBuffer();
