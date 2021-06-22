@@ -11,6 +11,7 @@ const int buttonPin = D3;
 const int ledPin = BUILTIN_LED;
 
 int buttonState = 0;
+int previousState = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -29,13 +30,16 @@ void setup() {
 void loop() {
   // read button state, HIGH when not pressed, LOW when pressed
   buttonState = digitalRead(buttonPin);
-  // if the push button pressed, switch on the LED
-  if (buttonState == LOW) {
-    digitalWrite(ledPin, LOW);  // LED on
-    Serial.println("on");
-  } else {
-    digitalWrite(ledPin, HIGH); // LED off
-    Serial.println("off");
+  // only update on state chagne
+  if (buttonState != previousState) {
+    // if the push button pressed, switch on the LED
+    if (buttonState == LOW) {
+      digitalWrite(ledPin, LOW);  // LED on
+      Serial.println("on");
+    } else {
+      digitalWrite(ledPin, HIGH); // LED off
+      Serial.println("off");
+    }
   }
-  delay(100);
+  previousState = buttonState;
 }
