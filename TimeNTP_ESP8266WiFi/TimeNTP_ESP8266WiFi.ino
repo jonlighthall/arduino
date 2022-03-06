@@ -56,7 +56,8 @@ U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // Ea
 int dispwid;
 int disphei;
 
-#define DELAY 250
+#define PRINT_DELAY 250 // print delay in milliseconds
+#define SYNC_DELAY 300 // print delay in seconds
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
@@ -64,9 +65,9 @@ void setup() {
   
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  //delay(DELAY);
+  //delay(PRINT_DELAY);
   //testDST();
-  delay(DELAY);
+  delay(PRINT_DELAY);
   Serial.println();
   char buff[64];
   sprintf(buff, "\nTimeNTP Example");
@@ -92,7 +93,7 @@ void setup() {
   
   u8g2.drawStr(xpos,ypos,buff);        	// write something to the internal memory
   u8g2.sendBuffer();			// transfer internal memory to the display
-  delay(DELAY);
+  delay(PRINT_DELAY);
   
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
   Serial.println(buff);
@@ -101,7 +102,7 @@ void setup() {
   ypos += texthei+1;
   u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();      
-  delay(DELAY);
+  delay(PRINT_DELAY);
  
   // Wi-Fi settings
   Serial.print("Connecting to ");
@@ -168,7 +169,7 @@ void setup() {
   u8g2.drawStr(xpos,ypos,buff);
   u8g2.sendBuffer();      
   
-  setSyncInterval(300); // refresh rate in seconds
+  setSyncInterval(SYNC_DELAY); // refresh rate in seconds
   Serial.println("starting...");
 }
 
@@ -256,7 +257,7 @@ void loop() {
       serialClockDisplay();
       OLEDClockDisplay();
       if (debug > 1) {
-        Serial.print("end of loop, after deiplay: millis = ");
+        Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
     }
@@ -266,17 +267,25 @@ void loop() {
 void serialClockDisplay() {
   // digital clock display of the time
   char buff[128];
+  // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(),second());
   Serial.print(buff);
+  // print numperical date
   sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
   Serial.print(buff);
-  sprintf(buff, "%s, %s %d ",dayStr(weekday()),monthStr(month()),day());
+  // print string date
+  sprintf(buff, "%s, ",dayStr(weekday()));
   Serial.print(buff);
+  sprintf(buff, "%s ",monthStr(month()));
+  Serial.print(buff);
+  sprintf(buff, "%d ",day());
+  Serial.print(buff);  
   
-  Serial.print(" weekday:");
-  Serial.print(weekday());
+  // print time zone
+  sprintf(buff,"UTC%d (",SetTimeZone);
+  Serial.print(buff);
   isDST(1);
-  Serial.println();
+  Serial.println(")");
 }
 
 void OLEDClockDisplay() {
@@ -355,7 +364,6 @@ time_t getNtpTime() {
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0,0,2,2);
   u8g2.sendBuffer();
-  // blink built-in LED on time update
   //digitalWrite(LED_BUILTIN, LOW); // on
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
