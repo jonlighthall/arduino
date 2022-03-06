@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
+// Must use Adafruit SSD1306 Wemos Mini OLED Library for 64x48 display (Adafruit_SSD1306_Wemos_OLED)
 #include <Adafruit_SSD1306.h>
 #include <BH1750.h>
 
