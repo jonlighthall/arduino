@@ -355,7 +355,8 @@ time_t getNtpTime() {
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0,0,2,2);
   u8g2.sendBuffer();
-  digitalWrite(LED_BUILTIN, LOW); // on
+  // blink built-in LED on time update
+  //digitalWrite(LED_BUILTIN, LOW); // on
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
