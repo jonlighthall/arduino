@@ -30,6 +30,8 @@ void setup() {
   display.println(buff);
 }
 
+float lux_last;
+
 void loop() {
   // Clear the buffer.
   display.clearDisplay();
@@ -39,7 +41,7 @@ void loop() {
 
   if (light.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {    
     float lux = lightMeter.readLightLevel();
-    sprintf(buff, "L: %f lux",flux);    
+    sprintf(buff, "L: %f lux",lux);    
     Serial.print(buff);
     display.println(buff);
     
@@ -60,18 +62,26 @@ void loop() {
     int barfill = (int) lx_per * barwid;    
     
     for (int i = 0; i < barfill + 1; i++) {
-    u8g2.drawPixel(i + xpos, ypos);
+    drawPixel(i + xpos, ypos);
   }
   ypos += 1;
   for (int i = 0; i < barfill + 1; i = i + barwid/max_div) {
-    u8g2.drawPixel(i + xpos, ypos);
+    drawPixel(i + xpos, ypos);
   }
   ypos += 1;
   for (int i = 0; i < barfill + 1; i = i + barwid/min_div) {
-    u8g2.drawPixel(i + xpos, ypos);
+    drawPixel(i + xpos, ypos);
   }
     
+   dlux = (lux - lux_last);    
+    sprintf(buff, "dL: %f lux",dlux);    
+    Serial.print(buff);
     
+    ypos +=2;
+    display.setCursor(0, ypos);
+    display.println(buff);
+    
+lux_last=lux; 
   }
   else
   {
