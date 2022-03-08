@@ -31,6 +31,11 @@ void setup() {
 }
 
 float lux_last;
+int N=0;
+const int N_max=5;
+int luxes[N_max]={0};
+float lux_av=0;
+float lux_av_last=0;
 
 void loop() {
   // Clear the buffer.
@@ -73,13 +78,45 @@ void loop() {
     drawPixel(i + xpos, ypos);
   }
     
-   dlux = (lux - lux_last);    
+   // calculate change in lux
+    dlux = (lux - lux_last);    
     sprintf(buff, "dL: %f lux",dlux);    
     Serial.print(buff);
     
     ypos +=2;
     display.setCursor(0, ypos);
     display.println(buff);
+    
+    // calculate average lux
+    N=mod(N+1,N_max);
+    luxes(N)=lux;    
+    lux_av_last=lux_av;
+    lux_av=0;
+    int n=0;
+    for (int i=0; i<N_max;i++) {
+      if (luxes(i) > 0 ) {
+        n+=1;
+        lux_av+=luxes(i);
+      }
+    
+    }
+    lux_av=lux_av/n;
+    sprintf(buff, "La: %f lux",lux_av);    
+    Serial.print(buff);
+    
+    ypos +=1;
+    display.setCursor(0, ypos);
+    display.println(buff);
+       
+    // calculate change in average flux
+    float dlux_av=(lux_av - lux_av_last)
+      
+      sprintf(buff, "dLa: %f lux",dlux_av);    
+    Serial.print(buff);
+    
+    ypos +=1;
+    display.setCursor(0, ypos);
+    display.println(buff);    
     
 lux_last=lux; 
   }
