@@ -10,7 +10,7 @@ BH1750 light(0x23);
 
 void setup() {
   Serial.begin(9600);
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C); 
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 }
 
 void loop() {
@@ -21,7 +21,7 @@ void loop() {
   display.setTextColor(WHITE);
 
   if (light.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
-    display.println("L: ");
+    display.print("L: ");
     display.setTextSize(1);
     display.print(light.readLightLevel());
   }
