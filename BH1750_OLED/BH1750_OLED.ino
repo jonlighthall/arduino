@@ -44,13 +44,13 @@ void loop() {
 
   if (light.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {    
     float lux = light.readLightLevel();
-    sprintf(buff, "L: %.0f",lux);    
+    sprintf(buff, " L:%7.1f",lux);    
     Serial.print(buff);
     display.println(buff);    
     
     // calculate change in lux
     float dlux = (lux - lux_last);    
-    sprintf(buff, "dL: %.0f",dlux);    
+    sprintf(buff, "dL:%7.1f",dlux);    
     Serial.print(buff);
     display.println(buff);
     
