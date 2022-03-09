@@ -46,18 +46,21 @@ U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.
 void setup() {
   Serial.begin(9600);
   Serial.println("\nhello world");
-  Serial.println("TimeNTP Example");
-  Serial.print("Connecting to ");
-  Serial.print(ssid);
+  delay(PRINT_DELAY);
+
   u8x8.begin();
   u8x8.setFont(u8x8_font_8x13_1x2_f); 
+  u8x8.println("NTP Time");
+  Serial.println("NTP Time");
+  delay(PRINT_DELAY);
+  
+  Serial.print("Connecting to ");
+  u8x8.print("Connecting to network");
+  Serial.print(ssid);
   u8x8.clear();
   u8x8.home();
-  u8x8.println("NTP Time");
-  delay(PRINT_DELAY);
   WiFi.begin(ssid, password);
-
-  u8x8.print("Connecting to network");
+  
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(200);    
@@ -69,7 +72,7 @@ void setup() {
     Serial.print("."); 
   }
   Serial.println("done");
-  u8x8.print("\nWiFi connected");
+  u8x8.print("\nWiFi OK");
   delay(PRINT_DELAY);
 
   configTime(0, 0, NTP_SERVER);
@@ -103,20 +106,33 @@ bool getNTPtime(int sec) {
     
   u8x8.print("Time Now: ");  
   u8x8.println(now); 
+  Serial.print("Time Now: ");  
+  Serial.println(now); 
+  delay(PRINT_DELAY);
+  
   return true;
 }
 
 void showTime(tm *localTime) { 
   //display on OLED
-  char time_output[30];
+  char time_output[30];  
   
-  u8x8.setFont(u8x8_font_8x13B_1x2_f);
   u8x8.home();
+/*
+  u8x8.setFont(u8x8_font_px437wyse700a_2x2_n);
+  sprintf(time_output,"%02d:%02d",localTime->tm_hour,localTime->tm_min);
+  u8x8.println(time_output);
+  Serial.println(time_output);
+*/
+  u8x8.setFont(u8x8_font_8x13B_1x2_f);
   sprintf(time_output, "%02d:%02d:%02d", localTime->tm_hour, localTime->tm_min, localTime->tm_sec);
   u8x8.println(time_output);
+  Serial.println(time_output);
   u8x8.println(getDOW(localTime->tm_wday));
   sprintf(time_output, " %s %02d", getMo(localTime->tm_mon + 1), localTime->tm_mday); 
   u8x8.println(time_output);  
+  Serial.println(time_output);
+  
 }
 
 void loop() {

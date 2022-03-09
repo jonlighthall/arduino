@@ -222,7 +222,7 @@ void loop() {
       int delayTime = printTime - bufferTime;
       int ToSyncTime = syncTime - delayTime;
       float syncWait = (float)delayTime / syncTime;
-      syncBar = syncWait * 60; 
+      syncBar = syncWait * disphei; 
       if (debug > 1) {
         Serial.print("buffer time = ");
         Serial.println(bufferTime);
@@ -373,8 +373,6 @@ void OLEDClockDisplay() {
   ypos += u8g2.getAscent() + 1;
   u8g2.drawStr(xpos, ypos, buff);
 
-  u8g2.sendBuffer();
-
   // set brightness
   if ((hour() >= 20) || (hour() <= 6)) {
     u8g2.setContrast(0);
@@ -384,17 +382,9 @@ void OLEDClockDisplay() {
   }
 
 // draw sync bar  
-  ypos += 1;
+  
   for (int i = 0; i < syncBar + 1; i++) {
-    u8g2.drawPixel(i + 3, ypos);
-  }
-  ypos += 1;
-  for (int i = 0; i < syncBar + 1; i = i + 5) {
-    u8g2.drawPixel(i + 3, ypos);
-  }
-  ypos += 1;
-  for (int i = 0; i < syncBar + 1; i = i + 15) {
-    u8g2.drawPixel(i + 3, ypos);
+    u8g2.drawPixel(0, disphei - i);
   }
   u8g2.sendBuffer();
 }
