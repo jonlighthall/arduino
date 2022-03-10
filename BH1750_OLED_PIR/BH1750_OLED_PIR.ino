@@ -15,8 +15,8 @@ int dispwid = SSD1306_LCDWIDTH;
 
 BH1750 light(0x23);
 const float lx_max = 54612.5;
-const float thresh_inst = 0;
-const float thresh_av = 0;
+const float thresh_inst = 1;
+const float thresh_av = 1;
 
 
 const int PIR = D3;
@@ -176,31 +176,28 @@ void loop() {
     */
     PIRState = digitalRead(PIR);
 
-
     if (PIRState == HIGH) {
       digitalWrite(BUILTIN_LED, LOW);  // LED on
       // is the light changing?
       if (abs(dlux) > thresh_inst) {
-    sprintf(buff, "dlux = %f OVER THRESHOLD", dlux);
-    Serial.println(buff);
- display.setTextSize(2);
-  display.setCursor(0, 0);
-       sprintf(buff, "TRIGGER", dlux);
-       display.println(buff);
-      
+        sprintf(buff, "dlux = %f OVER THRESHOLD", dlux);
+        Serial.println(buff);
+        display.setTextSize(2);
+        display.setCursor(0, 0);
+        display.setTextColor(BLACK, WHITE);
+        sprintf(buff, "TRIG1", dlux);
+        display.println(buff);
       }
-
+      // is the light changing?
       if (abs(dlux_av) > thresh_av) {
-sprintf(buff, "dlux_AV = %f OVER THRESHOLD", dlux_av);
-    Serial.println(buff);
- display.setTextSize(2);
-  display.setCursor(0, 0);
-       sprintf(buff, "TRIGGER", dlux);
-       display.println(buff);
-    
-      
+        sprintf(buff, "dlux_AV = %f OVER THRESHOLD", dlux_av);
+        Serial.println(buff);
+        display.setTextSize(2);
+        display.setCursor(0, 0);
+        display.setTextColor(BLACK, WHITE);
+        sprintf(buff, "TRIG2", dlux);
+        display.println(buff);
       }
-
 
     } else {
       digitalWrite(BUILTIN_LED, HIGH); // LED off
