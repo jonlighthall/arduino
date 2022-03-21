@@ -46,6 +46,7 @@ const int timeZone = -6; // CST
 
 int SetTimeZone = timeZone;
 const bool do_DST = true;
+bool do_mil = false;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -396,8 +397,16 @@ void OLEDClockDisplay() {
 }
 
 void DigitalClockDisplay() {
-  int dig_time = (hour() * 100) + minute();
-  display.showNumberDecEx(dig_time, 0b11100000, true);
+  int dig_time ;
+  if (do_mil) {
+    dig_time = (hour() * 100) + minute();
+    display.showNumberDecEx(dig_time, 0b11100000, true);
+  }
+  else {
+    dig_time = (hourFormat12() * 100) + minute();
+    display.showNumberDecEx(dig_time, 0b11100000, false);
+  }
+  
   if (debug > 0) {
     char buff[dispwid];
     sprintf(buff, "digital time: %d", dig_time);
