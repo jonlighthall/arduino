@@ -26,6 +26,7 @@ TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
 
 #include "credentials.h"
 #include "dst.h"
+#include "seven-segment_text.h"
 
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
@@ -47,6 +48,7 @@ const int timeZone = -6; // CST
 int SetTimeZone = timeZone;
 const bool do_DST = true;
 bool do_mil = false;
+bool do_sec = true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -146,6 +148,7 @@ void setup() {
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  display.setSegments(SEG_SYNC);
   setSyncProvider(getNtpTime);
 
   // wait for time to be set
@@ -398,6 +401,11 @@ void OLEDClockDisplay() {
 
 void DigitalClockDisplay() {
   int dig_time ;
+  if (do_sec && ((second()>=57) || (second()<=2))) {
+    dig_time = (minute() * 100) + second();
+    display.showNumberDecEx(dig_time, 0b11100000, true);
+  }
+  else {
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, true);
@@ -405,6 +413,7 @@ void DigitalClockDisplay() {
   else {
     dig_time = (hourFormat12() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, false);
+  }
   }
   
   if (debug > 0) {
@@ -436,6 +445,7 @@ time_t getNtpTime() {
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
   //digitalWrite(LED_BUILTIN, LOW); // on
+  display.setSegments(SEG_SYNC);
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
