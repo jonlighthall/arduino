@@ -48,7 +48,9 @@ const int timeZone = -6; // CST
 int SetTimeZone = timeZone;
 const bool do_DST = true;
 bool do_mil = false;
-bool do_sec = true;
+bool do_sec_top = false;
+bool do_cyc = false;
+bool do_sec_mod = true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -74,7 +76,8 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   display.clear();
-  display.setBrightness(0); //set the diplay to maximum brightness
+  display.setBrightness(7);
+  display.setSegments(SEG_hEllo);
 
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
@@ -125,6 +128,7 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  display.setSegments(SEG_CONN);
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -296,7 +300,7 @@ void loop() {
       }
       serialClockDisplay();
       OLEDClockDisplay();
-      DigitalClockDisplay();
+      DigitalClockDisplayOpt();
       //OLEDBarDisplay();
       if (debug > 1) {
         Serial.print("end of loop, after display: millis = ");
@@ -401,11 +405,7 @@ void OLEDClockDisplay() {
 
 void DigitalClockDisplay() {
   int dig_time ;
-  if (do_sec && ((second()>=57) || (second()<=2))) {
-    dig_time = (minute() * 100) + second();
-    display.showNumberDecEx(dig_time, 0b11100000, true);
-  }
-  else {
+
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, true);
@@ -414,20 +414,46 @@ void DigitalClockDisplay() {
     dig_time = (hourFormat12() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, false);
   }
-  }
-  
+
   if (debug > 0) {
     char buff[dispwid];
     sprintf(buff, "digital time: %d", dig_time);
     Serial.println(buff);
   }
+}
 
+void DigitalClockDisplayOpt() {
   // set brightness
-  if ((hour() >= 20) || (hour() <= 6)) {
+  if ((hour() >= 20) || (hour() <= 6)) { // night
+    // dim display and show time only
     display.setBrightness(0);
+    DigitalClockDisplay();
   }
-  else {
+  else { // day
+    // brighten display and show options
     display.setBrightness(7);
+    int dig_time;
+    if ((do_cyc) && (second() == 30)) { // nixie tube cycling
+      for (int i = 0; i < 10; i++) {
+        dig_time = 1111 * i;
+        display.showNumberDecEx(dig_time, 0, true);
+        delay(PRINT_DELAY);
+      }
+      DigitalClockDisplay();
+    }
+    else if (do_sec_top && ((second() >= 57) || (second() <= 2))) { // show seconds at the top of the minute
+      dig_time = (minute() * 100) + second();
+      display.showNumberDecEx(dig_time, 0b11100000, true);
+    }
+    else {
+      if (do_sec_mod && ((second() % 15) == 0)) { // flash seconds periodically
+        dig_time = second();
+        display.clear();
+        display.showNumberDec(dig_time, true, 2, 1);
+        delay(PRINT_DELAY);
+      }
+      DigitalClockDisplay();
+    }
   }
 }
 
