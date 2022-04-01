@@ -18,7 +18,6 @@ const float lx_max = 54612.5;
 const float thresh_inst = 1;
 const float thresh_av = 1;
 
-
 const int PIR = D3;
 int PIRState = 0;
 
@@ -183,7 +182,7 @@ void loop() {
         sprintf(buff, "dlux = %f OVER THRESHOLD", dlux);
         Serial.println(buff);
         display.setTextSize(2);
-        display.setCursor(0, 0);
+        display.setCursor(1, 0);
         display.setTextColor(BLACK, WHITE);
         sprintf(buff, "TRIG1", dlux);
         display.println(buff);
@@ -193,7 +192,7 @@ void loop() {
         sprintf(buff, "dlux_AV = %f OVER THRESHOLD", dlux_av);
         Serial.println(buff);
         display.setTextSize(2);
-        display.setCursor(0, 0);
+        display.setCursor(1, 0);
         display.setTextColor(BLACK, WHITE);
         sprintf(buff, "TRIG2", dlux);
         display.println(buff);
