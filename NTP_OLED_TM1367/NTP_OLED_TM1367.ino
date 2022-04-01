@@ -446,7 +446,7 @@ void DigitalClockDisplayOpt() {
       display.showNumberDecEx(dig_time, 0b11100000, true);
     }
     else {
-      if (do_sec_mod && ((second() % 15) == 0)) { // flash seconds periodically
+      if (do_sec_mod && ((second() % 15) == 0) && (second() > 0)) { // flash seconds periodically
         dig_time = second();
         display.clear();
         display.showNumberDec(dig_time, true, 2, 1);
