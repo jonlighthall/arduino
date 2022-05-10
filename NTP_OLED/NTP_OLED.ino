@@ -59,10 +59,10 @@ int disphei;
 #define PRINT_DELAY 250 // print delay in milliseconds
 #define SYNC_DELAY 300 // print delay in seconds
 
-  int syncBar = 0;
-
+int syncBar = 0;
 
 void setup() {
+  // initialize on-board LED
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
@@ -222,7 +222,7 @@ void loop() {
       int delayTime = printTime - bufferTime;
       int ToSyncTime = syncTime - delayTime;
       float syncWait = (float)delayTime / syncTime;
-      syncBar = syncWait * disphei; 
+      syncBar = syncWait * disphei;
       if (debug > 1) {
         Serial.print("buffer time = ");
         Serial.println(bufferTime);
@@ -237,24 +237,24 @@ void loop() {
         Serial.print(buff);
         sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
         Serial.print(buff);
-        // print time between syns percentage        
+        // print time between syns percentage
         sprintf(buff, "Time between syncs = %dms\n", syncTime);
         Serial.print(buff);
         sprintf(buff, "Time between syncs = %.3fs\n", syncTime / 1e3);
         Serial.print(buff);
 
-        
+
         sprintf(buff, "Time until next sync = %dms\n", ToSyncTime);
         Serial.print(buff);
         sprintf(buff, "Time until next sync = %.3fs\n", ToSyncTime / 1e3);
         Serial.print(buff);
-        
-        sprintf(buff, "Sync delay percentage = %.3f%%\n", syncWait*100);
+
+        sprintf(buff, "Sync delay percentage = %.3f%%\n", syncWait * 100);
         Serial.print(buff);
-        
+
         sprintf(buff, "Sync delay percentage = %d\n", syncBar);
         Serial.print(buff);
-        
+
       }
 
       // wait until top of second to print time
@@ -381,8 +381,8 @@ void OLEDClockDisplay() {
     u8g2.setContrast(255);
   }
 
-// draw sync bar  
-  
+  // draw sync bar
+
   for (int i = 0; i < syncBar + 1; i++) {
     u8g2.drawPixel(0, disphei - i);
   }

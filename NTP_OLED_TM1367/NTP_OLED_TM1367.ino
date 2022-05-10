@@ -47,6 +47,7 @@ const int timeZone = -6; // CST
 
 int SetTimeZone = timeZone;
 const bool do_DST = true;
+// LED display options
 bool do_mil = false;
 bool do_sec_top = false;
 bool do_cyc = false;
@@ -72,9 +73,11 @@ int disphei;
 int syncBar = 0;
 
 void setup() {
+  // initialize on-board LED
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
+  // initialize LED display
   display.clear();
   display.setBrightness(7);
   display.setSegments(SEG_hEllo);
@@ -246,6 +249,8 @@ void loop() {
         Serial.print(" delay time = ");
         Serial.println(delayTime);
         // print time since/until last/next sync
+        sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
+        Serial.print(buff);      
         sprintf(buff, "Time since last sync = %dms\n", delayTime);
         Serial.print(buff);
         sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
