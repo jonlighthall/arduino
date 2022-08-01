@@ -56,6 +56,8 @@ bool do_sec_mod = true;
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 
+int rssi = 0; // Wifi signal strengh variable
+
 time_t getNtpTime();
 void serialClockDisplay();
 void OLEDClockDisplay();
@@ -136,13 +138,25 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    Serial.print("."); 
+    sprintf(buff, "X  ");
+    u8g2.drawStr(xpos, ypos, buff);
+    u8g2.sendBuffer();
+
+    delay(500);
     Serial.print(".");
+    sprintf(buff, "O   ");
+    u8g2.drawStr(xpos, ypos, buff);
+    u8g2.sendBuffer();
   }
   Serial.print("connected\n");
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI):");
+  Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
   Serial.println("Starting UDP");
@@ -199,7 +213,7 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 uint32_t bufferTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
-int debug = 2;
+int debug = 0;
 int syncTime = SYNC_DELAY * 1e3;
 void loop() {
   if (timeStatus() != timeNotSet) {
@@ -250,7 +264,7 @@ void loop() {
         Serial.println(delayTime);
         // print time since/until last/next sync
         sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
-        Serial.print(buff);      
+        Serial.print(buff);
         sprintf(buff, "Time since last sync = %dms\n", delayTime);
         Serial.print(buff);
         sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
@@ -260,7 +274,6 @@ void loop() {
         Serial.print(buff);
         sprintf(buff, "Time between syncs = %.3fs\n", syncTime / 1e3);
         Serial.print(buff);
-
 
         sprintf(buff, "Time until next sync = %dms\n", ToSyncTime);
         Serial.print(buff);
@@ -272,7 +285,6 @@ void loop() {
 
         sprintf(buff, "Sync delay percentage = %d\n", syncBar);
         Serial.print(buff);
-
       }
 
       // wait until top of second to print time
@@ -307,6 +319,7 @@ void loop() {
       OLEDClockDisplay();
       DigitalClockDisplayOpt();
       //OLEDBarDisplay();
+
       if (debug > 1) {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
@@ -337,6 +350,12 @@ void serialClockDisplay() {
   Serial.print(buff);
   isDST(1);
   Serial.print(")");
+
+  // print signal strength
+  rssi = WiFi.RSSI();
+  Serial.print(" RSSI: ");
+  Serial.print(rssi);
+
   Serial.println();
 }
 
@@ -401,10 +420,29 @@ void OLEDClockDisplay() {
   }
 
   // draw sync bar
-
   for (int i = 0; i < syncBar + 1; i++) {
     u8g2.drawPixel(0, disphei - i);
   }
+
+  // draw signal bars
+  rssi = WiFi.RSSI();
+
+  int bt = 0; // bar top
+  int bb = bt + 5 ; // bar bottom
+  int bl = 1; // bar left
+
+  // draw black background
+  u8g2.setDrawColor(0);
+  // bars occupy a box 7 x 5 pixels
+  u8g2.drawBox(bl, bt, 9,  7);
+  u8g2.setDrawColor(1);
+
+  // draw smallest possible signal strength bars
+  u8g2.drawLine(bl + 1, bb, bl + 1, bb - 1);
+  u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
+  u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
+  u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
+  
   u8g2.sendBuffer();
 }
 
