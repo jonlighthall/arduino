@@ -12,7 +12,7 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 
-const int array_size = 4;
+const int array_size = 5;
 DeviceAddress therm[array_size];
 int no_therm;
 
@@ -120,6 +120,13 @@ void printData(DeviceAddress deviceAddress) {
 */
 void loop(void)
 {
+  float atempC[array_size];
+  float atempF[array_size];
+  float temp_sum = 0;
+  float temp_mean = 0;
+  float temp_std = 0;
+  float temp_var_sum = 0;
+  float temp_var_mean = 0;
   // call sensors.requestTemperatures() to issue a global temperature
   // request to all devices on the bus
   Serial.print("Requesting temperatures...");
@@ -129,5 +136,20 @@ void loop(void)
   // print the device information
   for (int i = 0 ; i < no_therm; i++) {
     printData(therm[i]);
+    atempC[i] = sensors.getTempC(therm[i]);
+    atempF[i] = sensors.getTempF(therm[i]);
+    temp_sum += atempF[i];
   }
+  temp_mean = temp_sum / no_therm;
+  Serial.print("Average temperature = ");
+  Serial.print(temp_mean);
+
+  for (int i = 0 ; i < no_therm; i++) {
+    temp_var_sum += sq(atempF[i] - temp_mean);
+  }
+  temp_var_mean = temp_var_sum / no_therm;
+  temp_std = sqrt(temp_var_mean);
+  Serial.print(" +/- ");
+  Serial.print(temp_std);
+  Serial.println(" °F");
 }
