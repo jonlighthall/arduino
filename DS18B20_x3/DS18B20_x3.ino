@@ -4,7 +4,7 @@
 
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 4
-#define TEMPERATURE_PRECISION 9
+#define TEMPERATURE_PRECISION 12
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -35,7 +35,8 @@ void setup(void)
   // locate devices on the bus
   Serial.print("Locating devices...");
   Serial.print("Found ");
-  Serial.print(sensors.getDeviceCount(), DEC);
+  no_therm = sensors.getDeviceCount();
+  Serial.print(no_therm);
   Serial.println(" devices.");
 
   // report parasite power requirements
@@ -43,24 +44,6 @@ void setup(void)
   if (sensors.isParasitePowerMode()) Serial.println("ON");
   else Serial.println("OFF");
 
-  // Search for devices on the bus and assign based on an index. Ideally,
-  // you would do this to initially discover addresses on the bus and then
-  // use those addresses and manually assign them (see above) once you know
-  // the devices on your bus (and assuming they don't change).
-  //
-  // method 1: by index
-//  if (!sensors.getAddress(therm1, 0)) Serial.println("Unable to find address for Device 0");
-//  if (!sensors.getAddress(therm2, 1)) Serial.println("Unable to find address for Device 1");
-//  if (!sensors.getAddress(therm3, 2)) Serial.println("Unable to find address for Device 2");
-
-  // method 2: search()
-  // search() looks for the next device. Returns 1 if a new address has been
-  // returned. A zero might mean that the bus is shorted, there are no devices,
-  // or you have already retrieved all of them. It might be a good idea to
-  // check the CRC to make sure you didn't get garbage. The order is
-  // deterministic. You will always get the same devices in the same order
-  //
-  // Must be called before search()
   oneWire.reset_search();
   // assigns the first address found to therm1
   if (!oneWire.search(therm1)) Serial.println("Unable to find address for therm1");
@@ -103,8 +86,7 @@ void setup(void)
 // function to print a device address
 void printAddress(DeviceAddress deviceAddress)
 {
-  for (uint8_t i = 0; i < 8; i++)
-  {
+  for (uint8_t i = 0; i < 8; i++) {
     // zero pad the address if necessary
     if (deviceAddress[i] < 16) Serial.print("0");
     Serial.print(deviceAddress[i], HEX);
@@ -112,11 +94,9 @@ void printAddress(DeviceAddress deviceAddress)
 }
 
 // function to print the temperature for a device
-void printTemperature(DeviceAddress deviceAddress)
-{
+void printTemperature(DeviceAddress deviceAddress) {
   float tempC = sensors.getTempC(deviceAddress);
-  if(tempC == DEVICE_DISCONNECTED_C) 
-  {
+  if (tempC == DEVICE_DISCONNECTED_C) {
     Serial.println("Error: Could not read temperature data");
     return;
   }
@@ -127,16 +107,14 @@ void printTemperature(DeviceAddress deviceAddress)
 }
 
 // function to print a device's resolution
-void printResolution(DeviceAddress deviceAddress)
-{
+void printResolution(DeviceAddress deviceAddress) {
   Serial.print("Resolution: ");
   Serial.print(sensors.getResolution(deviceAddress));
   Serial.println();
 }
 
 // main function to print information about a device
-void printData(DeviceAddress deviceAddress)
-{
+void printData(DeviceAddress deviceAddress) {
   Serial.print("Device Address: ");
   printAddress(deviceAddress);
   Serial.print(" ");

@@ -14,9 +14,13 @@ DallasTemperature sensors(&oneWire);
 
 const int array_size = 5;
 DeviceAddress therm[array_size];
-DeviceAddress probe = {0x28, 0x67, 0x4A, 0xC8, 0xB1, 0x21, 0x06, 0xE6};
-
 int no_therm;
+
+// Assign address manually. The addresses below will need to be changed
+// to valid device addresses on your bus. Device address can be retrieved
+// by using either oneWire.search(deviceAddress) or individually via
+// sensors.getAddress(deviceAddress, index)
+DeviceAddress probe = {0x28, 0x67, 0x4A, 0xC8, 0xB1, 0x21, 0x06, 0xE6};
 int no_therm_sum;
 int idx_probe; 
 
