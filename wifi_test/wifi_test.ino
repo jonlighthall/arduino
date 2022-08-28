@@ -79,10 +79,10 @@ void wifi_discon() {
   WiFi.mode( WIFI_OFF );
   WiFi.forceSleepBegin();
   delay(1); //the modem won't go to sleep unless you do a delay
-    while (WiFi.status() == 0) {
-    delay(PRINT_DELAY);
-    Serial.print(".");
-  }
+    //while (WiFi.status() == 0) {
+    //delay(PRINT_DELAY);
+    //Serial.print(".");
+  //}
   Serial.println("done");
   wifi_stat();
 }
