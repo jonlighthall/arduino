@@ -1,12 +1,15 @@
-/* 
- Use the following command to ignore changes to this files, both local
- and upstream
+/*
+   NB: do not commit changes to this file which include sensitive
+   information!
 
-    git update-index --skip-worktree credentials.h
+   Use the following command to ignore changes to this files, both local
+   and upstream
 
- Use the following command to track changes to the fiel
+   git update-index --skip-worktree credentials.h
 
-    git update-index --no-skip-worktree credentials.h 
+   Use the following command to track changes to the file
+
+   git update-index --no-skip-worktree credentials.h
 */
 
 // add your Wi-Fi network name and password on the following lines
