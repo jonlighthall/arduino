@@ -5,11 +5,7 @@
 */
 
 #include <Arduino.h>
-#if defined(ESP32)
-#include <WiFi.h>
-#elif defined(ESP8266)
 #include <ESP8266WiFi.h>
-#endif
 #include <ESP_Mail_Client.h>
 #include "credentials.h"
 #define SMTP_HOST "smtp.gmail.com"
@@ -20,12 +16,6 @@ void smtpCallback(SMTP_Status status);
 void setup()
 {
   Serial.begin(9600);
-#if defined(ARDUINO_ARCH_SAMD)
-  while (!Serial)
-    ;
-  Serial.println();
-  Serial.println("**** Custom built WiFiNINA firmware need to be installed.****\nTo install firmware, read the instruction here, https://github.com/mobizt/ESP-Mail-Client#install-custom-built-wifinina-firmware");
-#endif
   Serial.println();
   Serial.print("Connecting to AP");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
