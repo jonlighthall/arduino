@@ -61,7 +61,6 @@ void wifi_con() {
   Serial.print("connected\n");
   wifi_stat();
 }
-#define STATE_DELAY 4000
 
 void wifi_discon() {
   wifi_stat();
@@ -78,14 +77,12 @@ void wifi_discon() {
   Serial.print("Enter modem sleep mode...");
   WiFi.mode( WIFI_OFF );
   WiFi.forceSleepBegin();
-  delay(1); //the modem won't go to sleep unless you do a delay
-    //while (WiFi.status() == 0) {
-    //delay(PRINT_DELAY);
-    //Serial.print(".");
-  //}
+  delay(1); //the modem won't go to sleep unless you do a delay    
   Serial.println("done");
   wifi_stat();
 }
+
+#define STATE_DELAY 4000
 
 void loop() {
   Serial.println("Begin loop");
