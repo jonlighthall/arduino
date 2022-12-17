@@ -8,16 +8,9 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-
 #include <Arduino.h>
 #include <U8g2lib.h>
-
-#ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
-#endif
-#ifdef U8X8_HAVE_HW_I2C
 #include <Wire.h>
-#endif
 
 #include "credentials.h"
 #include "dst.h"
@@ -41,13 +34,14 @@ const int timeZone = -6; // CST
 
 int SetTimeZone = timeZone;
 const bool do_DST = true;
+// OLED display options
+const bool do_RSSI = false;
+const bool do_SyncBar = false;
+const bool do_SecondsBar = false;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 
-const bool do_RSSI = false;
-const bool do_SyncBar = false;
-const bool do_SecondsBar = false;
 int rssi = 0; // Wifi signal strengh variable
 
 time_t getNtpTime();
@@ -65,31 +59,6 @@ int disphei;
 #define SYNC_DELAY 300 // print delay in seconds
 
 int syncBar = 0;
-
-void throbber(int seq) {
-  char *elem[] = { "a" , "b", "c", "d", "e", "f", "g", "h" } ;
-  char buff[64];
-
-  sprintf(buff, "seq = %d", seq);
-  Serial.println(buff);
-
-  sprintf(buff, "array size = %d", sizeof(elem) / sizeof(elem[0]));
-  Serial.println(buff);
-
-  //sprintf(buff, "index = %d",seq%ArraySize(elem));
-  Serial.println(buff);
-
-  //sprintf(buff, "element = %s",elem[seq%ArraySize(elem)]);
-  Serial.println(buff);
-
-  //  sprintf(buff,elem[seq%ArraySize(elem)]);
-  //  u8g2.drawStr(xpos, ypos, buff);
-  u8g2.sendBuffer();
-  delay(500);
-  sprintf(buff, " ");
-  //  u8g2.drawStr(xpos, ypos, buff);
-  u8g2.sendBuffer();
-}
 
 void setup() {
   // initialize on-board LED
@@ -144,7 +113,6 @@ void setup() {
   xpos = 0;
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
-  xpos += u8g2.getStrWidth(buff) + 1;
   u8g2.sendBuffer();
   WiFi.begin(ssid, pass);
 
@@ -227,10 +195,9 @@ char serdiv[] = "----------------------------"; // serial print divider
 int debug = 0;
 int syncTime = SYNC_DELAY * 1e3;
 void loop() {
+  char buff[64];
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
-      char buff[50];
-
       if (debug > 1) {
         // check time in seconds
         uint32_t tprev = prevDisplay;
@@ -461,7 +428,7 @@ void OLED_RSSI_Bars () {
   if (rssi > -78) u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
   if (rssi > -67) u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
   if (rssi > -56) u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
-
+  
   u8g2.sendBuffer();
 }
 

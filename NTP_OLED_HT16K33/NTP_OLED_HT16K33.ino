@@ -12,14 +12,20 @@
 #include <U8g2lib.h>
 #include <Wire.h>
 
-#include <TM1637Display.h>
-const int CLK = D6; //Set the CLK pin connection to the display
-const int DIO = D5; //Set the DIO pin connection to the display
-TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+// I2C address of the display.  Stick with the default address of 0x70
+// unless you've changed the address jumpers on the back of the display.
+#define DISPLAY_ADDRESS   0x70
+
+// Create display object.  This is a global variable that
+// can be accessed from both the setup and loop function below.
+Adafruit_7segment matrix = Adafruit_7segment();
 
 #include "credentials.h"
 #include "dst.h"
-#include "seven-segment_text.h"
+//#include "seven-segment_text.h"
 
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
@@ -45,7 +51,7 @@ const bool do_SecondsBar = false;
 bool do_mil = false;
 bool do_sec_top = false;
 bool do_cyc = false;
-bool do_sec_mod = false;
+bool do_sec_mod = true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -74,12 +80,18 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize LED display
-  display.clear();
-  display.setBrightness(7);
-  display.setSegments(SEG_hEllo);
-
+  matrix.begin(DISPLAY_ADDRESS);
+  matrix.clear();
+  matrix.setBrightness(15);
+  //display.setSegments(SEG_hEllo);
+  matrix.writeDigitRaw(0, 0b01110100);//h
+  matrix.writeDigitRaw(1, 0b01111001);//E
+  matrix.writeDigitRaw(3, 0b00110110);//ll
+  matrix.writeDigitRaw(4, 0b01011100);//o
+  //  matrix.print("HELO");
+  matrix.writeDisplay();
   Serial.begin(9600);
-  while (!Serial) ; // Needed for Leonardo only
+  while (!Serial) { }
   //delay(PRINT_DELAY);
   //testDST();
   delay(PRINT_DELAY);
@@ -127,7 +139,14 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  display.setSegments(SEG_CONN);
+  //display.setSegments(SEG_CONN);
+  matrix.clear();
+  matrix.writeDigitRaw(0, 0b01011000);//c
+  matrix.writeDigitRaw(1, 0b01011100);//o
+  matrix.writeDigitRaw(3, 0b01010100);//n
+  matrix.writeDigitRaw(4, 0b01010100);//n
+  matrix.writeDisplay();
+
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -163,7 +182,14 @@ void setup() {
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  display.setSegments(SEG_SYNC);
+  //display.setSegments(SEG_SYNC);
+  matrix.clear();
+  matrix.writeDigitRaw(0, 0b01101101);//S
+  matrix.writeDigitRaw(1, 0b01101110);//y
+  matrix.writeDigitRaw(3, 0b01010100);//n
+  matrix.writeDigitRaw(4, 0b01011000);//c
+  matrix.writeDisplay();
+
   setSyncProvider(getNtpTime);
 
   // wait for time to be set
@@ -453,12 +479,14 @@ void DigitalClockDisplay() {
 
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
-    display.showNumberDecEx(dig_time, 0b11100000, true);
+    matrix.print(dig_time, DEC);
   }
   else {
     dig_time = (hourFormat12() * 100) + minute();
-    display.showNumberDecEx(dig_time, 0b11100000, false);
+    matrix.print(dig_time, DEC);
   }
+  matrix.drawColon(true);
+  matrix.writeDisplay();
 
   if (debug > 0) {
     char buff[dispwid];
@@ -471,30 +499,33 @@ void DigitalClockDisplayOpt() {
   // set brightness
   if ((hour() >= 20) || (hour() <= 6)) { // night
     // dim display and show time only
-    display.setBrightness(0);
+    matrix.setBrightness(0);
     DigitalClockDisplay();
   }
   else { // day
     // brighten display and show options
-    display.setBrightness(7);
+    matrix.setBrightness(15);
     int dig_time;
     if ((do_cyc) && (second() == 30)) { // nixie tube cycling
       for (int i = 0; i < 10; i++) {
         dig_time = 1111 * i;
-        display.showNumberDecEx(dig_time, 0, true);
+        matrix.print(dig_time, DEC);
+        matrix.writeDisplay();
         delay(PRINT_DELAY);
       }
       DigitalClockDisplay();
     }
     else if (do_sec_top && ((second() >= 57) || (second() <= 2))) { // show seconds at the top of the minute
       dig_time = (minute() * 100) + second();
-      display.showNumberDecEx(dig_time, 0b11100000, true);
+      matrix.print(dig_time, DEC);
+      matrix.writeDisplay();
     }
     else {
       if (do_sec_mod && ((second() % 15) == 0) && (second() > 0)) { // flash seconds periodically
         dig_time = second();
-        display.clear();
-        display.showNumberDec(dig_time, true, 2, 1);
+        matrix.clear();
+        matrix.print(dig_time, DEC);
+        matrix.writeDisplay();
         delay(PRINT_DELAY);
       }
       DigitalClockDisplay();
@@ -516,7 +547,7 @@ time_t getNtpTime() {
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
   //digitalWrite(LED_BUILTIN, LOW); // on
-  display.setSegments(SEG_SYNC);
+  //  display.setSegments(SEG_SYNC);
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);

@@ -8,24 +8,35 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+
 #include <Arduino.h>
 #include <U8g2lib.h>
-#include <Wire.h>
 
-#include <TM1637Display.h>
-const int CLK = D6; //Set the CLK pin connection to the display
-const int DIO = D5; //Set the DIO pin connection to the display
-TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
+#include <Wire.h> // Enable this line if using Arduino Uno, Mega, etc.
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+// I2C address of the display.  Stick with the default address of 0x70
+// unless you've changed the address jumpers on the back of the display.
+#define DISPLAY_ADDRESS   0x70
+
+// Create display object.  This is a global variable that
+// can be accessed from both the setup and loop function below.
+Adafruit_7segment matrix = Adafruit_7segment();
 
 #include "credentials.h"
 #include "dst.h"
-#include "seven-segment_text.h"
+//#include "seven-segment_text.h"
 
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
 
 // NTP Servers:
+//static const char ntpServerName[] = "us.pool.ntp.org";
 static const char ntpServerName[] = "time.nist.gov";
+//static const char ntpServerName[] = "time-a.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
 
 // Set Standard time zone
 //const int timeZone = 0;  // GMT
@@ -36,16 +47,11 @@ const int timeZone = -6; // CST
 
 int SetTimeZone = timeZone;
 const bool do_DST = true;
-// OLED display options
-const bool do_RSSI = false;
-const bool do_SyncBar = false;
-const bool do_SecondsBar = false;
-
 // LED display options
 bool do_mil = false;
 bool do_sec_top = false;
 bool do_cyc = false;
-bool do_sec_mod = false;
+bool do_sec_mod = true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -74,10 +80,12 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize LED display
-  display.clear();
-  display.setBrightness(7);
-  display.setSegments(SEG_hEllo);
-
+  matrix.begin(DISPLAY_ADDRESS);
+  matrix.clear();
+  matrix.setBrightness(15);
+  //display.setSegments(SEG_hEllo);
+  matrix.print("HELO");
+  matrix.writeDisplay();
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   //delay(PRINT_DELAY);
@@ -127,12 +135,19 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  display.setSegments(SEG_CONN);
+  //display.setSegments(SEG_CONN);
+  //matrix.print("conn");
+  matrix.writeDigitRaw(0, 0b01011000);//c
+  matrix.writeDigitRaw(1, 0b01101110);//y
+  matrix.writeDigitRaw(2, 0b01010100);//n
+  matrix.writeDigitRaw(3, 0b01010100);//n
+  matrix.writeDisplay();
+
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print("."); 
+    Serial.print(".");
     sprintf(buff, "X  ");
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
@@ -163,7 +178,14 @@ void setup() {
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  display.setSegments(SEG_SYNC);
+  //display.setSegments(SEG_SYNC);
+  //matrix.print("Sync");
+  matrix.writeDigitRaw(0, 0b01101101);//S
+  matrix.writeDigitRaw(1, 0b01101110);//y
+  matrix.writeDigitRaw(2, 0b01010100);//n
+  matrix.writeDigitRaw(3, 0b01011000);//c
+  matrix.writeDisplay();
+
   setSyncProvider(getNtpTime);
 
   // wait for time to be set
@@ -210,9 +232,10 @@ char serdiv[] = "----------------------------"; // serial print divider
 int debug = 0;
 int syncTime = SYNC_DELAY * 1e3;
 void loop() {
-  char buff[64];
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
+      char buff[50];
+
       if (debug > 1) {
         // check time in seconds
         uint32_t tprev = prevDisplay;
@@ -363,30 +386,28 @@ void OLEDClockDisplay() {
   int ypos = u8g2.getAscent();
   u8g2.drawStr(xpos, ypos, buff);
 
-  if (do_SecondsBar) {
-    // draw seconds bar
-    ypos += 2;
-    for (int i = 0; i < second() + 1; i++) {
-      u8g2.drawPixel(i + 3, ypos);
-    }
-    ypos += 1;
-    for (int i = 0; i < second() + 1; i = i + 5) {
-      u8g2.drawPixel(i + 3, ypos);
-    }
-    ypos += 1;
-    for (int i = 0; i < second() + 1; i = i + 15) {
-      u8g2.drawPixel(i + 3, ypos);
-    }
-
-    // write seconds
-    u8g2.setFont(u8g2_font_profont15_tn);
-    sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
-    if (debug > 0)
-      Serial.println(buff);
-    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-    ypos += u8g2.getAscent() + 2;
-    u8g2.drawStr(xpos, ypos, buff);
+  // draw seconds bar
+  ypos += 2;
+  for (int i = 0; i < second() + 1; i++) {
+    u8g2.drawPixel(i + 3, ypos);
   }
+  ypos += 1;
+  for (int i = 0; i < second() + 1; i = i + 5) {
+    u8g2.drawPixel(i + 3, ypos);
+  }
+  ypos += 1;
+  for (int i = 0; i < second() + 1; i = i + 15) {
+    u8g2.drawPixel(i + 3, ypos);
+  }
+
+  // write seconds
+  u8g2.setFont(u8g2_font_profont15_tn);
+  sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+  if (debug > 0)
+    Serial.println(buff);
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos += u8g2.getAscent() + 2;
+  u8g2.drawStr(xpos, ypos, buff);
 
   // write day
   u8g2.setFont(u8g2_font_timB08_tr);
@@ -413,19 +434,12 @@ void OLEDClockDisplay() {
   else {
     u8g2.setContrast(255);
   }
-  u8g2.sendBuffer();
-  if (do_SyncBar) OLED_Sync_Bar();
-  if (do_RSSI) OLED_RSSI_Bars();
-}
-void OLED_Sync_Bar () {
+
   // draw sync bar
   for (int i = 0; i < syncBar + 1; i++) {
     u8g2.drawPixel(0, disphei - i);
   }
-  u8g2.sendBuffer();
-}
 
-void OLED_RSSI_Bars () {
   // draw signal bars
   rssi = WiFi.RSSI();
 
@@ -440,11 +454,11 @@ void OLED_RSSI_Bars () {
   u8g2.setDrawColor(1);
 
   // draw smallest possible signal strength bars
-  if (rssi > -89) u8g2.drawLine(bl + 1, bb, bl + 1, bb - 1);
-  if (rssi > -78) u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
-  if (rssi > -67) u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
-  if (rssi > -56) u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
-  
+  u8g2.drawLine(bl + 1, bb, bl + 1, bb - 1);
+  u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
+  u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
+  u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
+
   u8g2.sendBuffer();
 }
 
@@ -453,12 +467,14 @@ void DigitalClockDisplay() {
 
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
-    display.showNumberDecEx(dig_time, 0b11100000, true);
+    matrix.print(dig_time, DEC);
   }
   else {
     dig_time = (hourFormat12() * 100) + minute();
-    display.showNumberDecEx(dig_time, 0b11100000, false);
+    matrix.print(dig_time, DEC);
   }
+  matrix.drawColon(true);
+  matrix.writeDisplay();
 
   if (debug > 0) {
     char buff[dispwid];
@@ -471,30 +487,33 @@ void DigitalClockDisplayOpt() {
   // set brightness
   if ((hour() >= 20) || (hour() <= 6)) { // night
     // dim display and show time only
-    display.setBrightness(0);
+    //display.setBrightness(0);
     DigitalClockDisplay();
   }
   else { // day
     // brighten display and show options
-    display.setBrightness(7);
+    //display.setBrightness(7);
     int dig_time;
     if ((do_cyc) && (second() == 30)) { // nixie tube cycling
       for (int i = 0; i < 10; i++) {
         dig_time = 1111 * i;
-        display.showNumberDecEx(dig_time, 0, true);
+        matrix.print(dig_time, DEC);
+        matrix.writeDisplay();
+
+        //   display.showNumberDecEx(dig_time, 0, true);
         delay(PRINT_DELAY);
       }
       DigitalClockDisplay();
     }
     else if (do_sec_top && ((second() >= 57) || (second() <= 2))) { // show seconds at the top of the minute
       dig_time = (minute() * 100) + second();
-      display.showNumberDecEx(dig_time, 0b11100000, true);
+      //display.showNumberDecEx(dig_time, 0b11100000, true);
     }
     else {
       if (do_sec_mod && ((second() % 15) == 0) && (second() > 0)) { // flash seconds periodically
         dig_time = second();
-        display.clear();
-        display.showNumberDec(dig_time, true, 2, 1);
+        //        matrix.displayClear();
+        // display.showNumberDec(dig_time, true, 2, 1);
         delay(PRINT_DELAY);
       }
       DigitalClockDisplay();
@@ -516,7 +535,7 @@ time_t getNtpTime() {
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
   //digitalWrite(LED_BUILTIN, LOW); // on
-  display.setSegments(SEG_SYNC);
+  //  display.setSegments(SEG_SYNC);
   // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);

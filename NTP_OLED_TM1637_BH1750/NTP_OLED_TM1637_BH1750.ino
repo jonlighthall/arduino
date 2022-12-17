@@ -11,6 +11,16 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
+#include <BH1750.h>
+BH1750 lightMeter(0x23);
+
+// desk light
+const int relayPin = D0;
+int relayState;
+int tlast = -1;
+#define READ_DELAY 1000*5
+const int lux_low_thresh = 30;
+const int lux_high_thresh = 100;
 
 #include <TM1637Display.h>
 const int CLK = D6; //Set the CLK pin connection to the display
@@ -25,7 +35,11 @@ const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
 
 // NTP Servers:
+//static const char ntpServerName[] = "us.pool.ntp.org";
 static const char ntpServerName[] = "time.nist.gov";
+//static const char ntpServerName[] = "time-a.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
 
 // Set Standard time zone
 //const int timeZone = 0;  // GMT
@@ -45,7 +59,7 @@ const bool do_SecondsBar = false;
 bool do_mil = false;
 bool do_sec_top = false;
 bool do_cyc = false;
-bool do_sec_mod = false;
+bool do_sec_mod = true;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -87,6 +101,23 @@ void setup() {
   char buff[64];
   sprintf(buff, "\nTimeNTP Example");
   Serial.println(buff);
+
+  // Initialize the I2C bus (BH1750 library doesn't do this automatically)
+  Wire.begin();
+  // On esp8266 you can select SCL and SDA pins using Wire.begin(D4, D3);
+
+  // begin returns a boolean that can be used to detect setup problems.
+  if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
+    Serial.println(F("BH1750 Advanced begin"));
+  }
+  else {
+    Serial.println(F("Error initialising BH1750"));
+  }
+
+  pinMode(relayPin, OUTPUT);
+  relayState = LOW;
+  Serial.println("Initalizing: turning light OFF...");
+  digitalWrite(relayPin, relayState);
 
   // display settings
   u8g2.begin();
@@ -211,6 +242,46 @@ int debug = 0;
 int syncTime = SYNC_DELAY * 1e3;
 void loop() {
   char buff[64];
+  // ---------------------------------
+  // Light controls
+  // ---------------------------------
+  int tstart = millis();
+  if ((hour() > 23) || ((hour() == 22) && (minute() >= 30)) || (hour() < 6) || ((hour() == 5) && (minute() <= 30))) {
+    // override light controls at night
+    relayState = LOW;
+    Serial.println(" Override: turning light OFF...");
+    digitalWrite(relayPin, relayState);
+  }
+  else {
+    if (((tstart - tlast) >= READ_DELAY) || (tlast == -1)) {
+      uint16_t lux = lightMeter.readLightLevel();
+      tlast = millis();
+      sprintf(buff, "Light: %d lx\n", lux);
+      Serial.print(buff);
+      
+      if (lux < lux_low_thresh) {
+        relayState = HIGH;
+        sprintf(buff, " It is too dark: %d < %d\n", lux, lux_low_thresh);
+        Serial.print(buff);
+        Serial.println(" Turning light ON...");
+        digitalWrite(relayPin, relayState);
+      }
+      else if (lux > lux_high_thresh) {
+        relayState = LOW;
+        sprintf(buff, " It is too bright: %d > %d\n", lux, lux_high_thresh);
+        Serial.println(" Turning light OFF...");
+        digitalWrite(relayPin, relayState);
+      }
+    }
+    else {
+      // do nothing and continue
+      //    sprintf(buff, "waiting : %d %d %d\n", tstart, tlast, (tstart - tlast));
+      //    Serial.print(buff);
+    }
+  }
+  // ---------------------------------
+  // Time
+  // ---------------------------------
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
       if (debug > 1) {
