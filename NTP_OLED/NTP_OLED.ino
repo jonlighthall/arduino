@@ -116,20 +116,33 @@ void setup() {
   u8g2.sendBuffer();
   WiFi.begin(ssid, pass);
 
+  // print text throbber
+  xpos += u8g2.getStrWidth(buff) + 1;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print("."); 
+    Serial.print(".");
     sprintf(buff, "X  ");
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
 
     delay(500);
+
+    // draw black background
+    u8g2.setDrawColor(0);
+    u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
+    u8g2.setDrawColor(1);
+
     Serial.print(".");
     sprintf(buff, "O   ");
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
   }
   Serial.print("connected\n");
+  // draw black background
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
+  u8g2.setDrawColor(1);
+
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
@@ -428,7 +441,7 @@ void OLED_RSSI_Bars () {
   if (rssi > -78) u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
   if (rssi > -67) u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
   if (rssi > -56) u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
-  
+
   u8g2.sendBuffer();
 }
 
