@@ -45,6 +45,9 @@ const bool do_DST = true;
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 
+const bool do_RSSI = false;
+const bool do_SyncBar = false;
+const bool do_SecondsBar = false;
 int rssi = 0; // Wifi signal strengh variable
 
 time_t getNtpTime();
@@ -62,6 +65,31 @@ int disphei;
 #define SYNC_DELAY 300 // print delay in seconds
 
 int syncBar = 0;
+
+void throbber(int seq) {
+  char *elem[] = { "a" , "b", "c", "d", "e", "f", "g", "h" } ;
+  char buff[64];
+
+  sprintf(buff, "seq = %d", seq);
+  Serial.println(buff);
+
+  sprintf(buff, "array size = %d", sizeof(elem) / sizeof(elem[0]));
+  Serial.println(buff);
+
+  //sprintf(buff, "index = %d",seq%ArraySize(elem));
+  Serial.println(buff);
+
+  //sprintf(buff, "element = %s",elem[seq%ArraySize(elem)]);
+  Serial.println(buff);
+
+  //  sprintf(buff,elem[seq%ArraySize(elem)]);
+  //  u8g2.drawStr(xpos, ypos, buff);
+  u8g2.sendBuffer();
+  delay(500);
+  sprintf(buff, " ");
+  //  u8g2.drawStr(xpos, ypos, buff);
+  u8g2.sendBuffer();
+}
 
 void setup() {
   // initialize on-board LED
@@ -352,28 +380,30 @@ void OLEDClockDisplay() {
   int ypos = u8g2.getAscent();
   u8g2.drawStr(xpos, ypos, buff);
 
-  // draw seconds bar
-  ypos += 2;
-  for (int i = 0; i < second() + 1; i++) {
-    u8g2.drawPixel(i + 3, ypos);
-  }
-  ypos += 1;
-  for (int i = 0; i < second() + 1; i = i + 5) {
-    u8g2.drawPixel(i + 3, ypos);
-  }
-  ypos += 1;
-  for (int i = 0; i < second() + 1; i = i + 15) {
-    u8g2.drawPixel(i + 3, ypos);
-  }
+  if (do_SecondsBar) {
+    // draw seconds bar
+    ypos += 2;
+    for (int i = 0; i < second() + 1; i++) {
+      u8g2.drawPixel(i + 3, ypos);
+    }
+    ypos += 1;
+    for (int i = 0; i < second() + 1; i = i + 5) {
+      u8g2.drawPixel(i + 3, ypos);
+    }
+    ypos += 1;
+    for (int i = 0; i < second() + 1; i = i + 15) {
+      u8g2.drawPixel(i + 3, ypos);
+    }
 
-  // write seconds
-  u8g2.setFont(u8g2_font_profont15_tn);
-  sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
-  if (debug > 0)
-    Serial.println(buff);
-  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  ypos += u8g2.getAscent() + 2;
-  u8g2.drawStr(xpos, ypos, buff);
+    // write seconds
+    u8g2.setFont(u8g2_font_profont15_tn);
+    sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+    if (debug > 0)
+      Serial.println(buff);
+    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+    ypos += u8g2.getAscent() + 2;
+    u8g2.drawStr(xpos, ypos, buff);
+  }
 
   // write day
   u8g2.setFont(u8g2_font_timB08_tr);
@@ -400,12 +430,19 @@ void OLEDClockDisplay() {
   else {
     u8g2.setContrast(255);
   }
-
+  u8g2.sendBuffer();
+  if (do_SyncBar) OLED_Sync_Bar();
+  if (do_RSSI) OLED_RSSI_Bars();
+}
+void OLED_Sync_Bar () {
   // draw sync bar
   for (int i = 0; i < syncBar + 1; i++) {
     u8g2.drawPixel(0, disphei - i);
   }
+  u8g2.sendBuffer();
+}
 
+void OLED_RSSI_Bars () {
   // draw signal bars
   rssi = WiFi.RSSI();
 
@@ -420,10 +457,10 @@ void OLEDClockDisplay() {
   u8g2.setDrawColor(1);
 
   // draw smallest possible signal strength bars
-  u8g2.drawLine(bl + 1, bb, bl + 1, bb - 1);
-  u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
-  u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
-  u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
+  if (rssi > -89) u8g2.drawLine(bl + 1, bb, bl + 1, bb - 1);
+  if (rssi > -78) u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
+  if (rssi > -67) u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
+  if (rssi > -56) u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
 
   u8g2.sendBuffer();
 }
