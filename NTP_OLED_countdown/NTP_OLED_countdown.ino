@@ -12,6 +12,8 @@
 
 #include "dst.h"
 #include "wifi_settings.h"
+const int debug = 2;
+#include "binary_utils.h"
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
@@ -192,7 +194,7 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 uint32_t LastSyncTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
-int debug = 2;
+
 int syncInterval = SYNC_INTERVAL * 1e3;
 void loop() {
   char buff[64];
@@ -492,137 +494,6 @@ constexpr uint32_t SECONDS_IN_DAY        = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
-uint32_t getWord(byte packet[48], int idx) {
-  uint32_t bit_word;
-  bit_word =  (unsigned long)packetBuffer[idx] << 24;
-  bit_word |= (unsigned long)packetBuffer[idx + 1] << 16;
-  bit_word |= (unsigned long)packetBuffer[idx + 2] << 8;
-  bit_word |= (unsigned long)packetBuffer[idx + 3];
-  return bit_word;
-}
-
-void print_uint32(uint32_t dword32) {
-  char buff[64];
-  sprintf(buff, "dec: %10u, hex: %08X, oct : ", dword32, dword32, dword32);
-  Serial.print(buff);
-  Serial.print(dword32, OCT); // print as an ASCII-encoded octal
-  Serial.print(", bin: ");
-  Serial.println(dword32, BIN); // print as an ASCII-encoded binary
-
-  Serial.println(dword32 << 24, BIN); // print as an ASCII-encoded binary
-  Serial.println(dword32 << 16, BIN); // print as an ASCII-encoded binary
-  Serial.println(dword32 << 8, BIN); // print as an ASCII-encoded binary
-  Serial.println(dword32 << 0, BIN); // print as an ASCII-encoded binary
-
-
-  Serial.println(dword32 >> 24, BIN); // print as an ASCII-encoded binary
-  Serial.println(dword32 >> 16, BIN); // print as an ASCII-encoded binary
-  Serial.println(dword32 >> 8, BIN); // print as an ASCII-encoded binary
-  Serial.println(dword32 >> 0, BIN); // print as an ASCII-encoded binary
-}
-
-void print_uint16(uint16_t word16) {
-  char buff[64];
-  sprintf(buff, "dec: %5u, hex: %04X, oct : ", word16, word16, word16);
-  Serial.print(buff);
-  Serial.print(word16, OCT); // print as an ASCII-encoded octal
-  Serial.print(", bin: ");
-  Serial.println(word16, BIN); // print as an ASCII-encoded binary
-
-  Serial.println(word16 << 12, BIN); // print as an ASCII-encoded binary
-  Serial.println(word16 << 8, BIN); // print as an ASCII-encoded binary
-  Serial.println(word16 << 4, BIN); // print as an ASCII-encoded binary
-
-  Serial.println(word16 >> 12, BIN); // print as an ASCII-encoded binary
-  Serial.println(word16 >> 8, BIN); // print as an ASCII-encoded binary
-  Serial.println(word16 >> 4, BIN); // print as an ASCII-encoded binary
-}
-
-void print_uint8(byte byte8) {
-  char buff[64];
-  sprintf(buff, "dec: %3u, hex: %02X, oct : ", byte8, byte8, byte8);
-  Serial.print(buff);
-  Serial.print(byte8, OCT); // print as an ASCII-encoded octal
-  Serial.print(", bin: ");
-  Serial.println(byte8, BIN); // print as an ASCII-encoded binary
-  Serial.println();
-  // move to right; cut off left
-  Serial.println(byte8 >> 1, BIN);
-  Serial.println(byte8 >> 2, BIN);
-  Serial.println(byte8 >> 3, BIN);
-  Serial.println(byte8 >> 4, BIN);
-  Serial.println(byte8 >> 5, BIN);
-  Serial.println(byte8 >> 6, BIN);
-  Serial.println(byte8 >> 7, BIN);
-  Serial.println();
-  // move to left; add zeros on right
-  Serial.println(byte8 << 1, BIN);
-  Serial.println(byte8 << 2, BIN);
-  Serial.println(byte8 << 3, BIN);
-  Serial.println(byte8 << 4, BIN);
-  Serial.println(byte8 << 5, BIN);
-  Serial.println(byte8 << 6, BIN);
-  Serial.println(byte8 << 7, BIN);
-
-
-}
-
-uint16_t getBits16(uint16_t word16, uint8_t bit_start, uint8_t bit_len) {
-  uint16_t mask, out;
-  char buff[64];
-  uint8_t high, low;
-
-  high = (word16 >> 8);
-  Serial.print("high byte: ");
-  print_uint8(high);
-
-  low = (word16 << 8) >> 8;
-  Serial.print(" low byte: ");
-  print_uint8(low);
-
-  return out;
-}
-
-uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
-  uint32_t mask, out;
-  char buff[64];
-  uint16_t high, low;
-
-  high = (dword32 >> 16);
-  Serial.print("high 16: ");
-  print_uint16(high);
-  getBits16(high, 0, 0);
-
-  low = (dword32 << 16) >> 16;
-  Serial.print(" low 16: ");
-  print_uint16(low);
-  getBits16(low, 0, 0);
-
-  sprintf(buff, "masking %010u %08X %032x at position %u length %u\n", dword32, dword32, dword32, bit_start, bit_len);
-  Serial.print(buff);
-  Serial.print("word: ");
-  print_uint32(dword32);
-
-  mask = ((1 << bit_len) - 1) << bit_start;
-  Serial.print("mask: ");
-  print_uint32(mask);
-
-  out = dword32 & mask;
-  Serial.print(" out: ");
-  print_uint32(out);
-
-  out = (dword32 << bit_start) >> ((32 - bit_start) - bit_len);
-  Serial.println("shift dword to starting point");
-  Serial.println((dword32 << bit_start), BIN);
-  Serial.println("shift back for length");
-  Serial.println(out, BIN);
-
-  Serial.print(" out: ");
-  print_uint32(out);
-
-  return out;
-}
-
 
 time_t getNtpTime() {
   char buff[64];
@@ -662,15 +533,19 @@ time_t getNtpTime() {
 
       // print raw time
       Serial.println("\nraw 32-bit packet elements");
-      Serial.println("  word    decimal   hex");
+      Serial.println("          decimal   hex");
       Serial.println("-------------------");
       for (int i = 0; i < 12; i++) {
-        sprintf(buff, "i = %2d %010u %X\n", i, words[i], words[i]);
+        sprintf(buff, "i = %2d %010u %08X ", i, words[i], words[i]);
         Serial.print(buff);
+        print_binary(words[i],32);
+        Serial.println();
       }
 
       Serial.print("header: ");
       print_uint32(words[0]);
+      Serial.print("header: "); print_binary(words[0], 32);
+      Serial.println();
       // define variables
       uint32_t  LI = getBits32(words[0], 0, 2);
       Serial.print("  LI: ");
