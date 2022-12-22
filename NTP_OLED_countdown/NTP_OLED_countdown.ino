@@ -26,6 +26,7 @@ time_t getNtpTime();
 void sendNTPpacket(IPAddress &address);
 
 void serialClockDisplay();
+void OLED_Sync_Bar();
 
 // OLED display options
 const bool do_RSSI = false;
@@ -542,7 +543,8 @@ time_t getNtpTime() {
       uint32_t  referenceIdentifier = words[4];
 
       // transmit timestamp
-      
+
+      unsigned long outputTime = words[40 / 4];
       unsigned long frac = words[44 / 4];
 
       // print raw time
@@ -563,15 +565,15 @@ time_t getNtpTime() {
       uint32_t secsSince1900[4];
       Serial.println("\nraw 32-bit timestamps (seconds)");
       for (int i = 0; i < 4; i++) {
-        secsSince1900[i]=words[4 + i * 2];
-        sprintf(buff, "i = %1d %010u\n", i+1, secsSince1900[i]);
+        secsSince1900[i] = words[4 + i * 2];
+        sprintf(buff, "i = %1d %010u\n", i + 1, secsSince1900[i]);
         Serial.print(buff);
       }
 
       // print raw NTP time
       Serial.println("\nraw 32-bit timestamps (fraction)");
       for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %1d %010u\n", i+1, words[5 + i * 2]);
+        sprintf(buff, "i = %1d %010u\n", i + 1, words[5 + i * 2]);
         Serial.print(buff);
       }
 
@@ -591,7 +593,7 @@ time_t getNtpTime() {
       // convert to local time
       uint32_t localTime[4];
       for (int i = 0; i < 4; i++) {
-        localTime[i] = secsSince1970[i] - SetTimeZone * SECS_PER_HOUR;
+        localTime[i] = secsSince1970[i] + SetTimeZone * SECS_PER_HOUR;
       }
 
       // print unix time
@@ -616,8 +618,13 @@ time_t getNtpTime() {
       Serial.print("fracTime = ");
       Serial.println(fracTime);
       //    }
+      Serial.print("old time = ");
+      Serial.println(outputTime - NTP_UNIX_OFFSET_SECONDS + SetTimeZone * SECS_PER_HOUR);
+      Serial.print("new time = ");
+      Serial.println(localTime[3]);
+
       Serial.println(serdiv);
-      return localTime[3];
+      return outputTime - NTP_UNIX_OFFSET_SECONDS + SetTimeZone * SECS_PER_HOUR;
     }
   }
   Serial.println("No NTP Response :-(");
