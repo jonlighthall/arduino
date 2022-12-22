@@ -1,0 +1,153 @@
+uint32_t getWord(byte packet[48], int idx) {
+  uint32_t bit_word;
+  bit_word =  (unsigned long)packet[idx] << 24;
+  bit_word |= (unsigned long)packet[idx + 1] << 16;
+  bit_word |= (unsigned long)packet[idx + 2] << 8;
+  bit_word |= (unsigned long)packet[idx + 3];
+  return bit_word;
+}
+
+// print a binary number with leading zeros
+void print_binary_spc(int number, byte Length) {
+  static int Bits;
+  static int bits_written;
+  const char* spc = " ";
+
+  if (number) { //The remaining bits have a value greater than zero continue
+    Bits++; // Count the number of bits so we know how many leading zeros to print first
+    print_binary_spc(number >> 1, Length); // Remove a bit and do a recursive call this function.
+    if (Bits)
+      for (byte x = (Length - Bits); x; x--) {
+        Serial.write('0'); // Add the leading zeros
+        bits_written++;
+        if  ( ( (bits_written % 4) == 0) && (bits_written < Length)) {
+          Serial.print(spc);
+        }
+        if (bits_written == Length) bits_written = 0;
+      }
+
+    Bits = 0; // clear no need for this any more
+    Serial.write((number & 1) ? '1' : '0'); // print the bits in reverse order as we depart the recursive function
+    bits_written++;
+    if  ( ( (bits_written % 4) == 0) && (bits_written < Length) ) {
+      Serial.print(spc);
+    }
+    if (bits_written == Length) bits_written = 0;
+  }
+  else { // if the value of number is zero, print zeros
+    if (Bits == 0)
+      for (byte x = Length; x; x--) {
+        Serial.write('0'); // Add the leading zeros
+        bits_written++;
+        if  (((bits_written % 4) == 0) && (bits_written < Length)) {
+          Serial.print(spc);
+        }
+        if (bits_written == Length) bits_written = 0;
+      }
+  }
+}
+
+void print_binary(uint32_t number, byte Length) {
+  if (Length > 32)
+    return;
+  static int Bits;
+  if (number) { //The remaining bits have a value greater than zero continue
+    Bits++; // Count the number of bits so we know how many leading zeros to print first
+    print_binary(number >> 1, Length); // Remove a bit and do a recursive call this function.
+    if (Bits)
+      for (byte x = (Length - Bits); x; x--)
+        Serial.write('0'); // Add the leading zeros
+    Bits = 0; // clear no need for this any more
+    Serial.write((number & 1) ? '1' : '0'); // print the bits in reverse order as we depart the recursive function
+  }
+  else  // if the value of number is zero, print zeros
+    if (Bits == 0)
+      for (byte x = Length; x; x--)
+        Serial.write('0'); // Add the leading zeros
+}
+
+void print_uint32(uint32_t dword32) {
+  char buff[64];
+  sprintf(buff, "dec: %10u, hex: %08X, oct: %011o, 32bin: ", dword32, dword32, dword32, dword32);
+  Serial.print(buff);
+  print_binary(dword32, 32);  Serial.print(", bin: ");
+  Serial.println(dword32, BIN); // print as an ASCII-encoded binary
+}
+
+void print_uint16(uint16_t word16) {
+  char buff[64];
+  sprintf(buff, "dec: %5u, hex: %04X, oct: %06o, 16bin: ", word16, word16, word16, word16);
+  Serial.print(buff);
+  print_binary(word16, 16); Serial.print(", bin: ");  
+  Serial.println(word16, BIN); // print as an ASCII-encoded binary
+}
+
+void print_uint8(byte byte8) {
+  char buff[64];
+  sprintf(buff, "dec: %3u, hex: %02X, oct: %03o, 08bin: ", byte8, byte8, byte8, byte8);
+  Serial.print(buff);
+  print_binary(byte8, 8); Serial.print(", bin: ");    
+  Serial.println(byte8, BIN); // print as an ASCII-encoded binary
+}
+
+uint16_t getBits16(uint16_t word16, uint8_t bit_start, uint8_t bit_len) {
+  uint16_t mask, out;
+  char buff[64];
+  uint8_t high, low;
+if (debug>2) {
+  high = (word16 >> 8);
+  Serial.print("high byte: ");
+  print_uint8(high);
+
+  low = (word16 << 8) >> 8;
+  Serial.print(" low byte: ");
+  print_uint8(low);
+}
+  return out;
+}
+
+uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
+  uint32_t mask, out;
+  char buff[64];
+  uint16_t high, low;
+
+if (debug>2) {
+  //equivalent to start 0, length 16
+  high = (dword32 << 0) >> 16;
+  Serial.print("high 16: ");
+  print_uint16(high);
+  getBits16(high, 0, 0);
+
+  //equivalent to start 16, length 16
+  low = (dword32 << 16) >> 16;
+  Serial.print(" low 16: ");
+  print_uint16(low);
+  getBits16(low, 0, 0);
+}
+  sprintf(buff, "masking %010u %08X at position %u length %u\n", dword32, dword32, bit_start, bit_len);
+  Serial.print(buff);
+  Serial.print("word: ");
+  print_uint32(dword32);
+
+  mask = ((1 << bit_len) - 1) << (32 - bit_start - bit_len);
+  Serial.print("mask: ");
+  print_uint32(mask);
+
+  out = dword32 & mask;
+  Serial.print(" out: ");
+  print_uint32(out);
+
+  out = (dword32 << bit_start);
+  Serial.println("shift dword to starting point");
+  print_binary(out,bit_len); Serial.print(", full: "); print_binary(out,32); Serial.print(", bin: ");  
+  Serial.println(out, BIN);
+  
+  out = (dword32 << bit_start) >> (32 - bit_len - 1);
+  Serial.println("shift back for length");
+  print_binary(out,32); Serial.print(", bin: ");  
+  Serial.println(out, BIN);
+  Serial.print(" out: ");
+  print_uint32(out);
+
+  return out;
+}
