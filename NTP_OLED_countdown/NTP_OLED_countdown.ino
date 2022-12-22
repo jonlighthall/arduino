@@ -447,7 +447,7 @@ void OLEDClockDisplay() {
   }
   u8g2.sendBuffer();
   if (do_SyncBar) OLED_Sync_Bar();
-  if (do_RSSI) OLED_RSSI_Bars();
+ // if (do_RSSI) OLED_RSSI_Bars();
 }
 void OLED_Sync_Bar () {
   // draw sync bar
@@ -542,11 +542,6 @@ time_t getNtpTime() {
       uint32_t  rootDispersion = words[3];
       uint32_t  referenceIdentifier = words[4];
 
-      // transmit timestamp
-
-      unsigned long outputTime = words[40 / 4];
-      unsigned long frac = words[44 / 4];
-
       // print raw time
       Serial.println("\nraw 32-bit packet elements");
       for (int i = 0; i < 12; i++) {
@@ -554,26 +549,32 @@ time_t getNtpTime() {
         Serial.print(buff);
       }
 
+      const char* names[4] = {"reference", "originate", "receive", "transmit"};
+
       // print raw NTP time
       Serial.println("\nraw 64-bit timestamps");
       for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %1d %010u%010u\n", i, words[4 + i * 2], words[5 + i * 2]);
+        sprintf(buff, "i = %1d %010u %010u %s\n", i + 1, words[4 + i * 2], words[5 + i * 2], names[i]);
         Serial.print(buff);
       }
+
+
 
       // print raw NTP time
       uint32_t secsSince1900[4];
       Serial.println("\nraw 32-bit timestamps (seconds)");
       for (int i = 0; i < 4; i++) {
         secsSince1900[i] = words[4 + i * 2];
-        sprintf(buff, "i = %1d %010u\n", i + 1, secsSince1900[i]);
+        sprintf(buff, "i = %1d %010u %s\n", i + 1, secsSince1900[i], names[i]);
         Serial.print(buff);
       }
 
+      uint32_t fracSecs[4];
       // print raw NTP time
       Serial.println("\nraw 32-bit timestamps (fraction)");
       for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %1d %010u\n", i + 1, words[5 + i * 2]);
+        fracSecs[i] = words[5 + i * 2];
+        sprintf(buff, "i = %1d %010u %s\n", i + 1, fracSecs[i], names[i]);
         Serial.print(buff);
       }
 
@@ -586,7 +587,7 @@ time_t getNtpTime() {
       // print unix time
       Serial.println("\n32-bit unix timestamps");
       for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %2d %10u\n", i, secsSince1970[i]);
+        sprintf(buff, "i = %2d %010u %s\n", i, secsSince1970[i], names[i]);
         Serial.print(buff);
       }
 
@@ -599,7 +600,7 @@ time_t getNtpTime() {
       // print unix time
       Serial.println("\nlocal 32-bit timestamps");
       for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %2d %10u\n", i, localTime[i]);
+        sprintf(buff, "i = %2d %010u %s\n", i, localTime[i], names[i]);
         Serial.print(buff);
       }
 
@@ -610,7 +611,7 @@ time_t getNtpTime() {
         ifrac_secs[i] = words[5 + i * 2];
       }
 
-      fracTime = ((uint64_t) frac * 1000) >> 32;
+      fracTime = ((uint64_t) fracSecs[3] * 1000) >> 32;
 
       //      if (debug > 1) {
       // print fractional times
@@ -618,13 +619,9 @@ time_t getNtpTime() {
       Serial.print("fracTime = ");
       Serial.println(fracTime);
       //    }
-      Serial.print("old time = ");
-      Serial.println(outputTime - NTP_UNIX_OFFSET_SECONDS + SetTimeZone * SECS_PER_HOUR);
-      Serial.print("new time = ");
-      Serial.println(localTime[3]);
 
       Serial.println(serdiv);
-      return outputTime - NTP_UNIX_OFFSET_SECONDS + SetTimeZone * SECS_PER_HOUR;
+      return localTime[3];
     }
   }
   Serial.println("No NTP Response :-(");
