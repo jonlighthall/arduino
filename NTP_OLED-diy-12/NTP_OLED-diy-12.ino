@@ -19,48 +19,53 @@
   The functions are inspired by work of G6EJD ( https://www.youtube.com/channel/UCgtlqH_lkMdIa4jZLItcsTg )
 */
 
-#ifdef ESP8266
 #include <ESP8266WiFi.h>
-#else
-#include <WiFi.h>
-#endif
 #include <time.h>
+
+// OLED packages
 #include <U8x8lib.h>
-#include "credentials.h"
+
 #include "date_time_fmt.h"
 
-#define PRINT_DELAY 1
-
+// Wi-Fi settings
+#include "credentials.h"
 const char* ssid = mySSID;              //from credentials.h file
 const char* password = myPASSWORD;      //from credentials.h file
+
+// NTP settings
 const char* NTP_SERVER = "time.nist.gov";
 const char* TZ_INFO    = "CST6CDT";  // enter your time zone (https://remotemonitoringsystems.ca/time-zone-abbreviations.php)
-
 tm timeinfo;
 time_t now;
 long unsigned lastNTPtime;
 unsigned long lastEntryTime;
 
+// OLED display options
 U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
+
+#define PRINT_DELAY 1
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("\nhello world");
   delay(PRINT_DELAY);
+  Serial.println();
+  Serial.println("NTP Time");
 
+  // display settings
   u8x8.begin();
-  u8x8.setFont(u8x8_font_8x13_1x2_f); 
   u8x8.clear();
   u8x8.home();
+
+  u8x8.setFont(u8x8_font_8x13_1x2_f);
   u8x8.println("NTP Time");
-  Serial.println("NTP Time");
   delay(PRINT_DELAY);
-  
+
+  // Wi-Fi settings
   Serial.print("Connecting to ");
-  u8x8.print("Connecting to network");
   Serial.print(ssid);
   u8x8.clear();
   u8x8.home();
+  u8x8.print("Connecting to network");
   WiFi.begin(ssid, password);
   
   int counter = 0;
@@ -142,5 +147,5 @@ void loop() {
   getNTPtime(1);
   Serial.println("Show time...");
   showTime(&timeinfo);
-  // delay(1000);
+  delay(1000);
 }
