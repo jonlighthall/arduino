@@ -501,34 +501,128 @@ uint32_t getWord(byte packet[48], int idx) {
   return bit_word;
 }
 
-void print_uint(uint32_t input) {
-  Serial.print(input, DEC); // print as an ASCII-encoded decimal
-  Serial.print(" ");
-  Serial.print(input, HEX); // print as an ASCII-encoded hexadecimal
-  Serial.print(" ");
-  Serial.print(input, OCT); // print as an ASCII-encoded octal
-  Serial.print(" ");
-  Serial.println(input, BIN); // print as an ASCII-encoded binary
+void print_uint32(uint32_t dword32) {
+  char buff[64];
+  sprintf(buff, "dec: %10u, hex: %08X, oct : ", dword32, dword32, dword32);
+  Serial.print(buff);
+  Serial.print(dword32, OCT); // print as an ASCII-encoded octal
+  Serial.print(", bin: ");
+  Serial.println(dword32, BIN); // print as an ASCII-encoded binary
+
+  Serial.println(dword32 << 24, BIN); // print as an ASCII-encoded binary
+  Serial.println(dword32 << 16, BIN); // print as an ASCII-encoded binary
+  Serial.println(dword32 << 8, BIN); // print as an ASCII-encoded binary
+  Serial.println(dword32 << 0, BIN); // print as an ASCII-encoded binary
+
+
+  Serial.println(dword32 >> 24, BIN); // print as an ASCII-encoded binary
+  Serial.println(dword32 >> 16, BIN); // print as an ASCII-encoded binary
+  Serial.println(dword32 >> 8, BIN); // print as an ASCII-encoded binary
+  Serial.println(dword32 >> 0, BIN); // print as an ASCII-encoded binary
 }
 
-uint32_t getBits(uint32_t word32, uint8_t bit_start, uint8_t bit_len) {
-  unsigned mask;
-  uint32_t out;
+void print_uint16(uint16_t word16) {
   char buff[64];
-
-  sprintf(buff, "masking %010u %08X at position %u length %u\n", word32, word32, bit_start, bit_len);
+  sprintf(buff, "dec: %5u, hex: %04X, oct : ", word16, word16, word16);
   Serial.print(buff);
+  Serial.print(word16, OCT); // print as an ASCII-encoded octal
+  Serial.print(", bin: ");
+  Serial.println(word16, BIN); // print as an ASCII-encoded binary
 
-  mask = ((1 << bit_len) - 1) << bit_start;
-  sprintf(buff, "mask = %010u %08X\n", mask, mask);
-  Serial.print(buff);
+  Serial.println(word16 << 12, BIN); // print as an ASCII-encoded binary
+  Serial.println(word16 << 8, BIN); // print as an ASCII-encoded binary
+  Serial.println(word16 << 4, BIN); // print as an ASCII-encoded binary
 
-  out = word32 & mask;
-  sprintf(buff, "out= %010u %08X\n", out, out);
+  Serial.println(word16 >> 12, BIN); // print as an ASCII-encoded binary
+  Serial.println(word16 >> 8, BIN); // print as an ASCII-encoded binary
+  Serial.println(word16 >> 4, BIN); // print as an ASCII-encoded binary
+}
+
+void print_uint8(byte byte8) {
+  char buff[64];
+  sprintf(buff, "dec: %3u, hex: %02X, oct : ", byte8, byte8, byte8);
   Serial.print(buff);
+  Serial.print(byte8, OCT); // print as an ASCII-encoded octal
+  Serial.print(", bin: ");
+  Serial.println(byte8, BIN); // print as an ASCII-encoded binary
+  Serial.println();
+  // move to right; cut off left
+  Serial.println(byte8 >> 1, BIN);
+  Serial.println(byte8 >> 2, BIN);
+  Serial.println(byte8 >> 3, BIN);
+  Serial.println(byte8 >> 4, BIN);
+  Serial.println(byte8 >> 5, BIN);
+  Serial.println(byte8 >> 6, BIN);
+  Serial.println(byte8 >> 7, BIN);
+  Serial.println();
+  // move to left; add zeros on right
+  Serial.println(byte8 << 1, BIN);
+  Serial.println(byte8 << 2, BIN);
+  Serial.println(byte8 << 3, BIN);
+  Serial.println(byte8 << 4, BIN);
+  Serial.println(byte8 << 5, BIN);
+  Serial.println(byte8 << 6, BIN);
+  Serial.println(byte8 << 7, BIN);
+
+
+}
+
+uint16_t getBits16(uint16_t word16, uint8_t bit_start, uint8_t bit_len) {
+  uint16_t mask, out;
+  char buff[64];
+  uint8_t high, low;
+
+  high = (word16 >> 8);
+  Serial.print("high byte: ");
+  print_uint8(high);
+
+  low = (word16 << 8) >> 8;
+  Serial.print(" low byte: ");
+  print_uint8(low);
 
   return out;
 }
+
+uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
+  uint32_t mask, out;
+  char buff[64];
+  uint16_t high, low;
+
+  high = (dword32 >> 16);
+  Serial.print("high 16: ");
+  print_uint16(high);
+  getBits16(high, 0, 0);
+
+  low = (dword32 << 16) >> 16;
+  Serial.print(" low 16: ");
+  print_uint16(low);
+  getBits16(low, 0, 0);
+
+  sprintf(buff, "masking %010u %08X %032x at position %u length %u\n", dword32, dword32, dword32, bit_start, bit_len);
+  Serial.print(buff);
+  Serial.print("word: ");
+  print_uint32(dword32);
+
+  mask = ((1 << bit_len) - 1) << bit_start;
+  Serial.print("mask: ");
+  print_uint32(mask);
+
+  out = dword32 & mask;
+  Serial.print(" out: ");
+  print_uint32(out);
+
+  out = (dword32 << bit_start) >> ((32 - bit_start) - bit_len);
+  Serial.println("shift dword to starting point");
+  Serial.println((dword32 << bit_start), BIN);
+  Serial.println("shift back for length");
+  Serial.println(out, BIN);
+
+  Serial.print(" out: ");
+  print_uint32(out);
+
+  return out;
+}
+
 
 time_t getNtpTime() {
   char buff[64];
@@ -575,14 +669,37 @@ time_t getNtpTime() {
         Serial.print(buff);
       }
 
-      print_uint(words[0]);
+      Serial.print("header: ");
+      print_uint32(words[0]);
       // define variables
-      uint32_t  LI = getBits(words[0], 1, 2);
-      Serial.print("LI: ");
-      print_uint(LI);
-      uint32_t  VN = getBits(words[0], 3, 3);
-      Serial.print("VN: ");
-      print_uint(VN);
+      uint32_t  LI = getBits32(words[0], 0, 2);
+      Serial.print("  LI: ");
+      print_uint8(LI);
+      Serial.println("should be dec 0-3 or bin 00-11");
+      uint32_t  VN = getBits32(words[0], 2, 3);
+      Serial.print("  VN: ");
+      print_uint8(VN);
+      Serial.println("should be dec 4 or bin 100");
+      uint32_t  Mode = getBits32(words[0], 5, 3);
+      Serial.print("Mode: ");
+      print_uint8(Mode);
+
+      uint32_t  Stratum = getBits32(words[0], 8, 8);
+      Serial.print("Stra: ");
+      print_uint8(Stratum);
+      Serial.println("should be dec 0-16, hex 0-F");
+
+      uint32_t  Poll = getBits32(words[0], 16, 8);
+      Serial.print("Poll: ");
+      print_uint8(Poll);
+      Serial.println("8-bit signed int");
+
+      uint32_t  Precision = getBits32(words[0], 24, 8);
+      Serial.print("Prec: ");
+      print_uint8(Stratum);
+      Serial.println("8-bit signed int");
+
+
 
       uint32_t  rootDelay = words[1];
       uint32_t  rootDispersion = words[2];
