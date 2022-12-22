@@ -536,18 +536,33 @@ time_t getNtpTime() {
       for (int i = 0; i < 12; i++) {
         words[i] = getWord(packetBuffer, i * 4);
       }
-
-      // define variables
-      uint32_t  rootDelay = words[2];
-      uint32_t  rootDispersion = words[3];
-      uint32_t  referenceIdentifier = words[4];
-
+      
       // print raw time
       Serial.println("\nraw 32-bit packet elements");
+      Serial.println("  word    decimal   hex");
+      Serial.println("-------------------");
       for (int i = 0; i < 12; i++) {
-        sprintf(buff, "i = %2d %10u\n", i, words[i]);
+        sprintf(buff, "i = %2d %10u %X\n", i, words[i],words[i]);
         Serial.print(buff);
       }
+
+    // define variables
+      uint32_t  LI = (words[0]>>30) & ((1 << 2)-1);
+      uint32_t  rootDelay = words[1];
+      uint32_t  rootDispersion = words[2];
+      uint32_t  referenceIdentifier = words[3];
+
+        sprintf(buff, "%010u LI %X\n", rootDelay,rootDelay);
+        Serial.print(buff);
+        
+        
+        sprintf(buff, "%010u Root Delay\n", rootDelay);
+        Serial.print(buff);
+        sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
+        Serial.print(buff);
+        sprintf(buff, "%010u Reference Identifier\n", referenceIdentifier);
+        Serial.print(buff);
+      
 
       const char* names[4] = {"reference", "originate", "receive", "transmit"};
 
@@ -557,8 +572,6 @@ time_t getNtpTime() {
         sprintf(buff, "i = %1d %010u %010u %s\n", i + 1, words[4 + i * 2], words[5 + i * 2], names[i]);
         Serial.print(buff);
       }
-
-
 
       // print raw NTP time
       uint32_t secsSince1900[4];
