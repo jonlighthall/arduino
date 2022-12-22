@@ -1,21 +1,20 @@
 
 #include <NTPClient.h>
-// change next line to use with another board/shield
 #include <ESP8266WiFi.h>
-//#include <WiFi.h> // for WiFi shield
-//#include <WiFi101.h> // for WiFi 101 shield or MKR1000
 #include <WiFiUdp.h>
 
-const char *ssid     = "<SSID>";
-const char *password = "<PASSWORD>";
+// Wi-Fi settings:
+#include "credentials.h"
+const char* ssid = mySSID;          //from credentials.h file
+const char* pass = myPASSWORD;      //from credentials.h file
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
 
 void setup(){
-  Serial.begin(115200);
+  Serial.begin(9600);
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, pass);
 
   while ( WiFi.status() != WL_CONNECTED ) {
     delay ( 500 );
