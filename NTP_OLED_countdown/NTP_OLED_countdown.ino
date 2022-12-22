@@ -1,13 +1,9 @@
 /*
    TimeNTP_ESP8266WiFi.ino
    Example showing time sync to NTP time source
-
-   This sketch uses the ESP8266WiFi library
 */
 
 #include <TimeLib.h>
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
 
 // OLED packages
 #include <Arduino.h>
@@ -15,11 +11,7 @@
 #include <Wire.h>
 
 #include "dst.h"
-
-// Wi-Fi settings:
-#include "credentials.h"
-const char* ssid = mySSID;          //from credentials.h file
-const char* pass = myPASSWORD;      //from credentials.h file
+#include "wifi_settings.h"
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
@@ -30,14 +22,10 @@ const int timeZone = -6; // CST
 int SetTimeZone = timeZone;
 const bool do_DST = true;
 
-WiFiUDP Udp;
-unsigned int localPort = 8888;  // local port to listen for UDP packets
-
-int rssi = 0; // Wifi signal strengh variable
-
 time_t getNtpTime();
-void serialClockDisplay();
 void sendNTPpacket(IPAddress &address);
+
+void serialClockDisplay();
 
 // OLED display options
 const bool do_RSSI = false;
@@ -498,7 +486,22 @@ void OLED_RSSI_Bars () {
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
 byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
 
+constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
+constexpr uint16_t DAYS_IN_YEAR          = 365;
+constexpr uint8_t  NUMBER_OF_LEAP_YEARS  = 17;
+constexpr uint32_t SECONDS_IN_DAY        = 86400;
+constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
+  (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
+
+uint32_t getWord(int start) {
+  
+}
+
 time_t getNtpTime() {
+
+  Serial.print("epoch offset = ");
+  Serial.println(NTP_UNIX_OFFSET_SECONDS );
+
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
@@ -523,27 +526,134 @@ time_t getNtpTime() {
       digitalWrite(LED_BUILTIN, HIGH); // off
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
+
+      // define variables
+      unsigned long ts1;
+      unsigned long fts1;
       unsigned long secsSince1900;
+      unsigned long frac;
+      unsigned long ts2;
+      unsigned long fts2;
+      unsigned long ts3;
+      unsigned long fts3;
+
+      // read packet
+      ts3 =  (unsigned long)packetBuffer[16] << 24;
+      ts3 |= (unsigned long)packetBuffer[17] << 16;
+      ts3 |= (unsigned long)packetBuffer[18] << 8;
+      ts3 |= (unsigned long)packetBuffer[19];
+
+      fts3  = (unsigned long) packetBuffer[20] << 24;
+      fts3 |= (unsigned long) packetBuffer[21] << 16;
+      fts3 |= (unsigned long) packetBuffer[22] <<  8;
+      fts3 |= (unsigned long) packetBuffer[23];
+
+      ts2 =  (unsigned long)packetBuffer[24] << 24;
+      ts2 |= (unsigned long)packetBuffer[25] << 16;
+      ts2 |= (unsigned long)packetBuffer[26] << 8;
+      ts2 |= (unsigned long)packetBuffer[27];
+
+      fts2  = (unsigned long) packetBuffer[28] << 24;
+      fts2 |= (unsigned long) packetBuffer[29] << 16;
+      fts2 |= (unsigned long) packetBuffer[30] <<  8;
+      fts2 |= (unsigned long) packetBuffer[31];
+
+      ts1 =  (unsigned long)packetBuffer[32] << 24;
+      ts1 |= (unsigned long)packetBuffer[33] << 16;
+      ts1 |= (unsigned long)packetBuffer[34] << 8;
+      ts1 |= (unsigned long)packetBuffer[35];
+
+      fts1  = (unsigned long) packetBuffer[36] << 24;
+      fts1 |= (unsigned long) packetBuffer[37] << 16;
+      fts1 |= (unsigned long) packetBuffer[38] <<  8;
+      fts1 |= (unsigned long) packetBuffer[39];
+
       // convert four bytes starting at location 40 to a long integer
       secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
       secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
       secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
       secsSince1900 |= (unsigned long)packetBuffer[43];
+
       // convert four bytes starting at location 44 to a long integer
-      unsigned long frac;
       frac  = (unsigned long) packetBuffer[44] << 24;
       frac |= (unsigned long) packetBuffer[45] << 16;
       frac |= (unsigned long) packetBuffer[46] <<  8;
       frac |= (unsigned long) packetBuffer[47];
 
+
+      // print raw time
+      Serial.println("\nraw 32-bit timestamps");
+      Serial.print("          ts3 = ");
+      Serial.println(ts3);
+      Serial.print("         fts3 = ");
+      Serial.println(fts3);
+      Serial.print("          ts2 = ");
+      Serial.println(ts2);
+      Serial.print("         fts2 = ");
+      Serial.println(fts2);
+      Serial.print("          ts1 = ");
+      Serial.println(ts1);
+      Serial.print("         fts1 = ");
+      Serial.println(fts1);
+      Serial.print("secsSince1900 = ");
+      Serial.println(secsSince1900);
+      Serial.print("         frac = ");
+      Serial.println(frac);
+
+      // convert to unix time
+      uint32_t secsSince1970 = secsSince1900 - NTP_UNIX_OFFSET_SECONDS;
+      uint32_t ts1u = ts1 - NTP_UNIX_OFFSET_SECONDS;
+      uint32_t ts2u = ts2 - NTP_UNIX_OFFSET_SECONDS;
+      uint32_t ts3u = ts3 - NTP_UNIX_OFFSET_SECONDS;
+
+      // print unix time
+      Serial.println("\n32-bit unix timestamps");
+      Serial.print("         ts3u = ");
+      Serial.println(ts3u);
+      Serial.print("         ts2u = ");
+      Serial.println(ts2u);
+      Serial.print("         ts1u = ");
+      Serial.println(ts1u);
+      Serial.print("secsSince1970 = ");
+      Serial.println(secsSince1970);
+
+      // convert to local time zone
+      uint32_t time1 = ts1u + SetTimeZone * SECS_PER_HOUR;
+      uint32_t time2 = ts2u + SetTimeZone * SECS_PER_HOUR;
+      uint32_t time3 = ts3u + SetTimeZone * SECS_PER_HOUR;
+      uint32_t time0 = secsSince1970 + SetTimeZone * SECS_PER_HOUR;
+
+      // print time-zone time
+      Serial.println("\nlocal 32-bit timestamps");
+      Serial.print("        time3 = ");
+      Serial.println(time3);
+      Serial.print("        time2 = ");
+      Serial.println(time2);
+      Serial.print("        time1 = ");
+      Serial.println(time1);
+      Serial.print("        time0 = ");
+      Serial.println(time0);
+
       // convert the fractional part to milliseconds
       fracTime = ((uint64_t) frac * 1000) >> 32;
-      if (debug > 1) {
-        Serial.print("fracTime = ");
-        Serial.println(fracTime);
-      }
+      uint32_t ft1 = ((uint64_t) fts1 * 1000) >> 32;
+      uint32_t ft2 = ((uint64_t) fts2 * 1000) >> 32;
+      uint32_t ft3 = ((uint64_t) fts3 * 1000) >> 32;
+
+      //      if (debug > 1) {
+      // print fractional times
+      Serial.println("\nraw 32-bit timestamps");
+      Serial.print("fracTime = ");
+      Serial.println(fracTime);
+      Serial.print("ft1 = ");
+      Serial.println(ft1);
+      Serial.print("ft2 = ");
+      Serial.println(ft2);
+      Serial.print("ft3 = ");
+      Serial.println(ft3);
+      //    }
       Serial.println(serdiv);
-      return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
+      return secsSince1900 - NTP_UNIX_OFFSET_SECONDS + SetTimeZone * SECS_PER_HOUR;
     }
   }
   Serial.println("No NTP Response :-(");
