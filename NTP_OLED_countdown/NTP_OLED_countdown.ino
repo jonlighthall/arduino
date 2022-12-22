@@ -447,7 +447,7 @@ void OLEDClockDisplay() {
   }
   u8g2.sendBuffer();
   if (do_SyncBar) OLED_Sync_Bar();
- // if (do_RSSI) OLED_RSSI_Bars();
+  // if (do_RSSI) OLED_RSSI_Bars();
 }
 void OLED_Sync_Bar () {
   // draw sync bar
@@ -501,6 +501,35 @@ uint32_t getWord(byte packet[48], int idx) {
   return bit_word;
 }
 
+void print_uint(uint32_t input) {
+  Serial.print(input, DEC); // print as an ASCII-encoded decimal
+  Serial.print(" ");
+  Serial.print(input, HEX); // print as an ASCII-encoded hexadecimal
+  Serial.print(" ");
+  Serial.print(input, OCT); // print as an ASCII-encoded octal
+  Serial.print(" ");
+  Serial.println(input, BIN); // print as an ASCII-encoded binary
+}
+
+uint32_t getBits(uint32_t word32, uint8_t bit_start, uint8_t bit_len) {
+  unsigned mask;
+  uint32_t out;
+  char buff[64];
+
+  sprintf(buff, "masking %010u %08X at position %u length %u\n", word32, word32, bit_start, bit_len);
+  Serial.print(buff);
+
+  mask = ((1 << bit_len) - 1) << bit_start;
+  sprintf(buff, "mask = %010u %08X\n", mask, mask);
+  Serial.print(buff);
+
+  out = word32 & mask;
+  sprintf(buff, "out= %010u %08X\n", out, out);
+  Serial.print(buff);
+
+  return out;
+}
+
 time_t getNtpTime() {
   char buff[64];
   Serial.print("epoch offset = ");
@@ -536,33 +565,36 @@ time_t getNtpTime() {
       for (int i = 0; i < 12; i++) {
         words[i] = getWord(packetBuffer, i * 4);
       }
-      
+
       // print raw time
       Serial.println("\nraw 32-bit packet elements");
       Serial.println("  word    decimal   hex");
       Serial.println("-------------------");
       for (int i = 0; i < 12; i++) {
-        sprintf(buff, "i = %2d %10u %X\n", i, words[i],words[i]);
+        sprintf(buff, "i = %2d %010u %X\n", i, words[i], words[i]);
         Serial.print(buff);
       }
 
-    // define variables
-      uint32_t  LI = (words[0]>>30) & ((1 << 2)-1);
+      print_uint(words[0]);
+      // define variables
+      uint32_t  LI = getBits(words[0], 1, 2);
+      Serial.print("LI: ");
+      print_uint(LI);
+      uint32_t  VN = getBits(words[0], 3, 3);
+      Serial.print("VN: ");
+      print_uint(VN);
+
       uint32_t  rootDelay = words[1];
       uint32_t  rootDispersion = words[2];
       uint32_t  referenceIdentifier = words[3];
 
-        sprintf(buff, "%010u LI %X\n", rootDelay,rootDelay);
-        Serial.print(buff);
-        
-        
-        sprintf(buff, "%010u Root Delay\n", rootDelay);
-        Serial.print(buff);
-        sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
-        Serial.print(buff);
-        sprintf(buff, "%010u Reference Identifier\n", referenceIdentifier);
-        Serial.print(buff);
-      
+      sprintf(buff, "%010u Root Delay\n", rootDelay);
+      Serial.print(buff);
+      sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
+      Serial.print(buff);
+      sprintf(buff, "%010u Reference Identifier\n", referenceIdentifier);
+      Serial.print(buff);
+
 
       const char* names[4] = {"reference", "originate", "receive", "transmit"};
 
