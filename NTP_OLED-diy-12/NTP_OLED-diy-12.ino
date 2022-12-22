@@ -50,6 +50,8 @@ void setup() {
 
   u8x8.begin();
   u8x8.setFont(u8x8_font_8x13_1x2_f); 
+  u8x8.clear();
+  u8x8.home();
   u8x8.println("NTP Time");
   Serial.println("NTP Time");
   delay(PRINT_DELAY);
