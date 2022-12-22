@@ -256,8 +256,6 @@ void loop() {
       sprintf(buff, "fracTime = %d\n", fracTime);
       Serial.print(buff);
 
-
-
       if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
         int totalDelay = fracTime + TimeSinceSync;
         int setDelay = totalDelay % 1000;
@@ -493,12 +491,17 @@ constexpr uint32_t SECONDS_IN_DAY        = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
-uint32_t getWord(int start) {
-  
+uint32_t getWord(byte packet[48], int idx) {
+  uint32_t bit_word;
+  bit_word =  (unsigned long)packetBuffer[idx] << 24;
+  bit_word |= (unsigned long)packetBuffer[idx + 1] << 16;
+  bit_word |= (unsigned long)packetBuffer[idx + 2] << 8;
+  bit_word |= (unsigned long)packetBuffer[idx + 3];
+  return bit_word;
 }
 
 time_t getNtpTime() {
-
+  char buff[64];
   Serial.print("epoch offset = ");
   Serial.println(NTP_UNIX_OFFSET_SECONDS );
 
@@ -527,133 +530,94 @@ time_t getNtpTime() {
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
 
-      // define variables
-      unsigned long ts1;
-      unsigned long fts1;
-      unsigned long secsSince1900;
-      unsigned long frac;
-      unsigned long ts2;
-      unsigned long fts2;
-      unsigned long ts3;
-      unsigned long fts3;
-
       // read packet
-      ts3 =  (unsigned long)packetBuffer[16] << 24;
-      ts3 |= (unsigned long)packetBuffer[17] << 16;
-      ts3 |= (unsigned long)packetBuffer[18] << 8;
-      ts3 |= (unsigned long)packetBuffer[19];
+      uint32_t words[12];
+      for (int i = 0; i < 12; i++) {
+        words[i] = getWord(packetBuffer, i * 4);
+      }
 
-      fts3  = (unsigned long) packetBuffer[20] << 24;
-      fts3 |= (unsigned long) packetBuffer[21] << 16;
-      fts3 |= (unsigned long) packetBuffer[22] <<  8;
-      fts3 |= (unsigned long) packetBuffer[23];
+      // define variables
+      uint32_t  rootDelay = words[2];
+      uint32_t  rootDispersion = words[3];
+      uint32_t  referenceIdentifier = words[4];
 
-      ts2 =  (unsigned long)packetBuffer[24] << 24;
-      ts2 |= (unsigned long)packetBuffer[25] << 16;
-      ts2 |= (unsigned long)packetBuffer[26] << 8;
-      ts2 |= (unsigned long)packetBuffer[27];
-
-      fts2  = (unsigned long) packetBuffer[28] << 24;
-      fts2 |= (unsigned long) packetBuffer[29] << 16;
-      fts2 |= (unsigned long) packetBuffer[30] <<  8;
-      fts2 |= (unsigned long) packetBuffer[31];
-
-      ts1 =  (unsigned long)packetBuffer[32] << 24;
-      ts1 |= (unsigned long)packetBuffer[33] << 16;
-      ts1 |= (unsigned long)packetBuffer[34] << 8;
-      ts1 |= (unsigned long)packetBuffer[35];
-
-      fts1  = (unsigned long) packetBuffer[36] << 24;
-      fts1 |= (unsigned long) packetBuffer[37] << 16;
-      fts1 |= (unsigned long) packetBuffer[38] <<  8;
-      fts1 |= (unsigned long) packetBuffer[39];
-
-      // convert four bytes starting at location 40 to a long integer
-      secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
-      secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
-      secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
-      secsSince1900 |= (unsigned long)packetBuffer[43];
-
-      // convert four bytes starting at location 44 to a long integer
-      frac  = (unsigned long) packetBuffer[44] << 24;
-      frac |= (unsigned long) packetBuffer[45] << 16;
-      frac |= (unsigned long) packetBuffer[46] <<  8;
-      frac |= (unsigned long) packetBuffer[47];
-
+      // transmit timestamp
+      
+      unsigned long frac = words[44 / 4];
 
       // print raw time
-      Serial.println("\nraw 32-bit timestamps");
-      Serial.print("          ts3 = ");
-      Serial.println(ts3);
-      Serial.print("         fts3 = ");
-      Serial.println(fts3);
-      Serial.print("          ts2 = ");
-      Serial.println(ts2);
-      Serial.print("         fts2 = ");
-      Serial.println(fts2);
-      Serial.print("          ts1 = ");
-      Serial.println(ts1);
-      Serial.print("         fts1 = ");
-      Serial.println(fts1);
-      Serial.print("secsSince1900 = ");
-      Serial.println(secsSince1900);
-      Serial.print("         frac = ");
-      Serial.println(frac);
+      Serial.println("\nraw 32-bit packet elements");
+      for (int i = 0; i < 12; i++) {
+        sprintf(buff, "i = %2d %10u\n", i, words[i]);
+        Serial.print(buff);
+      }
+
+      // print raw NTP time
+      Serial.println("\nraw 64-bit timestamps");
+      for (int i = 0; i < 4; i++) {
+        sprintf(buff, "i = %1d %010u%010u\n", i, words[4 + i * 2], words[5 + i * 2]);
+        Serial.print(buff);
+      }
+
+      // print raw NTP time
+      uint32_t secsSince1900[4];
+      Serial.println("\nraw 32-bit timestamps (seconds)");
+      for (int i = 0; i < 4; i++) {
+        secsSince1900[i]=words[4 + i * 2];
+        sprintf(buff, "i = %1d %010u\n", i+1, secsSince1900[i]);
+        Serial.print(buff);
+      }
+
+      // print raw NTP time
+      Serial.println("\nraw 32-bit timestamps (fraction)");
+      for (int i = 0; i < 4; i++) {
+        sprintf(buff, "i = %1d %010u\n", i+1, words[5 + i * 2]);
+        Serial.print(buff);
+      }
 
       // convert to unix time
-      uint32_t secsSince1970 = secsSince1900 - NTP_UNIX_OFFSET_SECONDS;
-      uint32_t ts1u = ts1 - NTP_UNIX_OFFSET_SECONDS;
-      uint32_t ts2u = ts2 - NTP_UNIX_OFFSET_SECONDS;
-      uint32_t ts3u = ts3 - NTP_UNIX_OFFSET_SECONDS;
+      uint32_t secsSince1970[4];
+      for (int i = 0; i < 4; i++) {
+        secsSince1970[i] = secsSince1900[i] - NTP_UNIX_OFFSET_SECONDS;
+      }
 
       // print unix time
       Serial.println("\n32-bit unix timestamps");
-      Serial.print("         ts3u = ");
-      Serial.println(ts3u);
-      Serial.print("         ts2u = ");
-      Serial.println(ts2u);
-      Serial.print("         ts1u = ");
-      Serial.println(ts1u);
-      Serial.print("secsSince1970 = ");
-      Serial.println(secsSince1970);
+      for (int i = 0; i < 4; i++) {
+        sprintf(buff, "i = %2d %10u\n", i, secsSince1970[i]);
+        Serial.print(buff);
+      }
 
-      // convert to local time zone
-      uint32_t time1 = ts1u + SetTimeZone * SECS_PER_HOUR;
-      uint32_t time2 = ts2u + SetTimeZone * SECS_PER_HOUR;
-      uint32_t time3 = ts3u + SetTimeZone * SECS_PER_HOUR;
-      uint32_t time0 = secsSince1970 + SetTimeZone * SECS_PER_HOUR;
+      // convert to local time
+      uint32_t localTime[4];
+      for (int i = 0; i < 4; i++) {
+        localTime[i] = secsSince1970[i] - SetTimeZone * SECS_PER_HOUR;
+      }
 
-      // print time-zone time
+      // print unix time
       Serial.println("\nlocal 32-bit timestamps");
-      Serial.print("        time3 = ");
-      Serial.println(time3);
-      Serial.print("        time2 = ");
-      Serial.println(time2);
-      Serial.print("        time1 = ");
-      Serial.println(time1);
-      Serial.print("        time0 = ");
-      Serial.println(time0);
+      for (int i = 0; i < 4; i++) {
+        sprintf(buff, "i = %2d %10u\n", i, localTime[i]);
+        Serial.print(buff);
+      }
 
       // convert the fractional part to milliseconds
+      uint32_t ifrac_secs[4];
+      double frac_secs[4];
+      for (int i = 0; i < 4; i++) {
+        ifrac_secs[i] = words[5 + i * 2];
+      }
+
       fracTime = ((uint64_t) frac * 1000) >> 32;
-      uint32_t ft1 = ((uint64_t) fts1 * 1000) >> 32;
-      uint32_t ft2 = ((uint64_t) fts2 * 1000) >> 32;
-      uint32_t ft3 = ((uint64_t) fts3 * 1000) >> 32;
 
       //      if (debug > 1) {
       // print fractional times
-      Serial.println("\nraw 32-bit timestamps");
+      Serial.println("\nfractional times");
       Serial.print("fracTime = ");
       Serial.println(fracTime);
-      Serial.print("ft1 = ");
-      Serial.println(ft1);
-      Serial.print("ft2 = ");
-      Serial.println(ft2);
-      Serial.print("ft3 = ");
-      Serial.println(ft3);
       //    }
       Serial.println(serdiv);
-      return secsSince1900 - NTP_UNIX_OFFSET_SECONDS + SetTimeZone * SECS_PER_HOUR;
+      return localTime[3];
     }
   }
   Serial.println("No NTP Response :-(");
