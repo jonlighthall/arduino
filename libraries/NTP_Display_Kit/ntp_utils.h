@@ -27,7 +27,8 @@ constexpr uint32_t SECONDS_IN_DAY        = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
-const char* NTP_names[4] = {"reference", "originate", "receive", "transmit"};
+const char* NTP_header_names[4] = {"header", "root delay", "root dispersion", "reference identifier"};
+const char* NTP_names[4] = {"reference", "origin", "receive", "transmit"};
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress & address) {
@@ -93,6 +94,8 @@ void parseNTP_header (uint32_t words[]) {
   uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
   uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
   uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
+  char RefID[4];
+  sprintf(RefID, "%c%c%c%c", a, b, c, d);
 
   // print header
   if (debug > 0) {
@@ -165,14 +168,6 @@ void parseNTP_header (uint32_t words[]) {
     print_binary(referenceIdentifier, 32); Serial.println();
     print_binary_spc(referenceIdentifier, 32, 8); Serial.println();
     Serial.println();
-
-    sprintf(buff, "here\n");
-    Serial.print(buff);
-    print_binary(a, 8); Serial.println();
-    print_binary(b, 8); Serial.println();
-    print_binary(c, 8); Serial.println();
-    print_binary(d, 8); Serial.println();
-
     sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
     Serial.print(buff);
   }
