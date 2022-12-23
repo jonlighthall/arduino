@@ -18,6 +18,7 @@ uint32_t NTPlocalTime;
 
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
 byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
+uint32_t packetWords[NTP_PACKET_SIZE / 4];
 
 constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
 constexpr uint16_t DAYS_IN_YEAR          = 365;
@@ -48,6 +49,27 @@ void sendNTPpacket(IPAddress & address) {
   Udp.beginPacket(address, 123); //NTP requests are to port 123
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
+}
+
+void readNTP_packet () {
+  char buff[64];
+  // read packet
+  for (int i = 0; i < 12; i++) {
+    packetWords[i] = getWord(packetBuffer, i * 4);
+  }
+
+  if (debug > 0) {
+    // print raw packet
+    Serial.println("\nraw 32-bit packet elements");
+    Serial.println(" i |  decimal  |  hex     |  binary");
+    Serial.println("---------------------------------------------------------------------");
+    for (int i = 0; i < 12; i++) {
+      sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
+      Serial.print(buff);
+      print_binary(packetWords[i], 32);
+      Serial.println();
+    }
+  }
 }
 
 void parseNTP_header (uint32_t words[]) {
