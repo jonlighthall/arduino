@@ -342,8 +342,6 @@ void serialClockDisplay() {
   rssi = WiFi.RSSI();
   Serial.print(" RSSI: ");
   Serial.println(rssi);
-
-  //if (do_Christmas) calcChristmas();
 }
 
 int isLeapYear(int in_year, int debugLY) {
@@ -379,25 +377,27 @@ void OLEDClockDisplay() {
 
   u8g2.clearBuffer();
 
-  int   dday = 25 - day();
-  sprintf(buff, "day = %d, dday = %d\n", day(), dday);
-  Serial.print(buff);
-  u8g2.setFont(u8g2_font_timB14_tr);
-  //u8g2.setFont(u8g2_font_profont15_tn);
-  sprintf(buff, "%d Days", dday);
-  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  ypos = u8g2.getAscent();
-  u8g2.drawStr(xpos, ypos, buff);
+  if (do_Christmas) {
+    int   dday = 25 - day();
+    sprintf(buff, "day = %d, dday = %d\n", day(), dday);
+    Serial.print(buff);
+    u8g2.setFont(u8g2_font_timB14_tr);
+    //u8g2.setFont(u8g2_font_profont15_tn);
+    sprintf(buff, "%d Days", dday);
+    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+    ypos = u8g2.getAscent();
+    u8g2.drawStr(xpos, ypos, buff);
 
-  u8g2.setFont(u8g2_font_timB08_tr);
-  sprintf(buff, "Until Xmas", dday);
-  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  ypos += u8g2.getAscent() + 4;
-  u8g2.drawStr(xpos, ypos, buff);
+    u8g2.setFont(u8g2_font_timB08_tr);
+    sprintf(buff, "Until Xmas", dday);
+    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+    ypos += u8g2.getAscent() + 4;
+    u8g2.drawStr(xpos, ypos, buff);
 
-  int dhour = 24 - hour();
-  sprintf(buff, "hour = %d, dhour = %d\n", hour(), dhour);
-  Serial.print(buff);
+    int dhour = 24 - hour();
+    sprintf(buff, "hour = %d, dhour = %d\n", hour(), dhour);
+    Serial.print(buff);
+  }
 
   if (do_BigTime) {
     // draw clock display

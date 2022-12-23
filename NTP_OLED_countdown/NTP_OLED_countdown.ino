@@ -1,6 +1,6 @@
 /*
-   TimeNTP_ESP8266WiFi.ino
-   Example showing time sync to NTP time source
+  TimeNTP_ESP8266WiFi.ino
+  Example showing time sync to NTP time source
 */
 
 #include <TimeLib.h>
@@ -12,7 +12,9 @@
 
 #include "dst.h"
 #include "wifi_utils.h"
-const int debug = 2;
+//-------------------------------
+const int debug = 0;
+//-------------------------------
 #include "binary_utils.h"
 #include "ntp_utils.h"
 
@@ -24,9 +26,10 @@ const bool do_SyncBar = false;
 const bool do_BigTime = false;
 const bool do_SecondsBar = true;
 const bool do_Seconds = true;
-const bool do_milli = true;
+const bool do_milliseconds = true;
 void OLEDClockDisplay();
 void OLED_Sync_Bar();
+void OLED_RSSI_Bars();
 // Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
 int dispwid;
@@ -213,73 +216,76 @@ void loop() {
       } else {
         SetTimeZone = timeZone;
       }
-
-      // check time in milliseconds
-      uint32_t printTime = millis();
-      // calculate time since/until last/next sync
-      int TimeSinceSync = printTime - LastSyncTime;
-      int ToSyncTime = syncInterval - TimeSinceSync;
-      float syncWait = (float)TimeSinceSync / syncInterval;
-      syncBar = syncWait * disphei;
-      if (debug > 1) {
-        Serial.print("last sync time = ");
-        Serial.println(LastSyncTime);
-        Serial.print("      time now = ");
-        Serial.println(printTime);
-        Serial.print("  elapsed time = ");
-        Serial.println(TimeSinceSync);
-        // print time since/until last/next sync
-        sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n", TimeSinceSync, TimeSinceSync / 1e3);
-        Serial.print(buff);
-        // print time between syncs percentage
-        sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n", syncInterval, syncInterval / 1e3);
-        Serial.print(buff);
-        sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n", ToSyncTime, ToSyncTime / 1e3);
-        Serial.print(buff);
-        sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n", syncWait * 100, syncBar);
-        Serial.print(buff);
-      }
-
-      // wait until top of second to print time
-      sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
-      Serial.print(buff);
-
-      if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
-        int totalDelay = NTPfracTime + TimeSinceSync;
-        int setDelay = totalDelay % 1000;
-        int offsetTime = 1000 - setDelay;
+      if (do_milliseconds) {
+        // check time in milliseconds
+        uint32_t printTime = millis();
+        // calculate time since/until last/next sync
+        int TimeSinceSync = printTime - LastSyncTime;
+        int ToSyncTime = syncInterval - TimeSinceSync;
+        float syncWait = (float)TimeSinceSync / syncInterval;
+        syncBar = syncWait * disphei;
         if (debug > 1) {
-          Serial.println(serdiv);
-          sprintf(buff, "total delay = %d\n", totalDelay );
+          Serial.print("last sync time = ");
+          Serial.println(LastSyncTime);
+          Serial.print("      time now = ");
+          Serial.println(printTime);
+          Serial.print("  elapsed time = ");
+          Serial.println(TimeSinceSync);
+          // print time since/until last/next sync
+          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n", TimeSinceSync, TimeSinceSync / 1e3);
           Serial.print(buff);
-          sprintf(buff, "  set delay = %d\n", setDelay  );
+          // print time between syncs percentage
+          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n", syncInterval, syncInterval / 1e3);
           Serial.print(buff);
-          Serial.print("offset time = ");
-          Serial.println(offsetTime);
-          sprintf(buff, "delaying display by %d...", offsetTime);
+          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n", ToSyncTime, ToSyncTime / 1e3);
+          Serial.print(buff);
+          sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n", syncWait * 100, syncBar);
           Serial.print(buff);
         }
-        delay(offsetTime);
-        if (debug > 1) {
-          Serial.println("done");
-          Serial.println(serdiv);
+
+        // wait until top of second to print time
+        if (debug > 0) {
+          sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
+          Serial.print(buff);
         }
-      }
-      else {
-        if (debug > 1) {
-          int delayError = TimeSinceSync % 1000;
-          int delayDiff = 1000 - delayError;
-          Serial.println(serdiv);
-          sprintf(buff, "elapsed time since last sync = %d ms\n", TimeSinceSync);
-          Serial.print(buff);
-          sprintf(buff, "sub-second error = %d ms\n", delayError);
-          Serial.print(buff);
-          int delayInterval = min(10, delayDiff);
-          sprintf(buff, "waiting %d ms...", delayInterval);
-          Serial.print(buff);
-          delay(delayInterval);
-          Serial.println("done");
-          Serial.println(serdiv);
+
+        if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
+          int totalDelay = NTPfracTime + TimeSinceSync;
+          int setDelay = totalDelay % 1000;
+          int offsetTime = 1000 - setDelay;
+          if (debug > 1) {
+            Serial.println(serdiv);
+            sprintf(buff, "total delay = %d\n", totalDelay );
+            Serial.print(buff);
+            sprintf(buff, "  set delay = %d\n", setDelay  );
+            Serial.print(buff);
+            Serial.print("offset time = ");
+            Serial.println(offsetTime);
+            sprintf(buff, "delaying display by %d...", offsetTime);
+            Serial.print(buff);
+          }
+          delay(offsetTime);
+          if (debug > 1) {
+            Serial.println("done");
+            Serial.println(serdiv);
+          }
+        }
+        else {
+          if (debug > 1) {
+            int delayError = TimeSinceSync % 1000;
+            int delayDiff = 1000 - delayError;
+            Serial.println(serdiv);
+            sprintf(buff, "elapsed time since last sync = %d ms\n", TimeSinceSync);
+            Serial.print(buff);
+            sprintf(buff, "sub-second error = %d ms\n", delayError);
+            Serial.print(buff);
+            int delayInterval = min(10, delayDiff);
+            sprintf(buff, "waiting %d ms...", delayInterval);
+            Serial.print(buff);
+            delay(delayInterval);
+            Serial.println("done");
+            Serial.println(serdiv);
+          }
         }
       }
       int beforeTime = millis();
@@ -467,8 +473,6 @@ void OLED_RSSI_Bars () {
 
 time_t getNtpTime() {
   char buff[64];
-  Serial.print("epoch offset = ");
-  Serial.println(NTP_UNIX_OFFSET_SECONDS );
 
   IPAddress ntpServerIP; // NTP server's ip address
 
@@ -476,7 +480,7 @@ time_t getNtpTime() {
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2);
-  u8g2.sendBuffer();  
+  u8g2.sendBuffer();
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
@@ -493,26 +497,11 @@ time_t getNtpTime() {
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
 
-      // read packet
-      uint32_t words[12];
-      for (int i = 0; i < 12; i++) {
-        words[i] = getWord(packetBuffer, i * 4);
-      }
+      readNTP_packet();
 
-      // print raw packet
-      Serial.println("\nraw 32-bit packet elements");
-      Serial.println("          decimal   hex");
-      Serial.println("---------------------------------------------------------------------");
-      for (int i = 0; i < 12; i++) {
-        sprintf(buff, "i = %2d %010u %08X ", i, words[i], words[i]);
-        Serial.print(buff);
-        print_binary(words[i], 32);
-        Serial.println();
-      }
-
-      parseNTP_header(packetBuffer);
-      parseNTP_time(packetBuffer);
-      parseNTP_fraction(packetBuffer);
+      parseNTP_header(packetWords);
+      parseNTP_time(packetWords);
+      parseNTP_fraction(packetWords);
 
       Serial.println(serdiv);
       return NTPlocalTime;
