@@ -27,7 +27,8 @@ constexpr uint32_t SECONDS_IN_DAY        = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
-const char* NTP_names[4] = {"reference", "originate", "receive", "transmit"};
+const char* NTP_header_names[4] = {"header", "root delay", "root dispersion", "reference identifier"};
+const char* NTP_names[4] = {"reference", "origin", "receive", "transmit"};
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress & address) {
@@ -61,8 +62,8 @@ void readNTP_packet () {
   if (debug > -1) {
     // print raw packet
     Serial.println("\nraw 32-bit packet elements");
-    Serial.println(" i |  decimal  |  hex     |  binary");
-    Serial.println("---------------------------------------------------------------------");
+    Serial.println(" i |  decimal   |  hex     |  binary");
+    Serial.println("-----------------------------------------------------------------");
     for (int i = 0; i < 12; i++) {
       sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
       Serial.print(buff);
@@ -74,44 +75,58 @@ void readNTP_packet () {
 
 void parseNTP_header (uint32_t words[]) {
   char buff[64];
-  // define variables
-  uint32_t  rootDelay = words[1];
-  uint32_t  rootDispersion = words[2];
-  uint32_t  referenceIdentifier = words[3];
+  // define raw variables
+  byte LI = getBits32(words[0], 0, 2);
+  byte VN = getBits32(words[0], 2, 3);
+  byte Mode = getBits32(words[0], 5, 3);
+  byte Stratum = getBits32(words[0], 8, 8);
+  byte Poll = getBits32(words[0], 16, 8);
+  byte Precision = getBits32(words[0], 24, 8);
+  uint32_t rootDelay = words[1];
+  uint32_t rootDispersion = words[2];
+  uint32_t referenceIdentifier = words[3];
 
-  Serial.print("header: ");
-  print_uint32(words[0]);
-  Serial.println();
+  // define converted variables
+  int8_t Poll_interval = int8_t(Poll);
+  int8_t ppower = int8_t(Precision);
+  double sprec = pow(2, ppower);
+  uint8_t a = getBits32(referenceIdentifier, 0, 8) ;
+  uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
+  uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
+  uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
+  char RefID[4];
+  sprintf(RefID, "%c%c%c%c", a, b, c, d);
+
+  // print header
+  if (debug > 0) {
+    Serial.print("\nheader: ");
+    print_uint32(words[0]);
+    Serial.println();
+  }
 
   // Print variables
-  byte  LI = getBits32(words[0], 0, 2);
-  Serial.print("\nLI: ");
+  Serial.print("       LI: ");
   if (debug > 0) {
     print_uint8(LI);
     Serial.println("should be dec 0-3 or bin 00-11");
-  }
+  }  
   print_binary(LI, 2); Serial.println();
 
-  byte VN = getBits32(words[0], 2, 3);
-  Serial.print("\nVN: ");
+  Serial.print("  Version: ");
   if (debug > 0) {
     print_uint8(VN);
     Serial.println("should be dec 4 or bin 100");
   }
   print_binary(VN, 3); Serial.println();
 
-
-  byte Mode = getBits32(words[0], 5, 3);
-  Serial.print("\nMode: ");
+  Serial.print("     Mode: ");
   if (debug > 0) {
     print_uint8(Mode);
     Serial.println("should be dec 3 or bin 011");
   }
   print_binary(Mode, 3); Serial.println();
 
-
-  byte Stratum = getBits32(words[0], 8, 8);
-  Serial.print("\nStra: ");
+  Serial.print("  Stratum: ");
   if (debug > 0) {
     print_uint8(Stratum);
     Serial.println("should be dec 0-16, hex 0-F");
@@ -119,35 +134,29 @@ void parseNTP_header (uint32_t words[]) {
   }
   print_binary(Stratum, 8); Serial.println();
 
-  byte Poll = getBits32(words[0], 16, 8);
-  Serial.print("\nPoll: ");
+  Serial.print("     Poll: ");
   if (debug > 0) {
     print_uint8(Poll);
     Serial.println("8-bit signed int");
   }
-  print_binary(Poll, 8); Serial.println();
+  print_binary(Poll, 8);
   Serial.print(", int: ");
-  int8_t pinterval = int8_t(Poll);
-  Serial.print(pinterval);
+  Serial.print(Poll_interval);
   Serial.print(" seconds\n");
 
-
-  byte Precision = getBits32(words[0], 24, 8);
-  Serial.print("\nPrec: ");
+  Serial.print("Precision: ");
   if (debug > 0) {
     print_uint8(Precision);
     Serial.println("8-bit signed int");
   }
-  print_binary(Precision, 8); Serial.println();
-  Serial.print("int: ");
-  int8_t ppower = int8_t(Precision);
-  Serial.print(ppower);  
+  print_binary(Precision, 8);
+  Serial.print(", int: ");
+  Serial.print(ppower);
   Serial.print(" log2(seconds), ");
-  double sprec = pow(2, ppower);
   Serial.print(sprec);
   sprintf(buff, "%.15f seconds\n", sprec);
   Serial.print(buff);
-  
+
   sprintf(buff, "%010u Root Delay\n", rootDelay);
   Serial.print(buff);
   sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
@@ -157,20 +166,8 @@ void parseNTP_header (uint32_t words[]) {
 
   if (Stratum == 1) {
     print_binary(referenceIdentifier, 32); Serial.println();
-    print_binary_spc(referenceIdentifier, 32); Serial.println();
+    print_binary_spc(referenceIdentifier, 32, 8); Serial.println();
     Serial.println();
-    uint8_t a = getBits32(referenceIdentifier, 0, 8) ;
-    uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
-    uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
-    uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
-
-    sprintf(buff, "here\n");
-    Serial.print(buff);
-    print_binary(a, 8); Serial.println();
-    print_binary(b, 8); Serial.println();
-    print_binary(c, 8); Serial.println();
-    print_binary(d, 8); Serial.println();
-
     sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
     Serial.print(buff);
   }
