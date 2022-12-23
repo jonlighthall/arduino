@@ -11,21 +11,10 @@
 #include <Wire.h>
 
 #include "dst.h"
-#include "wifi_settings.h"
+#include "wifi_utils.h"
 const int debug = 2;
 #include "binary_utils.h"
-
-// NTP Servers:
-static const char ntpServerName[] = "time.nist.gov";
-
-// Set Standard time zone
-const int timeZone = -6; // CST
-
-int SetTimeZone = timeZone;
-const bool do_DST = true;
-
-time_t getNtpTime();
-void sendNTPpacket(IPAddress &address);
+#include "ntp_utils.h"
 
 void serialClockDisplay();
 void OLED_Sync_Bar();
@@ -44,7 +33,6 @@ int dispwid;
 int disphei;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
-#define SYNC_INTERVAL 30 // print delay in seconds
 
 int syncBar = 0;
 
@@ -195,7 +183,6 @@ uint32_t LastSyncTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
 
-int syncInterval = SYNC_INTERVAL * 1e3;
 void loop() {
   char buff[64];
   if (timeStatus() != timeNotSet) {
@@ -484,17 +471,6 @@ void OLED_RSSI_Bars () {
 
 /*-------- NTP code ----------*/
 
-const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
-byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
-
-constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
-constexpr uint16_t DAYS_IN_YEAR          = 365;
-constexpr uint8_t  NUMBER_OF_LEAP_YEARS  = 17;
-constexpr uint32_t SECONDS_IN_DAY        = 86400;
-constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
-  (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
-
-
 time_t getNtpTime() {
   char buff[64];
   Serial.print("epoch offset = ");
@@ -506,9 +482,7 @@ time_t getNtpTime() {
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2);
-  u8g2.sendBuffer();
-  //digitalWrite(LED_BUILTIN, LOW); // on
-  // get a random server from the pool
+  u8g2.sendBuffer();  
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
@@ -534,47 +508,57 @@ time_t getNtpTime() {
       // print raw time
       Serial.println("\nraw 32-bit packet elements");
       Serial.println("          decimal   hex");
-      Serial.println("-------------------");
+      Serial.println("---------------------------------------------------------------------");
       for (int i = 0; i < 12; i++) {
         sprintf(buff, "i = %2d %010u %08X ", i, words[i], words[i]);
         Serial.print(buff);
-        print_binary(words[i],32);
+        print_binary(words[i], 32);
         Serial.println();
       }
 
       Serial.print("header: ");
       print_uint32(words[0]);
-      Serial.print("header: "); print_binary(words[0], 32);
       Serial.println();
       // define variables
       uint32_t  LI = getBits32(words[0], 0, 2);
-      Serial.print("  LI: ");
+      Serial.print("\nLI: ");
       print_uint8(LI);
       Serial.println("should be dec 0-3 or bin 00-11");
       uint32_t  VN = getBits32(words[0], 2, 3);
-      Serial.print("  VN: ");
+      Serial.print("\nVN: ");
       print_uint8(VN);
       Serial.println("should be dec 4 or bin 100");
       uint32_t  Mode = getBits32(words[0], 5, 3);
-      Serial.print("Mode: ");
+      Serial.print("\nMode: ");
       print_uint8(Mode);
 
       uint32_t  Stratum = getBits32(words[0], 8, 8);
-      Serial.print("Stra: ");
+      Serial.print("\nStra: ");
       print_uint8(Stratum);
       Serial.println("should be dec 0-16, hex 0-F");
 
       uint32_t  Poll = getBits32(words[0], 16, 8);
-      Serial.print("Poll: ");
+      Serial.print("\nPoll: ");
       print_uint8(Poll);
+      Serial.print("int: ");
+      int8_t pinterval = int8_t(Poll);
+      Serial.print(pinterval);
+      Serial.print(" seconds\n");
       Serial.println("8-bit signed int");
 
       uint32_t  Precision = getBits32(words[0], 24, 8);
-      Serial.print("Prec: ");
-      print_uint8(Stratum);
-      Serial.println("8-bit signed int");
+      Serial.print("\nPrec: ");
+      print_uint8(Precision);
+      Serial.print("int: ");
+      int8_t ppower = int8_t(Precision);
+      Serial.print(ppower);
+      Serial.print(", seconds ");
+      double sprec = pow(2, ppower);
 
-
+      Serial.print(sprec);
+      sprintf(buff, "precision: %.30f seconds\n", sprec);
+      Serial.print(buff);
+      Serial.println("\n8-bit signed int");
 
       uint32_t  rootDelay = words[1];
       uint32_t  rootDispersion = words[2];
@@ -586,6 +570,23 @@ time_t getNtpTime() {
       Serial.print(buff);
       sprintf(buff, "%010u Reference Identifier\n", referenceIdentifier);
       Serial.print(buff);
+
+      if (Stratum == 1) {
+        print_binary(referenceIdentifier, 32);
+        Serial.println();
+        uint8_t a = getBits32(referenceIdentifier, 0, 8) ;
+        uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
+        uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
+        uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
+
+        sprintf(buff, "here\n");
+        Serial.print(buff);
+
+        sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
+        Serial.print(buff);
+
+        // sprintf(buff, "server id: %c\n", Stratum);
+        // Serial.print(buff);      }
 
 
       const char* names[4] = {"reference", "originate", "receive", "transmit"};
@@ -666,25 +667,4 @@ time_t getNtpTime() {
   digitalWrite(LED_BUILTIN, HIGH); // off
   return 0; // return 0 if unable to get the time
 }
-
-// send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress & address) {
-  // set all bytes in the buffer to 0
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  packetBuffer[12] = 49;
-  packetBuffer[13] = 0x4E;
-  packetBuffer[14] = 49;
-  packetBuffer[15] = 52;
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  Udp.beginPacket(address, 123); //NTP requests are to port 123
-  Udp.write(packetBuffer, NTP_PACKET_SIZE);
-  Udp.endPacket();
 }
