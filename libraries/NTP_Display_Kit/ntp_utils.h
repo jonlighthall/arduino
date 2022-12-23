@@ -75,9 +75,9 @@ void readNTP_packet () {
 void parseNTP_header (uint32_t words[]) {
   char buff[64];
   // define variables
-  uint32_t  rootDelay = words[2];
-  uint32_t  rootDispersion = words[3];
-  uint32_t  referenceIdentifier = words[4];
+  uint32_t  rootDelay = words[1];
+  uint32_t  rootDispersion = words[2];
+  uint32_t  referenceIdentifier = words[3];
 
   Serial.print("header: ");
   print_uint32(words[0]);
