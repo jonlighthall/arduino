@@ -15,10 +15,6 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 int rssi = 0; // Wifi signal strengh variable
 
-
-
-void wifi_start();
-
 void wifi_start() {
   Serial.print("Connecting to ");
   Serial.print(ssid);
