@@ -153,7 +153,7 @@ void parseNTP_header (uint32_t words[]) {
 
 void parseNTP_time (uint32_t words[]) {
   char buff[64];
-  if (debug > 0 ) {    
+  if (debug > 0 ) {
     // print raw NTP time
     Serial.println("\nraw 64-bit timestamps");
     for (int i = 0; i < 4; i++) {
