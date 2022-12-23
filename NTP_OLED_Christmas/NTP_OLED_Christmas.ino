@@ -183,7 +183,7 @@ void setup() {
 time_t prevDisplay = 0; // when the digital clock was displayed
 
 uint32_t LastSyncTime;
-uint32_t fracTime;
+
 char serdiv[] = "----------------------------"; // serial print divider
 
 void loop() {
@@ -201,7 +201,6 @@ void loop() {
         uint32_t elap = tnow - prevDisplay;
         sprintf(buff, "elap = %d\n", elap);
         Serial.print(buff);
-
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
@@ -245,12 +244,11 @@ void loop() {
       }
 
       // wait until top of second to print time
-
-      sprintf(buff, "fracTime = %d\n", fracTime);
+      sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
       Serial.print(buff);
 
       if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
-        int totalDelay = fracTime + TimeSinceSync;
+        int totalDelay = NTPfracTime + TimeSinceSync;
         int setDelay = totalDelay % 1000;
         int offsetTime = 1000 - setDelay;
         if (debug > 1) {
@@ -366,10 +364,6 @@ void calcChristmas() {
   }
   else {
   }
-
-
-
-
 }
 
 void OLEDClockDisplay() {
@@ -395,12 +389,9 @@ void OLEDClockDisplay() {
   ypos += u8g2.getAscent() + 4;
   u8g2.drawStr(xpos, ypos, buff);
 
-
   int dhour = 24 - hour();
   sprintf(buff, "hour = %d, dhour = %d\n", hour(), dhour);
   Serial.print(buff);
-
-
 
   if (do_BigTime) {
     // draw clock display
@@ -430,7 +421,6 @@ void OLEDClockDisplay() {
   }
 
   if (do_Seconds) {
-
     // write seconds
     u8g2.setFont(u8g2_font_profont15_tn);
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
@@ -463,7 +453,6 @@ void OLEDClockDisplay() {
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
     u8g2.drawStr(xpos, ypos, buff);
-
   }
 
   // write day
@@ -564,16 +553,9 @@ time_t getNtpTime() {
         words[i] = getWord(packetBuffer, i * 4);
       }
 
-      // define variables
-      uint32_t  rootDelay = words[2];
-      uint32_t  rootDispersion = words[3];
-      uint32_t  referenceIdentifier = words[4];      
-      
-      unsigned long frac = words[44 / 4];
+      //unsigned long frac = words[44 / 4];
 
-      const char* names[4] = {"reference", "originate", "receive", "transmit"};
-      
-      // print raw time
+      // print raw packet
       Serial.println("\nraw 32-bit packet elements");
       for (int i = 0; i < 12; i++) {
         sprintf(buff, "i = %2d %010u %08X ", i, words[i], words[i]);
@@ -582,74 +564,10 @@ time_t getNtpTime() {
         Serial.println();
       }
 
-      // print raw NTP time
-      Serial.println("\nraw 64-bit timestamps");
-      for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %1d %010u %010u %s\n", i + 1, words[4 + i * 2], words[5 + i * 2], names[i]);
-        Serial.print(buff);
-      }
+      parseNTP_time(packetBuffer);
 
-      // print raw NTP time
-      uint32_t secsSince1900[4];
-      Serial.println("\nraw 32-bit timestamps (seconds)");
-      for (int i = 0; i < 4; i++) {
-        secsSince1900[i] = words[4 + i * 2];
-        sprintf(buff, "i = %1d %010u %s\n", i + 1, secsSince1900[i], names[i]);
-        Serial.print(buff);
-      }
-
-      uint32_t fracSecs[4];
-      // print raw NTP time
-      Serial.println("\nraw 32-bit timestamps (fraction)");
-      for (int i = 0; i < 4; i++) {
-        fracSecs[i] = words[5 + i * 2];
-        sprintf(buff, "i = %1d %010u %s\n", i + 1, fracSecs[i], names[i]);
-        Serial.print(buff);
-      }
-
-      // convert to unix time
-      uint32_t secsSince1970[4];
-      for (int i = 0; i < 4; i++) {
-        secsSince1970[i] = secsSince1900[i] - NTP_UNIX_OFFSET_SECONDS;
-      }
-
-      // print unix time
-      Serial.println("\n32-bit unix timestamps");
-      for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %2d %010u %s\n", i, secsSince1970[i], names[i]);
-        Serial.print(buff);
-      }
-
-      // convert to local time
-      uint32_t localTime[4];
-      for (int i = 0; i < 4; i++) {
-        localTime[i] = secsSince1970[i] + SetTimeZone * SECS_PER_HOUR;
-      }
-
-      // print unix time
-      Serial.println("\nlocal 32-bit timestamps");
-      for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %2d %010u %s\n", i, localTime[i], names[i]);
-        Serial.print(buff);
-      }
-
-      // convert the fractional part to milliseconds
-      uint32_t ifrac_secs[4];
-      double frac_secs[4];
-      for (int i = 0; i < 4; i++) {
-        ifrac_secs[i] = words[5 + i * 2];
-      }
-
-      fracTime = ((uint64_t) fracSecs[3] * 1000) >> 32;
-
-      //      if (debug > 1) {
-      // print fractional times
-      Serial.println("\nfractional times");
-      Serial.print("fracTime = ");
-      Serial.println(fracTime);
-      //    }
       Serial.println(serdiv);
-      return localTime[3];
+      return NTPlocalTime;
     }
   }
   Serial.println("No NTP Response :-(");
