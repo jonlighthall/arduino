@@ -169,6 +169,7 @@ void parseNTP_header (uint32_t words[]) {
     print_binary_spc(referenceIdentifier, 32, 8); Serial.println();
     Serial.println();
     sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
+    sprintf(buff, "server id: %s\n", RefID);
     Serial.print(buff);
   }
 }
