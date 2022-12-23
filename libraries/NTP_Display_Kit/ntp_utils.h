@@ -121,7 +121,7 @@ void parseNTP_header (uint32_t words[]) {
   Serial.print(sprec);
   sprintf(buff, "precision: %.30f seconds\n", sprec);
   Serial.print(buff);
-  Serial.println("\n8-bit signed int");     
+  Serial.println("\n8-bit signed int");
 
   sprintf(buff, "%010u Root Delay\n", rootDelay);
   Serial.print(buff);
@@ -143,11 +143,6 @@ void parseNTP_header (uint32_t words[]) {
 
     sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
     Serial.print(buff);
-
-    // sprintf(buff, "server id: %c\n", Stratum);
-    // Serial.print(buff);      }
-
-  
   }
 }
 
