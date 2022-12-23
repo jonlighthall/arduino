@@ -26,6 +26,7 @@ const bool do_SyncBar = false;
 const bool do_BigTime = false;
 const bool do_SecondsBar = false;
 const bool do_Seconds = true;
+const bool do_milliseconds = true;
 const bool do_Christmas = true;
 int isLeapYear (int input_year, int default_debugLY = 0); // set default function value
 void calcChristmas();
@@ -219,73 +220,76 @@ void loop() {
       } else {
         SetTimeZone = timeZone;
       }
-
-      // check time in milliseconds
-      uint32_t printTime = millis();
-      // calculate time since/until last/next sync
-      int TimeSinceSync = printTime - LastSyncTime;
-      int ToSyncTime = syncInterval - TimeSinceSync;
-      float syncWait = (float)TimeSinceSync / syncInterval;
-      syncBar = syncWait * disphei;
-      if (debug > 1) {
-        Serial.print("last sync time = ");
-        Serial.println(LastSyncTime);
-        Serial.print("      time now = ");
-        Serial.println(printTime);
-        Serial.print("  elapsed time = ");
-        Serial.println(TimeSinceSync);
-        // print time since/until last/next sync
-        sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n", TimeSinceSync, TimeSinceSync / 1e3);
-        Serial.print(buff);
-        // print time between syncs percentage
-        sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n", syncInterval, syncInterval / 1e3);
-        Serial.print(buff);
-        sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n", ToSyncTime, ToSyncTime / 1e3);
-        Serial.print(buff);
-        sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n", syncWait * 100, syncBar);
-        Serial.print(buff);
-      }
-
-      // wait until top of second to print time
-      sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
-      Serial.print(buff);
-
-      if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
-        int totalDelay = NTPfracTime + TimeSinceSync;
-        int setDelay = totalDelay % 1000;
-        int offsetTime = 1000 - setDelay;
+      if (do_milliseconds) {
+        // check time in milliseconds
+        uint32_t printTime = millis();
+        // calculate time since/until last/next sync
+        int TimeSinceSync = printTime - LastSyncTime;
+        int ToSyncTime = syncInterval - TimeSinceSync;
+        float syncWait = (float)TimeSinceSync / syncInterval;
+        syncBar = syncWait * disphei;
         if (debug > 1) {
-          Serial.println(serdiv);
-          sprintf(buff, "total delay = %d\n", totalDelay );
+          Serial.print("last sync time = ");
+          Serial.println(LastSyncTime);
+          Serial.print("      time now = ");
+          Serial.println(printTime);
+          Serial.print("  elapsed time = ");
+          Serial.println(TimeSinceSync);
+          // print time since/until last/next sync
+          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n", TimeSinceSync, TimeSinceSync / 1e3);
           Serial.print(buff);
-          sprintf(buff, "  set delay = %d\n", setDelay  );
+          // print time between syncs percentage
+          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n", syncInterval, syncInterval / 1e3);
           Serial.print(buff);
-          Serial.print("offset time = ");
-          Serial.println(offsetTime);
-          sprintf(buff, "delaying display by %d...", offsetTime);
+          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n", ToSyncTime, ToSyncTime / 1e3);
+          Serial.print(buff);
+          sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n", syncWait * 100, syncBar);
           Serial.print(buff);
         }
-        delay(offsetTime);
-        if (debug > 1) {
-          Serial.println("done");
-          Serial.println(serdiv);
+
+        // wait until top of second to print time
+        if (debug > 0) {
+          sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
+          Serial.print(buff);
         }
-      }
-      else {
-        if (debug > 1) {
-          int delayError = TimeSinceSync % 1000;
-          int delayDiff = 1000 - delayError;
-          Serial.println(serdiv);
-          sprintf(buff, "elapsed time since last sync = %d ms\n", TimeSinceSync);
-          Serial.print(buff);
-          sprintf(buff, "sub-second error = %d ms\n", delayError);
-          Serial.print(buff);
-          int delayInterval = min(10, delayDiff);
-          sprintf(buff, "waiting %d ms...", delayInterval);
-          Serial.print(buff);
-          delay(delayInterval);
-          Serial.println("done");
-          Serial.println(serdiv);
+
+        if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
+          int totalDelay = NTPfracTime + TimeSinceSync;
+          int setDelay = totalDelay % 1000;
+          int offsetTime = 1000 - setDelay;
+          if (debug > 1) {
+            Serial.println(serdiv);
+            sprintf(buff, "total delay = %d\n", totalDelay );
+            Serial.print(buff);
+            sprintf(buff, "  set delay = %d\n", setDelay  );
+            Serial.print(buff);
+            Serial.print("offset time = ");
+            Serial.println(offsetTime);
+            sprintf(buff, "delaying display by %d...", offsetTime);
+            Serial.print(buff);
+          }
+          delay(offsetTime);
+          if (debug > 1) {
+            Serial.println("done");
+            Serial.println(serdiv);
+          }
+        }
+        else {
+          if (debug > 1) {
+            int delayError = TimeSinceSync % 1000;
+            int delayDiff = 1000 - delayError;
+            Serial.println(serdiv);
+            sprintf(buff, "elapsed time since last sync = %d ms\n", TimeSinceSync);
+            Serial.print(buff);
+            sprintf(buff, "sub-second error = %d ms\n", delayError);
+            Serial.print(buff);
+            int delayInterval = min(10, delayDiff);
+            sprintf(buff, "waiting %d ms...", delayInterval);
+            Serial.print(buff);
+            delay(delayInterval);
+            Serial.println("done");
+            Serial.println(serdiv);
+          }
         }
       }
       int beforeTime = millis();
@@ -521,7 +525,7 @@ void OLED_RSSI_Bars () {
 
 time_t getNtpTime() {
   char buff[64];
-  
+
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
