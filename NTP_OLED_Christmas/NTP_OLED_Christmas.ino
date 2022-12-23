@@ -12,7 +12,9 @@
 
 #include "dst.h"
 #include "wifi_utils.h"
-const int debug = 2;
+//-------------------------------
+const int debug = 0;
+//-------------------------------
 #include "binary_utils.h"
 #include "ntp_utils.h"
 
@@ -30,6 +32,7 @@ void calcChristmas();
 
 void OLEDClockDisplay();
 void OLED_Sync_Bar();
+void OLED_RSSI_Bars();
 // Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
 int dispwid;
@@ -339,7 +342,6 @@ void serialClockDisplay() {
   //if (do_Christmas) calcChristmas();
 }
 
-
 int isLeapYear(int in_year, int debugLY) {
   char buff[128];
   sprintf(buff, "%d input\n", in_year);
@@ -519,9 +521,7 @@ void OLED_RSSI_Bars () {
 
 time_t getNtpTime() {
   char buff[64];
-  Serial.print("epoch offset = ");
-  Serial.println(NTP_UNIX_OFFSET_SECONDS );
-
+  
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
@@ -529,8 +529,6 @@ time_t getNtpTime() {
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
-  //digitalWrite(LED_BUILTIN, LOW); // on
-  // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
@@ -547,24 +545,9 @@ time_t getNtpTime() {
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
 
-      // read packet
-      uint32_t words[12];
-      for (int i = 0; i < 12; i++) {
-        words[i] = getWord(packetBuffer, i * 4);
-      }
+      readNTP_packet();
 
-      //unsigned long frac = words[44 / 4];
-
-      // print raw packet
-      Serial.println("\nraw 32-bit packet elements");
-      for (int i = 0; i < 12; i++) {
-        sprintf(buff, "i = %2d %010u %08X ", i, words[i], words[i]);
-        Serial.print(buff);
-        print_binary(words[i], 32);
-        Serial.println();
-      }
-
-      parseNTP_time(packetBuffer);
+      parseNTP_time(packetWords);
 
       Serial.println(serdiv);
       return NTPlocalTime;
