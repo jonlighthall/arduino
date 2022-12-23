@@ -9,6 +9,9 @@ uint32_t getWord(byte packet[48], int idx) {
 
 // print a binary number with leading zeros
 void print_binary_spc(uint32_t number, uint8_t Length) {
+  // length is the number to print from right
+  if (Length > 32)
+    return;  
   static int Bits;
   static int bits_written;
   const char* spc = " ";
@@ -18,7 +21,7 @@ void print_binary_spc(uint32_t number, uint8_t Length) {
     print_binary_spc(number >> 1, Length); // Remove a bit and do a recursive call this function.
     if (Bits)
       for (byte x = (Length - Bits); x; x--) {
-        Serial.write('z'); // Add the leading zeros
+        Serial.write('0'); // Add the leading zeros
         bits_written++;
         if  ( ( (bits_written % 4) == 0) && (bits_written < Length)) {
           Serial.print(spc);
@@ -48,6 +51,7 @@ void print_binary_spc(uint32_t number, uint8_t Length) {
 }
 
 void print_binary(uint32_t number, uint8_t Length) {
+  // length is the number to print from right
   if (Length > 32)
     return;
   static uint8_t Bits;
@@ -59,7 +63,6 @@ void print_binary(uint32_t number, uint8_t Length) {
       if (Length > Bits)
         for (uint8_t x = (Length - Bits); x; x--)
           Serial.write('0'); // Add the leading zeros
-
     }
     Bits = 0; // clear no need for this any more
     if (Length > Bits)
