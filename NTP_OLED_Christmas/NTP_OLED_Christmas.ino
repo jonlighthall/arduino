@@ -1,6 +1,6 @@
 /*
-   TimeNTP_ESP8266WiFi.ino
-   Example showing time sync to NTP time source
+  TimeNTP_ESP8266WiFi.ino
+  Example showing time sync to NTP time source
 */
 
 #include <TimeLib.h>
