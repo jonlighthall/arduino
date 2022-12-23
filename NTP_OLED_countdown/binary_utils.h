@@ -149,7 +149,6 @@ uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
   out2 = mask32(dword32, bit_start, bit_len);
   out3 = shift32(out2, bit_start, bit_len);
 
-
   if (debug > 2) {
     char buff[64];
     uint16_t high, low;
@@ -164,25 +163,25 @@ uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
     Serial.print(" low 16: ");
     print_uint16(low);
     getBits16(low, 0, 0);
+    Serial.println("shift dword to starting point");
+    out = (dword32 << bit_start);
+    print_binary(out, bit_len); Serial.print(", full: "); print_binary(out, 32); Serial.print(", bin: ");
+    Serial.println(out, BIN);
+
+    Serial.println("shift back for length");
+    out = (dword32 << bit_start) >> (32 - bit_len );
+    print_binary(out, 32); Serial.print(", bin: ");
+    Serial.println(out, BIN);
+    Serial.print(" out: ");
+    print_uint32(out);
+
+    if (out != out3) {
+      exit;
+    }
+    else
+      Serial.print("shifting methods work!\n");
+    return out;
   }
-    
-  Serial.println("shift dword to starting point");
-  out = (dword32 << bit_start);
-  print_binary(out, bit_len); Serial.print(", full: "); print_binary(out, 32); Serial.print(", bin: ");
-  Serial.println(out, BIN);
-
-  Serial.println("shift back for length");
-  out = (dword32 << bit_start) >> (32 - bit_len );
-  print_binary(out, 32); Serial.print(", bin: ");
-  Serial.println(out, BIN);
-  Serial.print(" out: ");
-  print_uint32(out);
-
-  if (out != out3) {
-    exit;
-  }
-  else  
-    Serial.print("shifting methods work!\n");
-
-  return out;
+  else
+    return out3;
 }

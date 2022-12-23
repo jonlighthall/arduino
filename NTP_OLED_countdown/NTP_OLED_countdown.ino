@@ -17,7 +17,6 @@ const int debug = 2;
 #include "ntp_utils.h"
 
 void serialClockDisplay();
-void OLED_Sync_Bar();
 
 // OLED display options
 const bool do_RSSI = false;
@@ -27,6 +26,7 @@ const bool do_SecondsBar = true;
 const bool do_Seconds = true;
 const bool do_milli = true;
 void OLEDClockDisplay();
+void OLED_Sync_Bar();
 // Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
 int dispwid;
@@ -180,7 +180,7 @@ void setup() {
 time_t prevDisplay = 0; // when the digital clock was displayed
 
 uint32_t LastSyncTime;
-uint32_t fracTime;
+
 char serdiv[] = "----------------------------"; // serial print divider
 
 void loop() {
@@ -198,7 +198,6 @@ void loop() {
         uint32_t elap = tnow - prevDisplay;
         sprintf(buff, "elap = %d\n", elap);
         Serial.print(buff);
-
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
@@ -242,12 +241,11 @@ void loop() {
       }
 
       // wait until top of second to print time
-
-      sprintf(buff, "fracTime = %d\n", fracTime);
+      sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
       Serial.print(buff);
 
       if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
-        int totalDelay = fracTime + TimeSinceSync;
+        int totalDelay = NTPfracTime + TimeSinceSync;
         int setDelay = totalDelay % 1000;
         int offsetTime = 1000 - setDelay;
         if (debug > 1) {
@@ -333,17 +331,15 @@ void serialClockDisplay() {
   // print signal strength
   rssi = WiFi.RSSI();
   Serial.print(" RSSI: ");
-  Serial.print(rssi);
-
-  Serial.println();
+  Serial.println(rssi);
 }
 
 void OLEDClockDisplay() {
   // defin OLED variables
-  u8g2.clearBuffer();
-  int xpos;
-  int ypos;
+  int xpos, ypos;
   char buff[dispwid];
+
+  u8g2.clearBuffer();
 
   if (do_BigTime) {
     // draw clock display
@@ -373,7 +369,6 @@ void OLEDClockDisplay() {
   }
 
   if (do_Seconds) {
-
     // write seconds
     u8g2.setFont(u8g2_font_profont15_tn);
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
@@ -406,7 +401,6 @@ void OLEDClockDisplay() {
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
     u8g2.drawStr(xpos, ypos, buff);
-
   }
 
   // write day
@@ -436,7 +430,7 @@ void OLEDClockDisplay() {
   }
   u8g2.sendBuffer();
   if (do_SyncBar) OLED_Sync_Bar();
-  // if (do_RSSI) OLED_RSSI_Bars();
+  if (do_RSSI) OLED_RSSI_Bars();
 }
 void OLED_Sync_Bar () {
   // draw sync bar
@@ -505,7 +499,7 @@ time_t getNtpTime() {
         words[i] = getWord(packetBuffer, i * 4);
       }
 
-      // print raw time
+      // print raw packet
       Serial.println("\nraw 32-bit packet elements");
       Serial.println("          decimal   hex");
       Serial.println("---------------------------------------------------------------------");
@@ -516,155 +510,16 @@ time_t getNtpTime() {
         Serial.println();
       }
 
-      Serial.print("header: ");
-      print_uint32(words[0]);
-      Serial.println();
-      // define variables
-      uint32_t  LI = getBits32(words[0], 0, 2);
-      Serial.print("\nLI: ");
-      print_uint8(LI);
-      Serial.println("should be dec 0-3 or bin 00-11");
-      uint32_t  VN = getBits32(words[0], 2, 3);
-      Serial.print("\nVN: ");
-      print_uint8(VN);
-      Serial.println("should be dec 4 or bin 100");
-      uint32_t  Mode = getBits32(words[0], 5, 3);
-      Serial.print("\nMode: ");
-      print_uint8(Mode);
-
-      uint32_t  Stratum = getBits32(words[0], 8, 8);
-      Serial.print("\nStra: ");
-      print_uint8(Stratum);
-      Serial.println("should be dec 0-16, hex 0-F");
-
-      uint32_t  Poll = getBits32(words[0], 16, 8);
-      Serial.print("\nPoll: ");
-      print_uint8(Poll);
-      Serial.print("int: ");
-      int8_t pinterval = int8_t(Poll);
-      Serial.print(pinterval);
-      Serial.print(" seconds\n");
-      Serial.println("8-bit signed int");
-
-      uint32_t  Precision = getBits32(words[0], 24, 8);
-      Serial.print("\nPrec: ");
-      print_uint8(Precision);
-      Serial.print("int: ");
-      int8_t ppower = int8_t(Precision);
-      Serial.print(ppower);
-      Serial.print(", seconds ");
-      double sprec = pow(2, ppower);
-
-      Serial.print(sprec);
-      sprintf(buff, "precision: %.30f seconds\n", sprec);
-      Serial.print(buff);
-      Serial.println("\n8-bit signed int");
-
-      uint32_t  rootDelay = words[1];
-      uint32_t  rootDispersion = words[2];
-      uint32_t  referenceIdentifier = words[3];
-
-      sprintf(buff, "%010u Root Delay\n", rootDelay);
-      Serial.print(buff);
-      sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
-      Serial.print(buff);
-      sprintf(buff, "%010u Reference Identifier\n", referenceIdentifier);
-      Serial.print(buff);
-
-      if (Stratum == 1) {
-        print_binary(referenceIdentifier, 32);
-        Serial.println();
-        uint8_t a = getBits32(referenceIdentifier, 0, 8) ;
-        uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
-        uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
-        uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
-
-        sprintf(buff, "here\n");
-        Serial.print(buff);
-
-        sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
-        Serial.print(buff);
-
-        // sprintf(buff, "server id: %c\n", Stratum);
-        // Serial.print(buff);      }
-
-
-      const char* names[4] = {"reference", "originate", "receive", "transmit"};
-
-      // print raw NTP time
-      Serial.println("\nraw 64-bit timestamps");
-      for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %1d %010u %010u %s\n", i + 1, words[4 + i * 2], words[5 + i * 2], names[i]);
-        Serial.print(buff);
-      }
-
-      // print raw NTP time
-      uint32_t secsSince1900[4];
-      Serial.println("\nraw 32-bit timestamps (seconds)");
-      for (int i = 0; i < 4; i++) {
-        secsSince1900[i] = words[4 + i * 2];
-        sprintf(buff, "i = %1d %010u %s\n", i + 1, secsSince1900[i], names[i]);
-        Serial.print(buff);
-      }
-
-      uint32_t fracSecs[4];
-      // print raw NTP time
-      Serial.println("\nraw 32-bit timestamps (fraction)");
-      for (int i = 0; i < 4; i++) {
-        fracSecs[i] = words[5 + i * 2];
-        sprintf(buff, "i = %1d %010u %s\n", i + 1, fracSecs[i], names[i]);
-        Serial.print(buff);
-      }
-
-      // convert to unix time
-      uint32_t secsSince1970[4];
-      for (int i = 0; i < 4; i++) {
-        secsSince1970[i] = secsSince1900[i] - NTP_UNIX_OFFSET_SECONDS;
-      }
-
-      // print unix time
-      Serial.println("\n32-bit unix timestamps");
-      for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %2d %010u %s\n", i, secsSince1970[i], names[i]);
-        Serial.print(buff);
-      }
-
-      // convert to local time
-      uint32_t localTime[4];
-      for (int i = 0; i < 4; i++) {
-        localTime[i] = secsSince1970[i] + SetTimeZone * SECS_PER_HOUR;
-      }
-
-      // print unix time
-      Serial.println("\nlocal 32-bit timestamps");
-      for (int i = 0; i < 4; i++) {
-        sprintf(buff, "i = %2d %010u %s\n", i, localTime[i], names[i]);
-        Serial.print(buff);
-      }
-
-      // convert the fractional part to milliseconds
-      uint32_t ifrac_secs[4];
-      double frac_secs[4];
-      for (int i = 0; i < 4; i++) {
-        ifrac_secs[i] = words[5 + i * 2];
-      }
-
-      fracTime = ((uint64_t) fracSecs[3] * 1000) >> 32;
-
-      //      if (debug > 1) {
-      // print fractional times
-      Serial.println("\nfractional times");
-      Serial.print("fracTime = ");
-      Serial.println(fracTime);
-      //    }
+      parseNTP_header(packetBuffer);
+      parseNTP_time(packetBuffer);
+      parseNTP_fraction(packetBuffer);
 
       Serial.println(serdiv);
-      return localTime[3];
+      return NTPlocalTime;
     }
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
   digitalWrite(LED_BUILTIN, HIGH); // off
   return 0; // return 0 if unable to get the time
-}
 }
