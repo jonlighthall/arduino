@@ -87,13 +87,22 @@ void parseNTP_header (uint32_t words[]) {
   // print header
   if (debug > -1) {
     // print raw packet
-    Serial.println("\nraw 32-bit packet elements");
-    Serial.println(" i |  decimal   |  hex     |  binary");
-    Serial.println("---+------------+----------+-------------------------------------");
+    Serial.println();
+    if (debug > 0)
+      Serial.println("raw 32-bit packet elements");
+    Serial.print(" i |  decimal   |  hex     |");
+    if (debug > 0)
+      Serial.print("  binary");
+    Serial.println();
+    Serial.print("---+------------+----------+");
+    if (debug > 0)
+      Serial.print("----------------------------------");
+    Serial.println();
     for (int i = 0; i < 12; i++) {
       sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
       Serial.print(buff);
-      print_binary(packetWords[i], 32);
+      if (debug > 0)
+        print_binary(packetWords[i], 32);
       if (i < 4) {
         sprintf(buff, " %s", NTP_header_names[i]);
         Serial.print(buff);
