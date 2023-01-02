@@ -381,22 +381,88 @@ void OLEDClockDisplay() {
     int   dday = 25 - day();
     sprintf(buff, "day = %d, dday = %d\n", day(), dday);
     Serial.print(buff);
-    u8g2.setFont(u8g2_font_timB14_tr);
-    //u8g2.setFont(u8g2_font_profont15_tn);
-    sprintf(buff, "%d Days", dday);
-    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-    ypos = u8g2.getAscent();
-    u8g2.drawStr(xpos, ypos, buff);
-
-    u8g2.setFont(u8g2_font_timB08_tr);
-    sprintf(buff, "Until Xmas", dday);
-    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-    ypos += u8g2.getAscent() + 4;
-    u8g2.drawStr(xpos, ypos, buff);
 
     int dhour = 24 - hour();
     sprintf(buff, "hour = %d, dhour = %d\n", hour(), dhour);
     Serial.print(buff);
+
+    int dmonth = 12 - month();
+    sprintf(buff, "month = %d, dmonth = %d\n", month(), dmonth);
+    Serial.print(buff);
+
+    int xmasDay = 0;
+    if (dmonth == 0) {
+      Serial.println("it's December!");
+      if (dday <= 0) {
+        xmasDay = -dday + 1;
+        Serial.println("it's Christmas!");
+        sprintf(buff, "xmasDay = %d\n", xmasDay);
+        Serial.print(buff);
+        sprintf(buff, "it's the %d day of Christmas!\n", xmasDay);
+        Serial.print(buff);
+      }
+    }
+
+    if (month() == 1) {
+      Serial.println("it's January!");
+      xmasDay = day() + 7;
+      if (xmasDay <= 12) {
+        Serial.println("it's still Christmas!");
+        sprintf(buff, "xmasDay = %d\n", xmasDay);
+        Serial.print(buff);
+        sprintf(buff, "it's the %d day of Christmas!\n", xmasDay);
+        Serial.print(buff);
+      }
+    }
+
+
+    // print days
+    if (xmasDay > 0) {
+      u8g2.setFont(u8g2_font_timB14_tr);
+      //u8g2.setFont(u8g2_font_profont15_tn);
+      switch (xmasDay) {
+        case 1:
+          sprintf(buff, "%dst Day", xmasDay);
+          break;
+        case 2:
+          sprintf(buff, "%dnd Day", xmasDay);
+          break;
+        case 3:
+          sprintf(buff, "%drd Day", xmasDay);
+          break;
+        default:
+          sprintf(buff, "%dth Day", xmasDay);
+          break;
+      }
+
+      //sprintf(buff, "%d Day", xmasDay);
+      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+      ypos = u8g2.getAscent();
+      u8g2.drawStr(xpos, ypos, buff);
+
+      u8g2.setFont(u8g2_font_timB08_tr);
+      sprintf(buff, "of Xmas", dday);
+      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+      ypos += u8g2.getAscent() + 4;
+      u8g2.drawStr(xpos, ypos, buff);
+    }
+    else {
+      u8g2.setFont(u8g2_font_timB14_tr);
+      //u8g2.setFont(u8g2_font_profont15_tn);
+      sprintf(buff, "%d Days", dday);
+      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+      ypos = u8g2.getAscent();
+      u8g2.drawStr(xpos, ypos, buff);
+
+      u8g2.setFont(u8g2_font_timB08_tr);
+      sprintf(buff, "Until Xmas", dday);
+      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+      ypos += u8g2.getAscent() + 4;
+      u8g2.drawStr(xpos, ypos, buff);
+    }
+
+
+
   }
 
   if (do_BigTime) {
