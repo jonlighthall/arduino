@@ -449,16 +449,30 @@ void OLEDClockDisplay() {
           break;
       }
 
-      //sprintf(buff, "%d Day", xmasDay);
-      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-      ypos = u8g2.getAscent();
-      u8g2.drawStr(xpos, ypos, buff);
+      if (xmasDay < 13) {
+        if (u8g2.getStrWidth(buff) > dispwid)
+          xpos = 0;
+        else
+          xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+        ypos = u8g2.getAscent();
+        u8g2.drawStr(xpos, ypos, buff);
 
-      u8g2.setFont(u8g2_font_timB08_tr);
-      sprintf(buff, "of Xmas", dday);
-      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-      ypos += u8g2.getAscent() + 4;
-      u8g2.drawStr(xpos, ypos, buff);
+        u8g2.setFont(u8g2_font_timB08_tr);
+        sprintf(buff, "of Xmas", dday);
+        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+        ypos += u8g2.getAscent() + 4;
+        u8g2.drawStr(xpos, ypos, buff);
+      }
+      else {
+        sprintf(buff, "King's");
+        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+        ypos = u8g2.getAscent();
+        u8g2.drawStr(xpos, ypos, buff);
+        sprintf(buff, "Day");
+        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+        ypos += u8g2.getAscent() + 1;
+        u8g2.drawStr(xpos, ypos, buff);
+      }
     }
     else {
       u8g2.setFont(u8g2_font_timB14_tr);
@@ -477,9 +491,6 @@ void OLEDClockDisplay() {
       ypos += u8g2.getAscent() + 4;
       u8g2.drawStr(xpos, ypos, buff);
     }
-
-
-
   }
 
   if (do_BigTime) {
