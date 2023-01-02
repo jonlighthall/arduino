@@ -5,13 +5,10 @@
 
 #include <TimeLib.h>
 
-// OLED packages
-#include <Arduino.h>
-#include <U8g2lib.h>
-#include <Wire.h>
-
-#include "dst.h"
 #include "wifi_utils.h"
+#include "oled_utils.h"
+#include "dst.h"
+
 //-------------------------------
 const int debug = 0;
 //-------------------------------
@@ -20,28 +17,14 @@ const int debug = 0;
 
 void serialClockDisplay();
 
-// OLED display options
-const bool do_RSSI = false;
-const bool do_SyncBar = false;
-const bool do_BigTime = false;
-const bool do_SecondsBar = false;
-const bool do_Seconds = true;
 const bool do_milliseconds = true;
+const bool do_rssi = false;
+
 const bool do_Christmas = true;
 int isLeapYear (int input_year, int default_debugLY = 0); // set default function value
 void calcChristmas();
 
-void OLEDClockDisplay();
-void OLED_Sync_Bar();
-void OLED_RSSI_Bars();
-// Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
-U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
-int dispwid;
-int disphei;
-
 #define PRINT_DELAY 250 // print delay in milliseconds
-
-int syncBar = 0;
 
 void setup() {
   // initialize on-board LED
@@ -185,9 +168,7 @@ void setup() {
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
-
 uint32_t LastSyncTime;
-
 char serdiv[] = "----------------------------"; // serial print divider
 
 void loop() {
@@ -338,10 +319,13 @@ void serialClockDisplay() {
   isDST(1);
   Serial.print(")");
 
-  // print signal strength
-  rssi = WiFi.RSSI();
-  Serial.print(" RSSI: ");
-  Serial.println(rssi);
+  if (do_RSSI) {
+    // print signal strength
+    rssi = WiFi.RSSI();
+    Serial.print(" RSSI: ");
+    Serial.print(rssi);
+  }
+  Serial.println();
 }
 
 int isLeapYear(int in_year, int debugLY) {
@@ -556,48 +540,17 @@ void OLEDClockDisplay() {
   if (do_SyncBar) OLED_Sync_Bar();
   if (do_RSSI) OLED_RSSI_Bars();
 }
-void OLED_Sync_Bar () {
-  // draw sync bar
-  for (int i = 0; i < syncBar + 1; i++) {
-    u8g2.drawPixel(0, disphei - i);
-  }
-  u8g2.sendBuffer();
-}
-
-void OLED_RSSI_Bars () {
-  // draw signal bars
-  rssi = WiFi.RSSI();
-
-  int bt = 0; // bar top
-  int bb = bt + 5 ; // bar bottom
-  int bl = 1; // bar left
-
-  // draw black background
-  u8g2.setDrawColor(0);
-  // bars occupy a box 7 x 5 pixels
-  u8g2.drawBox(bl, bt, 9,  7);
-  u8g2.setDrawColor(1);
-
-  // draw smallest possible signal strength bars
-  if (rssi > -89) u8g2.drawLine(bl + 1, bb, bl + 1, bb - 1);
-  if (rssi > -78) u8g2.drawLine(bl + 3, bb, bl + 3, bb - 2);
-  if (rssi > -67) u8g2.drawLine(bl + 5, bb, bl + 5, bb - 3);
-  if (rssi > -56) u8g2.drawLine(bl + 7, bb, bl + 7, bb - 4);
-
-  u8g2.sendBuffer();
-}
 
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
   char buff[64];
-
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
-  u8g2.drawBox(0, 0, 2, 2);
+  u8g2.drawBox(0, 0, 2, 2); // cue light for sync status
   u8g2.sendBuffer();
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
@@ -605,13 +558,10 @@ time_t getNtpTime() {
   Serial.println(ntpServerIP);
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
-  Serial.print("SetTimeZone = ");
-  Serial.println(SetTimeZone);
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
       Serial.println("Receive NTP Response");
-      digitalWrite(LED_BUILTIN, HIGH); // off
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
 
@@ -625,6 +575,5 @@ time_t getNtpTime() {
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
-  digitalWrite(LED_BUILTIN, HIGH); // off
   return 0; // return 0 if unable to get the time
 }
