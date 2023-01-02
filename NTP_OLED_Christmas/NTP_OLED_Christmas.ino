@@ -334,7 +334,36 @@ int isLeapYear(int in_year, int debugLY) {
   Serial.print(buff);
   sprintf(buff, "leap year debug = %d\n", debugLY);
   Serial.print(buff);
+
+  // leap year if perfectly divisible by 400
+  if (in_year % 400 == 0) {
+    sprintf(buff, "%d is a leap year.\n", in_year);
+    Serial.print(buff);
+    return 1;
+  }
+  // not a leap year if divisible by 100
+  // but not divisible by 400
+  else if (in_year % 100 == 0) {
+    sprintf(buff, "%d is not a leap year.\n", in_year);
+    Serial.print(buff);
+    return 0;
+  }
+  // leap year if not divisible by 100
+  // but divisible by 4
+  else if (in_year % 4 == 0) {
+    sprintf(buff, "%d is a leap year.\n", in_year);
+    Serial.print(buff);
+    return 1;
+  }
+  // all other years are not leap years
+  else {
+    sprintf(buff, "%d is not a leap year.\n", in_year);
+    Serial.print(buff);
+    return 0;
+  }
 }
+
+int monthDays [12] = {31, 28,  31,  30,  31,  30,  31,  31,  30,  31,  30,  31};
 
 void calcChristmas() {
   // check month
@@ -396,6 +425,21 @@ void OLEDClockDisplay() {
         Serial.print(buff);
         sprintf(buff, "it's the %d day of Christmas!\n", xmasDay);
         Serial.print(buff);
+      }
+      else if (day() == 6) {
+        Serial.println("it's not Christmas!");
+        Serial.println("it's King's Day!");
+      }
+      else {
+        Serial.println("it's not Christmas!");
+        xmasDay = 0;
+        dday = monthDays[month()] - day();
+        sprintf(buff, "xmasDay = %d\n", xmasDay);
+        Serial.print(buff);
+
+        for (int i = 2; i < 13; i++) {
+
+        }
       }
     }
 
