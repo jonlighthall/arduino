@@ -377,29 +377,22 @@ void OLEDClockDisplay() {
     int dmonth = 12 - month();
     int xmasDay = 0;
 
-    if (dmonth == 0) {
-      Serial.println("it's December!");
+    if (dmonth == 0) {      
       dday = 25 - day();
       if (dday <= 0) {
-        xmasDay = -dday + 1;
-        Serial.println("it's Christmas!");
-        sprintf(buff, "xmasDay = %d\n", xmasDay);
-        Serial.print(buff);
+        xmasDay = -dday + 1;                
         sprintf(buff, "it's the %d day of Christmas!\n", xmasDay);
         Serial.print(buff);
       }
     }
 
-    if (month() == 1) {
-      Serial.println("it's January!");
+    if (month() == 1) {      
       xmasDay = day() + 7;
-      if (xmasDay <= 12) {
-        Serial.println("it's still Christmas!");
+      if (xmasDay <= 12) {        
         sprintf(buff, "it's the %d day of Christmas!\n", xmasDay);
         Serial.print(buff);
       }
-      else if (day() == 6) {
-        Serial.println("it's not Christmas!");
+      else if (day() == 6) {        
         Serial.println("it's King's Day!");
       }
       else {
@@ -418,9 +411,7 @@ void OLEDClockDisplay() {
           dday += monthDays[i] ;
           if (i == 1) { // add Leap Year
             dday += isLeapYear(year(), debug) ;
-          }
-          sprintf(buff, "month = %d, dday = %d\n", i + 1, dday);
-          Serial.print(buff);
+          }          
         }
         // add the month of December
         dday += 25 ;
@@ -428,7 +419,6 @@ void OLEDClockDisplay() {
         Serial.print(buff);
       }
     }
-
 
     // print days
     if (xmasDay > 0) {
