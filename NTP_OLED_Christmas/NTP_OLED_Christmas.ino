@@ -22,7 +22,6 @@ const bool do_rssi = false;
 
 const bool do_Christmas = true;
 int isLeapYear (int input_year, int default_debugLY = 0); // set default function value
-void calcChristmas();
 
 #define PRINT_DELAY 250 // print delay in milliseconds
 
@@ -365,24 +364,6 @@ int isLeapYear(int in_year, int debugLY) {
 
 int monthDays [12] = {31, 28,  31,  30,  31,  30,  31,  31,  30,  31,  30,  31};
 
-void calcChristmas() {
-  // check month
-  char buff[128];
-  int dmonth = 12 - month();
-  int dday = 0;
-  sprintf(buff, "month = %d, dmonth = %d\n", month(), dmonth);
-  Serial.print(buff);
-
-  if (dmonth > 0) {
-    sprintf(buff, "must do more programming\n");
-    Serial.print(buff);
-    sprintf(buff, "leap year = %d\n", isLeapYear(year()));
-    Serial.print(buff);
-  }
-  else {
-  }
-}
-
 void OLEDClockDisplay() {
   // defin OLED variables
   int xpos, ypos;
@@ -391,21 +372,14 @@ void OLEDClockDisplay() {
   u8g2.clearBuffer();
 
   if (do_Christmas) {
-    int   dday = 25 - day();
-    sprintf(buff, "day = %d, dday = %d\n", day(), dday);
-    Serial.print(buff);
-
+    int dday;
     int dhour = 24 - hour();
-    sprintf(buff, "hour = %d, dhour = %d\n", hour(), dhour);
-    Serial.print(buff);
-
     int dmonth = 12 - month();
-    sprintf(buff, "month = %d, dmonth = %d\n", month(), dmonth);
-    Serial.print(buff);
-
     int xmasDay = 0;
+
     if (dmonth == 0) {
       Serial.println("it's December!");
+      dday = 25 - day();
       if (dday <= 0) {
         xmasDay = -dday + 1;
         Serial.println("it's Christmas!");
@@ -421,8 +395,6 @@ void OLEDClockDisplay() {
       xmasDay = day() + 7;
       if (xmasDay <= 12) {
         Serial.println("it's still Christmas!");
-        sprintf(buff, "xmasDay = %d\n", xmasDay);
-        Serial.print(buff);
         sprintf(buff, "it's the %d day of Christmas!\n", xmasDay);
         Serial.print(buff);
       }
@@ -433,13 +405,27 @@ void OLEDClockDisplay() {
       else {
         Serial.println("it's not Christmas!");
         xmasDay = 0;
-        dday = monthDays[month()] - day();
+        int idxMonth = month() - 1;
+        dday = monthDays[idxMonth ] - day();
+
+        sprintf(buff, "day = %d, dday = %d, days in month = %d\n", day(), dday, monthDays[idxMonth]);
+        Serial.print(buff);
+
         sprintf(buff, "xmasDay = %d\n", xmasDay);
         Serial.print(buff);
 
-        for (int i = 2; i < 13; i++) {
-
+        for (int i = month(); i < 11; i++) {
+          dday += monthDays[i] ;
+          if (i == 1) { // add Leap Year
+            dday += isLeapYear(year(), debug) ;
+          }
+          sprintf(buff, "month = %d, dday = %d\n", i + 1, dday);
+          Serial.print(buff);
         }
+        // add the month of December
+        dday += 25 ;
+        sprintf(buff, "month = %d, dday = %d\n", 12, dday);
+        Serial.print(buff);
       }
     }
 
@@ -478,7 +464,10 @@ void OLEDClockDisplay() {
       u8g2.setFont(u8g2_font_timB14_tr);
       //u8g2.setFont(u8g2_font_profont15_tn);
       sprintf(buff, "%d Days", dday);
-      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+      if (u8g2.getStrWidth(buff) > dispwid)
+        xpos = 0;
+      else
+        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
       ypos = u8g2.getAscent();
       u8g2.drawStr(xpos, ypos, buff);
 
