@@ -1,7 +1,15 @@
 #include <NTPClient.h>
 #include "wifi_settings.h"
 
-NTPClient timeClient(ntpUDP);
+// NTP
+static const char ntpServerName[] = "time.nist.gov";
+const long nptTimeOffset = 0; // seconds
+const unsigned long nptUpdateInterval = 300; //millisecons
+
+// You can specify the time server pool and the offset (in seconds, can be
+// changed later with setTimeOffset() ). Additionally you can specify the
+// update interval (in milliseconds, can be changed using setUpdateInterval() ).
+NTPClient timeClient(ntpUDP, ntpServerName);
 
 #define BLINK_DELAY 50 // delay in milliseconds
 
@@ -27,5 +35,10 @@ void setup() {
 void loop() {
   timeClient.update();
   Serial.println(timeClient.getFormattedTime());
+  Serial.println(timeClient.getEpochTime());
+  Serial.println(timeClient.getDay());
+  Serial.println(timeClient.getHours());
+  Serial.println(timeClient.getMinutes());
+  Serial.println(timeClient.getSeconds());
   delay(1000);
 }
