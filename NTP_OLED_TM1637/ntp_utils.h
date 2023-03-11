@@ -95,14 +95,14 @@ void parseNTP_time (uint32_t words[]) {
     Serial.print("epoch offset = ");
     Serial.println(NTP_UNIX_OFFSET_SECONDS );
 
-    // print unix time
+    // print UTC unix time
     Serial.println("\n32-bit unix timestamps");
     for (int i = 0; i < 4; i++) {
       sprintf(buff, "i = %2d %010u %s\n", i, secsSince1970[i], NTP_names[i]);
       Serial.print(buff);
     }
 
-    // print unix time
+    // print local unix time
     Serial.println("\nlocal 32-bit timestamps");
     for (int i = 0; i < 4; i++) {
       sprintf(buff, "i = %2d %010u %s\n", i, localTime[i], NTP_names[i]);
