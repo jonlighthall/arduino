@@ -20,7 +20,8 @@ uint32_t NTPlocalTime;
 
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
 byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
-uint32_t packetWords[NTP_PACKET_SIZE / 4];
+const int NTP_PACKET_LENGTH = NTP_PACKET_SIZE / 4;
+uint32_t packetWords[NTP_PACKET_LENGTH];
 
 constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
 constexpr uint16_t DAYS_IN_YEAR          = 365;
@@ -57,7 +58,7 @@ void sendNTPpacket(IPAddress & address) {
 void readNTP_packet () {
   char buff[64];
   // read packet
-  for (int i = 0; i < 12; i++) {
+  for (int i = 0; i < NTP_PACKET_LENGTH; i++) {
     packetWords[i] = getWord(packetBuffer, i * 4);
   }  
 }
@@ -100,7 +101,7 @@ void parseNTP_header (uint32_t words[]) {
     if (debug > 0)
       Serial.print("----------------------------------");
     Serial.println();
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < NTP_PACKET_LENGTH; i++) {
       sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
       Serial.print(buff);
       if (debug > 0)
