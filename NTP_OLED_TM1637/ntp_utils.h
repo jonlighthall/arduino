@@ -146,6 +146,10 @@ void parseNTP_fraction (uint32_t words[]) {
 void sendNTPpacket(IPAddress & address) {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
+  if (debug > 0) {
+    Serial.println("initialized packet buffer...");
+    readNTP_packet();
+  }
   // Initialize values needed to form NTP request
   // (see URL above for details on the packets)
   packetBuffer[0] = 0b11100011;   // LI, Version, Mode
@@ -159,6 +163,11 @@ void sendNTPpacket(IPAddress & address) {
   packetBuffer[15] = 52;
   // all NTP fields have been given values, now
   // you can send a packet requesting a timestamp:
+  if (debug > 0) {
+    Serial.println("sending packet buffer...");
+    readNTP_packet();
+    parseNTP_time(packetWords);
+  }
   Udp.beginPacket(address, 123); //NTP requests are to port 123
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
