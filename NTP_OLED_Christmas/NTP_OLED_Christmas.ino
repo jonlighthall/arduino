@@ -35,30 +35,11 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   Serial.begin(9600);
-  while (!Serial) ; // Needed for Leonardo only
-  //delay(PRINT_DELAY);
-  //testDST();
-  delay(PRINT_DELAY);
-  Serial.println();
+  while (!Serial) ; // Needed for Leonardo only  
+  delay(PRINT_DELAY);  
   char buff[64];
-  sprintf(buff, "\nTimeNTP Example");
+  sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
-
-  // test leap year function
-  for (int i = 1700; i < 2101; i = i + 50) {
-    if (isLeapYear(i, 1)) {
-      Serial.println("   YES");
-    }
-    else {
-      Serial.println("   NO");
-    }
-  }
-
-  for (int i = 2000; i < 2101; i = i + 1) {
-    if (isLeapYear(i, 0)) {
-      Serial.println(i);
-    }
-  }
 
   // display settings
   u8g2.begin();
@@ -133,7 +114,7 @@ void setup() {
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
   rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
@@ -141,7 +122,7 @@ void setup() {
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
-  Serial.println("waiting for sync");
+  Serial.println("waiting for sync...");
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
@@ -153,7 +134,7 @@ void setup() {
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
-    ;
+    Serial.print(".");
   }
   setSyncInterval(1);
   Serial.println("sync complete");
@@ -182,66 +163,19 @@ void setup() {
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
 
-  setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
-  Serial.println("starting...");
 
   if (do_Christmas) {
+    // define Christmas Time
     // convert a date and time into unix time, offset 1970
     xmas_elem.Second = 0;
     xmas_elem.Hour = 0;
     xmas_elem.Minute = 0;
     xmas_elem.Day = 25;
     xmas_elem.Month = 12;
-
-    time_t time_now = now();
-    time_t time_diff[3] = {0};
-    int diff_sec[3];
-    float diff_min[3];
-    float diff_hr[3];
-    float diff_day[3];
-
-    // calculate time relative to xmas last year, this year, and next year
-    Serial.println();
-    for (int i = 0; i < 3; i++) {
-      Serial.print("year is:");
-      int xmas_year = year() + i - 1;
-      Serial.println(xmas_year);
-      xmas_elem.Year = xmas_year - 1970; // years since 1970, so deduct 1970
-      xmas_time[i] =  makeTime(xmas_elem);
-      Serial.print("   Christmas time is:");
-      Serial.println(xmas_time[i]);
-
-      //setTime(xmas_time[i]);
-      //serialClockDisplay();
-
-      time_diff[i] = xmas_time[i] - time_now;
-      Serial.print("Time until Christmas is:");
-      Serial.println(time_diff[i]);
-
-      diff_sec[i] = (int)time_diff[i];
-      diff_min[i] = (float)diff_sec[i] / 60;
-      diff_hr[i] = diff_min[i] / 60;
-      diff_day[i] = diff_hr[i] / 24;
-    }
-
-
-
-    for (int i = 0; i < 3; i++) {
-      if (time_diff[i] > 0) {
-        Serial.print("Time since last Christmas is:");
-        Serial.println(time_diff[i - 1]);
-        Serial.print("   in days:");
-        Serial.println(diff_day[i - 1]);
-
-        Serial.print("Time until next Christmas is:");
-        Serial.println(time_diff[i]);
-        Serial.print("   in days:");
-        Serial.println(diff_day[i]);
-        diff_DAYS = floor(diff_day[i]);
-        break;
-      }
-    }
   }
+
+  setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
+  Serial.println("starting...");
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -412,62 +346,16 @@ int dday;
 int xmasDay = 0;
 int monthDays [12] = {31, 28,  31,  30,  31,  30,  31,  31,  30,  31,  30,  31};
 
+int last_DAYS = 0;
+
 void calcChristmas() {
   char buff[128];
   int dhour = 24 - hour();
   int dmonth = 12 - month();
 
-  // is it December?
-  if (dmonth == 0) {
-    dday = 25 - day();
-    // is it before or after Christmas?
-    if (dday <= 0) {
-      Serial.println("Maybe Christmas: December");
-      xmasDay = -dday + 1;
-      sprintf(buff, " it's the %d day of Christmas!", xmasDay);
-      Serial.println(buff);
-    }
-    // is it January ?
-  } else if (month() == 1) {
-    Serial.println("Maybe Christmas: January");
-    // calculate the Xth day of Christmas
-    xmasDay = day() + 7;
-    if (xmasDay <= 12) {
-      sprintf(buff, " it's the %d day of Christmas!", xmasDay);
-      Serial.println(buff);
-    }
-    else if (day() == 6) {
-      Serial.println(" it's King's Day!");
-    }
+  if (debug > 0) {
+    Serial.println("\nCalculating time until christmas...");
   }
-  else { // Not Christmas, not january or december
-    Serial.println("\nNot Christmas: not December or January");
-    xmasDay = 0;
-    int idxMonth = month() - 1;
-    dday = monthDays[idxMonth ] - day();
-    sprintf(buff, "   adding %2d days left in month", dday);
-    Serial.println(buff);
-
-    for (int i = month() ; i < 11; i++) {
-      dday += monthDays[i] ;
-      sprintf(buff, "   adding %2d days in month %d = %d", monthDays[i], i+1,dday);
-      Serial.println(buff);
-
-      if (i == 1) { // add Leap Year
-        dday += isLeapYear(year(), debug) ;
-        sprintf(buff, "   adding  1 days for leap year %d = %d", year(),dday);
-        Serial.println(buff);
-      }
-    }
-    // add the month of December
-    dday += 25 ;
-    sprintf(buff, "  adding 25 days for December = %d",dday);
-    Serial.println(buff);
-    sprintf(buff, " %d days until Christmas", dday);
-    Serial.println(buff);
-  }
-
-  Serial.println("calculating time until christmas:");
   time_t time_now = now();
   time_t time_diff[3] = {0};
   int diff_sec[3];
@@ -475,19 +363,23 @@ void calcChristmas() {
   float diff_hr[3];
   float diff_day[3];
 
+  Serial.println();
   // calculate time relative to xmas last year, this year, and next year
   for (int i = 0; i < 3; i++) {
-    Serial.print("year is: ");
+
     int xmas_year = year() + i - 1;
-    Serial.println(xmas_year);
     xmas_elem.Year = xmas_year - 1970; // years since 1970, so deduct 1970
     xmas_time[i] =  makeTime(xmas_elem);
-    Serial.print("   Christmas time is:");
-    Serial.println(xmas_time[i]);
-
     time_diff[i] = xmas_time[i] - time_now;
-    Serial.print("   Time until Christmas is:");
-    Serial.println(time_diff[i]);
+
+    if (debug > 0) {
+      Serial.print("year is: ");
+      Serial.println(xmas_year);
+      Serial.print("   Christmas time is:");
+      Serial.println(xmas_time[i]);
+      Serial.print("Time until Christmas is:");
+      Serial.println(time_diff[i]);
+    }
 
     diff_sec[i] = (int)time_diff[i];
     diff_min[i] = (float)diff_sec[i] / 60;
@@ -495,41 +387,44 @@ void calcChristmas() {
     diff_day[i] = diff_hr[i] / 24;
   }
 
-  int diff_DAYS = 0;
-  int last_DAYS = 0;
-
+  // find the appropriate Christmas
   for (int i = 0; i < 3; i++) {
     if (time_diff[i] > 0) {
-      Serial.print("Time since last Christmas is:");
-      Serial.println(time_diff[i - 1]);
-      Serial.print("   in days:");
-      Serial.println(diff_day[i - 1]);
       last_DAYS = floor(diff_day[i - 1]);
+      if (debug > -1) {
+        sprintf(buff, "Time since last Christmas: %d sec or %.1f days\n", time_diff[i - 1], diff_day[i - 1]);
+        Serial.print(buff);
+        Serial.print("   Time since last Christmas is:");
+        Serial.println(time_diff[i - 1]);
+        Serial.print("   in days:");
+        Serial.println(diff_day[i - 1]);
+        Serial.print("   in days:");
+        Serial.println(last_DAYS);
 
-      Serial.print("Time until next Christmas is:");
-      Serial.println(time_diff[i]);
-      Serial.print("   in days:");
-      Serial.println(diff_day[i]);
+      }
+
       diff_DAYS = floor(diff_day[i]);
-      break;
+      if (debug > -1) {
 
-      if ((diff_DAYS - last_DAYS)<365) {
+        sprintf(buff, "Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
+        Serial.print("  Time until next Christmas is:");
+        Serial.println(time_diff[i]);
+        Serial.print("   in days:");
+        Serial.println(diff_day[i]);
+
+      }
+      if ((diff_DAYS - last_DAYS) < 365) {
         exit;
       }
-     Serial.print("Sum time:");
-      Serial.println(time_diff[i]-time_diff[i - 1]);
-      Serial.print("Sum days:");
-      Serial.println((time_diff[i]-time_diff[i - 1])/(24*60*60));
-      
+      if (debug > -1) {
+        Serial.print("Sum time:");
+        Serial.println(time_diff[i] - time_diff[i - 1]);
+        Serial.print("Sum days:");
+        Serial.println((time_diff[i] - time_diff[i - 1]) / (24 * 60 * 60));
+      }
+      break;
     }
   }
-  Serial.print("   in days:");
-  Serial.println(last_DAYS);
-  Serial.print("   in days:");
-  Serial.println(diff_DAYS);
-  Serial.print("   in days:");
-  Serial.println(diff_DAYS - last_DAYS);
-
 }
 
 int isLeapYear(int in_year, int debugLY) {
