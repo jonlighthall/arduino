@@ -9,6 +9,16 @@
 #include "oled_utils.h"
 #include "dst.h"
 
+#include <TM1637Display.h>
+const int CLK = D6; //Set the CLK pin connection to the display
+const int DIO = D5; //Set the DIO pin connection to the display
+
+const int CLK2 = D1; //Set the CLK pin connection to the display
+const int DIO2 = D2; //Set the DIO pin connection to the display
+TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
+TM1637Display display2(CLK2, DIO2); //set up the 4-Digit Display.
+#include "seven-segment_text.h"
+
 //-------------------------------
 const int debug = 0;
 //-------------------------------
@@ -22,17 +32,27 @@ const bool do_rssi = false;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
 
-// Christmas countdown options
-const bool do_Christmas = true;
-int isLeapYear (int input_year, int default_debugLY = 0); // set default function value
-tmElements_t xmas_elem;  // time elements structure
-time_t xmas_time[3]; // a timestamp
-int diff_DAYS = 0;
+// LED display options
+bool do_mil = false;
+bool do_sec_top = false;
+bool do_cyc = false;
+bool do_sec_mod = false;
+
+int prev_disp_ms;
 
 void setup() {
   // initialize on-board LED
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+
+  // initialize LED display
+  display.clear();
+  display.setBrightness(7);
+  display.setSegments(SEG_hEllo);
+
+  display2.clear();
+  display2.setBrightness(7);
+  display2.setSegments(SEG_hEllo);
 
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
@@ -59,7 +79,7 @@ void setup() {
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
 
-  u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
+  u8g2.drawStr(xpos, ypos, buff);	// write something to the internal memory
   u8g2.sendBuffer(); // transfer internal memory to the display
   delay(PRINT_DELAY);
 
@@ -80,6 +100,8 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  display.setSegments(SEG_CONN);
+  display2.setSegments(SEG_CONN);
   WiFi.begin(ssid, pass);
 
   // print text throbber
@@ -129,6 +151,8 @@ void setup() {
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  display.setSegments(SEG_SYNC);
+  display2.setSegments(SEG_SYNC);
   setSyncProvider(getNtpTime);
 
   // wait for time to be set
@@ -163,16 +187,6 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-
-  if (do_Christmas) {
-    // define Christmas Time
-    // convert a date and time into unix time, offset 1970
-    xmas_elem.Second = 0;
-    xmas_elem.Hour = 0;
-    xmas_elem.Minute = 0;
-    xmas_elem.Day = 25;
-    xmas_elem.Month = 12;
-  }
 
   setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
   Serial.println("starting...");
@@ -260,7 +274,7 @@ void loop() {
             sprintf(buff, "delaying display by %d...", offsetTime);
             Serial.print(buff);
           }
-          delay(offsetTime);
+       //   delay(offsetTime);
           if (debug > 1) {
             Serial.println("done");
             Serial.println(serdiv);
@@ -278,7 +292,7 @@ void loop() {
             int delayInterval = min(10, delayDiff);
             sprintf(buff, "waiting %d ms...", delayInterval);
             Serial.print(buff);
-            delay(delayInterval);
+            //delay(delayInterval);
             Serial.println("done");
             Serial.println(serdiv);
           }
@@ -289,6 +303,8 @@ void loop() {
       int midTime = millis();
       OLEDClockDisplay();
       int afterTime = millis();
+      DigitalClockDisplayOpt();
+      prev_disp_ms = millis();
 
       if (debug > 1) {
         sprintf(buff, "serialClockDisplay takes %d\n", midTime - beforeTime);
@@ -303,6 +319,16 @@ void loop() {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
+    } // end prevDisplay
+    else {
+      int t_diff_ms = millis() - prev_disp_ms;
+      Serial.print("t diff ms = ");
+      Serial.print(t_diff_ms);
+      float dig_frac_sec = float(second()) + (float(t_diff_ms) / 1000.0);
+      Serial.print(", dig sec = ");
+      Serial.println(dig_frac_sec);
+      int  dig_sec = dig_frac_sec * 100;      
+      display2.showNumberDecEx(dig_sec, 0b01000000, true);
     }
   } // end timeNotSet
 } // end loop
@@ -336,134 +362,8 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
-  if (do_Christmas)
-    calcChristmas();
-  Serial.println();
-}
-
-int dday;
-int xmasDay = 0;
-int monthDays [12] = {31, 28,  31,  30,  31,  30,  31,  31,  30,  31,  30,  31};
-int last_DAYS = 0;
-
-void calcChristmas() {
-  char buff[128];
-  int dhour = 24 - hour();
-  int dmonth = 12 - month();
-
-  if (debug > 0) {
-    Serial.println("\nCalculating time until christmas...");
-  }
-  time_t time_now = now();
-  time_t time_diff[3] = {0};
-  int diff_sec[3];
-  float diff_min[3];
-  float diff_hr[3];
-  float diff_day[3];
 
   Serial.println();
-  // calculate time relative to xmas last year, this year, and next year
-  for (int i = 0; i < 3; i++) {
-
-    int xmas_year = year() + i - 1;
-    xmas_elem.Year = xmas_year - 1970; // years since 1970, so deduct 1970
-    xmas_time[i] =  makeTime(xmas_elem);
-    time_diff[i] = xmas_time[i] - time_now;
-
-    if (debug > 0) {
-      Serial.print("year is: ");
-      Serial.println(xmas_year);
-      Serial.print("   Christmas time is:");
-      Serial.println(xmas_time[i]);
-      Serial.print("Time until Christmas is:");
-      Serial.println(time_diff[i]);
-    }
-
-    diff_sec[i] = (int)time_diff[i];
-    diff_min[i] = (float)diff_sec[i] / 60;
-    diff_hr[i] = diff_min[i] / 60;
-    diff_day[i] = diff_hr[i] / 24;
-  }
-
-  // find the appropriate Christmas
-  for (int i = 0; i < 3; i++) {
-    if (time_diff[i] > 0) {
-      last_DAYS = floor(diff_day[i - 1]);
-      if (debug > 0) {
-        sprintf(buff, "   Time since last Christmas: %d sec or %.1f days\n", time_diff[i - 1], diff_day[i - 1]);
-        Serial.print(buff);
-        Serial.print("   in days:");
-        Serial.println(last_DAYS);
-      }
-      diff_DAYS = floor(diff_day[i]);
-      if (debug > -1) {
-        sprintf(buff, "   Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
-        Serial.print("   Time until next Christmas is:");
-        Serial.println(time_diff[i]);
-        Serial.print("   in days:");
-        Serial.println(diff_day[i]);
-      }
-      if ((diff_DAYS - last_DAYS) < 365) {
-        exit;
-      }
-      if (debug > -1) {
-        Serial.print("   Sum seconds:");
-        Serial.println(time_diff[i] - time_diff[i - 1]);
-        Serial.print("   Sum days:");
-        Serial.println((time_diff[i] - time_diff[i - 1]) / (24 * 60 * 60));
-      }
-      break;
-    }
-  }
-}
-
-int isLeapYear(int in_year, int debugLY) {
-  char buff[128];
-  if (debugLY > 0) {
-    sprintf(buff, "%d input\n", in_year);
-    Serial.print(buff);
-    sprintf(buff, "   leap year debug = %d\n", debugLY);
-    Serial.print(buff);
-  }
-
-  // leap year if perfectly divisible by 400
-  if (in_year % 400 == 0) {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is a leap year.\n", in_year);
-      sprintf(buff, "   %d is divisible by 400.\n", in_year);
-      Serial.print(buff);
-    }
-    return 1;
-  }
-  // not a leap year if divisible by 100
-  // but not divisible by 400
-  else if (in_year % 100 == 0) {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is NOT a leap year.\n", in_year);
-      sprintf(buff, "   %d is divisible by 100, but not 400.\n", in_year);
-      Serial.print(buff);
-    }
-    return 0;
-  }
-  // leap year if not divisible by 100
-  // but divisible by 4
-  else if (in_year % 4 == 0) {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is a leap year.\n", in_year);
-      sprintf(buff, "   %d is divisible by 4, but not 100.\n", in_year);
-      Serial.print(buff);
-    }
-    return 1;
-  }
-  // all other years are not leap years
-  else {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is NOT a leap year.\n", in_year);
-      sprintf(buff, "   %d is not divisible by 4 or 400.\n", in_year);
-      Serial.print(buff);
-    }
-    return 0;
-  }
 }
 
 void OLEDClockDisplay() {
@@ -472,72 +372,6 @@ void OLEDClockDisplay() {
   char buff[dispwid];
 
   u8g2.clearBuffer();
-  if (do_Christmas) {
-    // print days
-    if (xmasDay > 0) {
-      u8g2.setFont(u8g2_font_timB14_tr);
-      //u8g2.setFont(u8g2_font_profont15_tn);
-      switch (xmasDay) {
-        case 1:
-          sprintf(buff, "%dst Day", xmasDay);
-          break;
-        case 2:
-          sprintf(buff, "%dnd Day", xmasDay);
-          break;
-        case 3:
-          sprintf(buff, "%drd Day", xmasDay);
-          break;
-        default:
-          sprintf(buff, "%dth Day", xmasDay);
-          break;
-      }
-
-      if (xmasDay < 13) {
-        if (u8g2.getStrWidth(buff) > dispwid)
-          xpos = 0;
-        else
-          xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-        ypos = u8g2.getAscent();
-        u8g2.drawStr(xpos, ypos, buff);
-
-        u8g2.setFont(u8g2_font_timB08_tr);
-        sprintf(buff, "of Xmas", dday);
-        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-        ypos += u8g2.getAscent() + 4;
-        u8g2.drawStr(xpos, ypos, buff);
-      }
-      else {
-        sprintf(buff, "King's");
-        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-        ypos = u8g2.getAscent();
-        u8g2.drawStr(xpos, ypos, buff);
-        sprintf(buff, "Day");
-        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-        ypos += u8g2.getAscent() + 1;
-        u8g2.drawStr(xpos, ypos, buff);
-      }
-    }
-    else {
-      dday = diff_DAYS;
-
-      u8g2.setFont(u8g2_font_timB14_tr);
-      //u8g2.setFont(u8g2_font_profont15_tn);
-      sprintf(buff, "%d Days", dday);
-      if (u8g2.getStrWidth(buff) > dispwid)
-        xpos = 0;
-      else
-        xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-      ypos = u8g2.getAscent();
-      u8g2.drawStr(xpos, ypos, buff);
-
-      u8g2.setFont(u8g2_font_timB08_tr);
-      sprintf(buff, "Until Xmas", dday);
-      xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-      ypos += u8g2.getAscent() + 4;
-      u8g2.drawStr(xpos, ypos, buff);
-    }
-  }
-
   if (do_BigTime) {
     // draw clock display
     u8g2.setFont(u8g2_font_profont22_tn);
@@ -545,7 +379,7 @@ void OLEDClockDisplay() {
     if (debug > 0)
       Serial.println(buff);
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-    ypos += u8g2.getAscent() + 2;
+    ypos = u8g2.getAscent();
     u8g2.drawStr(xpos, ypos, buff);
   }
 
@@ -579,31 +413,6 @@ void OLEDClockDisplay() {
     ypos += u8g2.getAscent() + 2;
     // display time
     u8g2.drawStr(xpos, ypos, buff);
-
-    // calculate "co-time"
-    int co_sec = 60 - second();
-    int co_min = 60 - minute();
-    if (co_sec < 60) {
-      co_min--;
-    }
-    else if (co_sec == 60) {
-      co_sec = 0;
-    }
-
-    int co_hr = 24 - hour();
-    if (co_min < 60) {
-      co_hr--;
-    }
-    else if (co_min == 60) {
-      co_min = 0;
-    }
-
-    sprintf(buff, "%02d:%02d:%02d", co_hr, co_min, co_sec);
-    if (debug > 0)
-      Serial.println(buff);
-    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-    ypos += u8g2.getAscent() + 2;
-    u8g2.drawStr(xpos, ypos, buff);
   }
 
   // write day
@@ -636,6 +445,67 @@ void OLEDClockDisplay() {
   if (do_RSSI) OLED_RSSI_Bars();
 }
 
+void DigitalClockDisplay() {
+  int dig_time ;
+  int dig_sec;
+
+  if (do_mil) {
+    dig_time = (hour() * 100) + minute();
+    display.showNumberDecEx(dig_time, 0b11100000, true);
+  }
+  else {
+    dig_time = (hourFormat12() * 100) + minute();
+    display.showNumberDecEx(dig_time, 0b11100000, false);
+  }
+
+  if (debug > 0) {
+    char buff[dispwid];
+    sprintf(buff, "digital time: %d", dig_time);
+    Serial.println(buff);
+  }
+
+  dig_sec = second() * 100;
+  display2.showNumberDecEx(dig_sec, 0b01000000, true);
+
+}
+
+void DigitalClockDisplayOpt() {
+  // set brightness
+  if ((hour() >= 20) || (hour() <= 6)) { // night
+    // dim display and show time only
+    display.setBrightness(0);
+    display2.setBrightness(0);
+    DigitalClockDisplay();
+  }
+  else { // day
+    // brighten display and show options
+    display.setBrightness(7);
+    display2.setBrightness(7);
+    int dig_time;
+    if ((do_cyc) && (second() == 30)) { // nixie tube cycling
+      for (int i = 0; i < 10; i++) {
+        dig_time = 1111 * i;
+        display.showNumberDecEx(dig_time, 0, true);
+        delay(PRINT_DELAY);
+      }
+      DigitalClockDisplay();
+    }
+    else if (do_sec_top && ((second() >= 57) || (second() <= 2))) { // show seconds at the top of the minute
+      dig_time = (minute() * 100) + second();
+      display.showNumberDecEx(dig_time, 0b11100000, true);
+    }
+    else {
+      if (do_sec_mod && ((second() % 15) == 0) && (second() > 0)) { // flash seconds periodically
+        dig_time = second();
+        display.clear();
+        display.showNumberDec(dig_time, true, 2, 1);
+        delay(PRINT_DELAY);
+      }
+      DigitalClockDisplay();
+    }
+  }
+}
+
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
@@ -647,6 +517,7 @@ time_t getNtpTime() {
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2); // cue light for sync status
   u8g2.sendBuffer();
+  display.setSegments(SEG_SYNC);
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
