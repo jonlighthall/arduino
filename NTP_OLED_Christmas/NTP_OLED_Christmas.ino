@@ -35,21 +35,21 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   Serial.begin(9600);
-  while (!Serial) ; // Needed for Leonardo only  
-  delay(PRINT_DELAY);  
+  while (!Serial) ; // Needed for Leonardo only
+  delay(PRINT_DELAY);
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
 
   // display settings
   u8g2.begin();
-  u8g2.clearBuffer();			// clear the internal memory
+  u8g2.clearBuffer(); // clear the internal memory
 
   // get display dimensions
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
 
-  u8g2.setFont(u8g2_font_timB08_tr);	// choose a suitable font
+  u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
   // get text dimensions
   int textwid = u8g2.getStrWidth(buff);
@@ -59,8 +59,8 @@ void setup() {
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
 
-  u8g2.drawStr(xpos, ypos, buff);        	// write something to the internal memory
-  u8g2.sendBuffer();			// transfer internal memory to the display
+  u8g2.drawStr(xpos, ypos, buff);	// write something to the internal memory
+  u8g2.sendBuffer(); // transfer internal memory to the display
   delay(PRINT_DELAY);
 
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
@@ -103,6 +103,7 @@ void setup() {
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
   }
+
   Serial.print("connected\n");
   // draw black background
   u8g2.setDrawColor(0);
@@ -149,7 +150,7 @@ void setup() {
     SetTimeZone = timeZone + isDST(1);
     Serial.println();
     if (isDST() > 0) {
-      Serial.println("here");
+      Serial.println("refreshing time...");
       delay(1001); // why wait?
       serialClockDisplay();
     }
@@ -391,35 +392,27 @@ void calcChristmas() {
   for (int i = 0; i < 3; i++) {
     if (time_diff[i] > 0) {
       last_DAYS = floor(diff_day[i - 1]);
-      if (debug > -1) {
-        sprintf(buff, "Time since last Christmas: %d sec or %.1f days\n", time_diff[i - 1], diff_day[i - 1]);
+      if (debug > 0) {
+        sprintf(buff, "   Time since last Christmas: %d sec or %.1f days\n", time_diff[i - 1], diff_day[i - 1]);
         Serial.print(buff);
-        Serial.print("   Time since last Christmas is:");
-        Serial.println(time_diff[i - 1]);
-        Serial.print("   in days:");
-        Serial.println(diff_day[i - 1]);
         Serial.print("   in days:");
         Serial.println(last_DAYS);
-
       }
-
       diff_DAYS = floor(diff_day[i]);
       if (debug > -1) {
-
-        sprintf(buff, "Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
-        Serial.print("  Time until next Christmas is:");
+        sprintf(buff, "   Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
+        Serial.print("   Time until next Christmas is:");
         Serial.println(time_diff[i]);
         Serial.print("   in days:");
         Serial.println(diff_day[i]);
-
       }
       if ((diff_DAYS - last_DAYS) < 365) {
         exit;
       }
       if (debug > -1) {
-        Serial.print("Sum time:");
+        Serial.print("   Sum seconds:");
         Serial.println(time_diff[i] - time_diff[i - 1]);
-        Serial.print("Sum days:");
+        Serial.print("   Sum days:");
         Serial.println((time_diff[i] - time_diff[i - 1]) / (24 * 60 * 60));
       }
       break;
