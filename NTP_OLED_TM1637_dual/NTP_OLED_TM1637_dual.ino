@@ -274,7 +274,7 @@ void loop() {
             sprintf(buff, "delaying display by %d...", offsetTime);
             Serial.print(buff);
           }
-       //   delay(offsetTime);
+          //   delay(offsetTime);
           if (debug > 1) {
             Serial.println("done");
             Serial.println(serdiv);
@@ -327,7 +327,7 @@ void loop() {
       float dig_frac_sec = float(second()) + (float(t_diff_ms) / 1000.0);
       Serial.print(", dig sec = ");
       Serial.println(dig_frac_sec);
-      int  dig_sec = dig_frac_sec * 100;      
+      int  dig_sec = dig_frac_sec * 100;
       display2.showNumberDecEx(dig_sec, 0b01000000, true);
     }
   } // end timeNotSet
@@ -513,6 +513,7 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  // print status
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2); // cue light for sync status
@@ -522,20 +523,29 @@ time_t getNtpTime() {
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+
+  // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
+
+  // wait for response
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
+      // print status
       Serial.println("Receive NTP Response");
+
+      // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
-
       readNTP_packet();
 
+      // parse packet
       parseNTP_time(packetWords);
 
       Serial.println(serdiv);
+
+      // return time
       return NTPlocalTime;
     }
   }
