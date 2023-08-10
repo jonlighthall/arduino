@@ -28,6 +28,7 @@ const int debug = 0;
 void serialClockDisplay();
 
 const bool do_milliseconds = true;
+
 const bool do_rssi = false;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
@@ -39,6 +40,7 @@ bool do_cyc = false;
 bool do_sec_mod = false;
 
 int prev_disp_ms;
+float sec_frac;
 
 void setup() {
   // initialize on-board LED
@@ -322,12 +324,15 @@ void loop() {
     } // end prevDisplay
     else {
       int t_diff_ms = millis() - prev_disp_ms;
+      float sec_dec = (float(t_diff_ms) / 1000.0);
+      sec_frac = float(second()) + sec_dec;
+      int  dig_sec = sec_frac * 100;
+      if (debug > 1) {
       Serial.print("t diff ms = ");
-      Serial.print(t_diff_ms);
-      float dig_frac_sec = float(second()) + (float(t_diff_ms) / 1000.0);
+      Serial.print(t_diff_ms);      
       Serial.print(", dig sec = ");
-      Serial.println(dig_frac_sec);
-      int  dig_sec = dig_frac_sec * 100;
+      Serial.println(sec_frac);
+      }
       display2.showNumberDecEx(dig_sec, 0b01000000, true);
     }
   } // end timeNotSet
@@ -338,6 +343,7 @@ void serialClockDisplay() {
   char buff[128];
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
+  sprintf(buff, "%02d:%02d:%06.3f ", hour(), minute(), sec_frac);   
   Serial.print(buff);
   // print numeric date
   sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
