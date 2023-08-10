@@ -7,7 +7,7 @@
 
 #include "wifi_utils.h"
 #include "oled_utils.h"
-#include "dst.h"
+#include <dst.h>
 
 //-------------------------------
 const int debug = 0;
@@ -18,6 +18,7 @@ const int debug = 0;
 void serialClockDisplay();
 
 const bool do_milliseconds = true;
+const bool do_rssi = false;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
 
@@ -151,7 +152,7 @@ void setup() {
   } else {
     SetTimeZone = timeZone;
   }
- 
+
   sprintf(buff, "Timezone = %d", SetTimeZone);
   xpos = dispwid - u8g2.getStrWidth(buff);
   ypos += texthei + 2;
@@ -288,8 +289,8 @@ void loop() {
         Serial.println(millis());
       }
     }
-  }
-}
+  } // end timeNotSet
+} // end loop
 
 void serialClockDisplay() {
   // digital clock display of the time
@@ -314,10 +315,13 @@ void serialClockDisplay() {
   isDST(1);
   Serial.print(")");
 
-  // print signal strength
-  rssi = WiFi.RSSI();
-  Serial.print(" RSSI: ");
-  Serial.println(rssi);
+  if (do_RSSI) {
+    // print signal strength
+    rssi = WiFi.RSSI();
+    Serial.print(" RSSI: ");
+    Serial.print(rssi);
+  }
+  Serial.println();
 }
 
 void OLEDClockDisplay() {
@@ -356,14 +360,20 @@ void OLEDClockDisplay() {
 
   if (do_Seconds) {
     // write seconds
+    // set font
     u8g2.setFont(u8g2_font_profont15_tn);
+    // create time buffer
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+    // print time to serial
     if (debug > 0)
       Serial.println(buff);
+    // calculate display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
+    // display time
     u8g2.drawStr(xpos, ypos, buff);
 
+    // calculate "co-time"
     int co_sec = 60 - second();
     int co_min = 60 - minute();
     if (co_sec < 60) {
@@ -439,20 +449,20 @@ time_t getNtpTime() {
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
-      Serial.println("Receive NTP Response");      
+      Serial.println("Receive NTP Response");
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
 
       readNTP_packet();
-      parseNTP_header(packetWords);
+      //parseNTP_header(packetWords);
       parseNTP_time(packetWords);
-      parseNTP_fraction(packetWords);
+      //parseNTP_fraction(packetWords);
 
       Serial.println(serdiv);
       return NTPlocalTime;
     }
   }
   Serial.println("No NTP Response :-(");
-  Serial.println(serdiv);  
+  Serial.println(serdiv);
   return 0; // return 0 if unable to get the time
 }

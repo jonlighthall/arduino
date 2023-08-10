@@ -8,36 +8,27 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+
+// OLED packages
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
 
-#include "credentials.h"
-#include "dst.h"
+#include <dst.h>
 
+// Wi-Fi settings: 
+#include "credentials.h"
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file
 
 // NTP Servers:
-//static const char ntpServerName[] = "us.pool.ntp.org";
 static const char ntpServerName[] = "time.nist.gov";
-//static const char ntpServerName[] = "time-a.timefreq.bldrdoc.gov";
-//static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
-//static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
 
 // Set Standard time zone
-//const int timeZone = 0;  // GMT
-//const int timeZone = -5; // EST
 const int timeZone = -6; // CST
-//const int timeZone = -7; // MST
-//const int timeZone = -8; // PST
 
 int SetTimeZone = timeZone;
 const bool do_DST = true;
-// OLED display options
-const bool do_RSSI = false;
-const bool do_SyncBar = false;
-const bool do_SecondsBar = false;
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -46,10 +37,13 @@ int rssi = 0; // Wifi signal strengh variable
 
 time_t getNtpTime();
 void serialClockDisplay();
-void OLEDClockDisplay();
-void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 
+// OLED display options
+const bool do_RSSI = false;
+const bool do_SyncBar = false;
+const bool do_SecondsBar = false;
+void OLEDClockDisplay();
 // Please update the pin numbers according to your setup. Use U8X8_PIN_NONE if the reset pin is not connected
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   // EastRising 0.66" OLED breakout board, Uno: A4=SDA, A5=SCL, 5V powered
 int dispwid;
