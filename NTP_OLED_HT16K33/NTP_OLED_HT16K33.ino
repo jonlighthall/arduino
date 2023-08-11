@@ -25,7 +25,7 @@ Adafruit_7segment matrix = Adafruit_7segment();
 
 #include "credentials.h"
 #include <dst.h>
-//#include "seven-segment_text.h"
+//#include <seven-segment_text.h>
 
 const char* ssid = mySSID;          //from credentials.h file
 const char* pass = myPASSWORD;      //from credentials.h file

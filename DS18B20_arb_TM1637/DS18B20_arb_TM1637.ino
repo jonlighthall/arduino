@@ -28,7 +28,7 @@ int idx_probe = -1;
 const int CLK = D6; //Set the CLK pin connection to the display
 const int DIO = D5; //Set the DIO pin connection to the display
 TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
-#include "seven-segment_text.h"
+#include <seven-segment_text.h>
 #define PRINT_DELAY 1250 // print delay in milliseconds
 
 // define ADC

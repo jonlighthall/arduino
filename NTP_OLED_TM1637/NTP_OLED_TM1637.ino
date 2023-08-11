@@ -13,7 +13,7 @@
 const int CLK = D6; //Set the CLK pin connection to the display
 const int DIO = D5; //Set the DIO pin connection to the display
 TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
-#include "seven-segment_text.h"
+#include <seven-segment_text.h>
 
 //-------------------------------
 const int debug = 0;
