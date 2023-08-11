@@ -72,3 +72,17 @@ const uint8_t SEG_scan[] = {
   SEG_A | SEG_B | SEG_F | SEG_G | SEG_E | SEG_C,   // a    
   SEG_C | SEG_E | SEG_G                            // n
 };
+
+const uint8_t SEG_good[] = {
+  SEG_A | SEG_C | SEG_D | SEG_E | SEG_F,           // G
+  SEG_C | SEG_D | SEG_E | SEG_G,                   // o
+  SEG_C | SEG_D | SEG_E | SEG_G,                   // o
+  SEG_B | SEG_C | SEG_D | SEG_E | SEG_G            // d
+};
+
+const uint8_t SEG_fail[] = {
+  SEG_A | SEG_E | SEG_F | SEG_G,                   // F
+  SEG_A | SEG_B | SEG_F | SEG_G | SEG_E | SEG_C,   // A      
+  SEG_E | SEG_F,                                   // i 
+  SEG_D | SEG_E | SEG_F                            // L
+};
