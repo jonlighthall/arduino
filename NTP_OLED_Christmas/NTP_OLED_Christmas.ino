@@ -24,7 +24,6 @@ const bool do_rssi = false;
 
 // Christmas countdown options
 const bool do_Christmas = true;
-int isLeapYear (int input_year, int default_debugLY = 0); // set default function value
 tmElements_t xmas_elem;  // time elements structure
 time_t xmas_time[3]; // a timestamp
 int diff_DAYS = 0;
@@ -399,7 +398,7 @@ void calcChristmas() {
       }
       diff_DAYS = floor(diff_day[i]);
       
-        sprintf(buff, "   Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
+        sprintf(buff, "   Time until next Christmas: %d sec or %.1f days", time_diff[i], diff_day[i]); //no linebreak needed
         Serial.print(buff);
       if (debug > 0) {  
         Serial.print("   Time until next Christmas is:");
@@ -418,55 +417,6 @@ void calcChristmas() {
       }
       break;
     }
-  }
-}
-
-int isLeapYear(int in_year, int debugLY) {
-  char buff[128];
-  if (debugLY > 0) {
-    sprintf(buff, "%d input\n", in_year);
-    Serial.print(buff);
-    sprintf(buff, "   leap year debug = %d\n", debugLY);
-    Serial.print(buff);
-  }
-
-  // leap year if perfectly divisible by 400
-  if (in_year % 400 == 0) {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is a leap year.\n", in_year);
-      sprintf(buff, "   %d is divisible by 400.\n", in_year);
-      Serial.print(buff);
-    }
-    return 1;
-  }
-  // not a leap year if divisible by 100
-  // but not divisible by 400
-  else if (in_year % 100 == 0) {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is NOT a leap year.\n", in_year);
-      sprintf(buff, "   %d is divisible by 100, but not 400.\n", in_year);
-      Serial.print(buff);
-    }
-    return 0;
-  }
-  // leap year if not divisible by 100
-  // but divisible by 4
-  else if (in_year % 4 == 0) {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is a leap year.\n", in_year);
-      sprintf(buff, "   %d is divisible by 4, but not 100.\n", in_year);
-      Serial.print(buff);
-    }
-    return 1;
-  }
-  // all other years are not leap years
-  else {
-    if (debugLY > 0) {
-      sprintf(buff, "   %d is NOT a leap year.\n", in_year);
-      sprintf(buff, "   %d is not divisible by 4 or 400.\n", in_year);
-      Serial.print(buff);
-    }
-    return 0;
   }
 }
 
