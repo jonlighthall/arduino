@@ -1,8 +1,8 @@
 #include <ESP8266WiFi.h>
 
 #include "credentials.h"
-const char* ssid = mySSID;          //from credentials.h file
-const char* pass = myPASSWORD;      //from credentials.h file
+const char* ssid = WIFI_SSID;          //from credentials.h file
+const char* pass = WIFI_PASSWORD;      //from credentials.h file
 
 #define PRINT_DELAY 250 // print delay in milliseconds
 
