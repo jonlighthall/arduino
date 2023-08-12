@@ -18,7 +18,7 @@ const int debug = 0;
 void serialClockDisplay();
 
 const bool do_milliseconds = true;
-const bool do_rssi = false;
+const bool do_RSSI = false;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
 
@@ -319,6 +319,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
+  
   Serial.println();
 }
 

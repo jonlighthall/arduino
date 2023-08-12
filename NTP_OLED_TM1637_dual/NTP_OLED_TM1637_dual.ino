@@ -29,7 +29,7 @@ const int debug = 0;
 void serialClockDisplay();
 
 const bool do_milliseconds = true;
-const bool do_rssi = false;
+const bool do_RSSI = false;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
 
@@ -379,6 +379,7 @@ void OLEDClockDisplay() {
   char buff[dispwid];
 
   u8g2.clearBuffer();
+
   if (do_BigTime) {
     // draw clock display
     u8g2.setFont(u8g2_font_profont22_tn);
