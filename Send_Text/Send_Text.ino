@@ -7,7 +7,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP_Mail_Client.h>
-#include "credentials.h"
+#include <credentials.h>
 #define SMTP_HOST "smtp.gmail.com"
 #define SMTP_PORT 587
 SMTPSession smtp;

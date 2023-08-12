@@ -27,8 +27,8 @@ Adafruit_7segment matrix = Adafruit_7segment();
 #include <dst.h>
 //#include <seven-segment_text.h>
 
-const char* ssid = mySSID;          //from credentials.h file
-const char* pass = myPASSWORD;      //from credentials.h file
+const char* ssid = WIFI_SSID;          //from credentials.h file
+const char* pass = WIFI_PASSWORD;      //from credentials.h file
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";

@@ -29,8 +29,8 @@
 
 // Wi-Fi settings
 #include "credentials.h"
-const char* ssid = mySSID;              //from credentials.h file
-const char* password = myPASSWORD;      //from credentials.h file
+const char* ssid = WIFI_SSID;              //from credentials.h file
+const char* password = WIFI_PASSWORD;      //from credentials.h file
 
 // NTP settings
 const char* NTP_SERVER = "time.nist.gov";
