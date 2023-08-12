@@ -1,8 +1,5 @@
 // Include the libraries we need
-#include <ESP8266WiFi.h>
-#include "credentials.h"
-const char* ssid = WIFI_SSID;          //from credentials.h file
-const char* pass = WIFI_PASSWORD;      //from credentials.h file
+#include <wifi_utils.h>
 bool ssid_found = false;
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -112,8 +109,7 @@ void setup() {
 }
 
 // function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
+void printAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
     // zero pad the address if necessary
     if (deviceAddress[i] < 16) Serial.print("0");
@@ -222,7 +218,7 @@ void loop() {
     }
     temp_var_mean = temp_var_sum / no_therm_sum;
     temp_std = sqrt(temp_var_mean);
-    Serial.print(" + / - ");
+    Serial.print(" +/- ");
     Serial.print(temp_std);
     Serial.print(" °F");
     Serial.print(" (N = ");
