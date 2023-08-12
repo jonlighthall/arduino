@@ -377,7 +377,7 @@ void calcChristmas() {
       Serial.println(xmas_year);
       Serial.print("   Christmas time is:");
       Serial.println(xmas_time[i]);
-      Serial.print("Time until Christmas is:");
+      Serial.print("Time until Christmas is :");
       Serial.println(time_diff[i]);
     }
 
@@ -398,8 +398,10 @@ void calcChristmas() {
         Serial.println(last_DAYS);
       }
       diff_DAYS = floor(diff_day[i]);
-      if (debug > -1) {
+      
         sprintf(buff, "   Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
+        Serial.print(buff);
+      if (debug > 0) {  
         Serial.print("   Time until next Christmas is:");
         Serial.println(time_diff[i]);
         Serial.print("   in days:");
@@ -408,10 +410,10 @@ void calcChristmas() {
       if ((diff_DAYS - last_DAYS) < 365) {
         exit;
       }
-      if (debug > -1) {
-        Serial.print("   Sum seconds:");
+      if (debug > 0) {
+        Serial.print("   Sum seconds :");
         Serial.println(time_diff[i] - time_diff[i - 1]);
-        Serial.print("   Sum days:");
+        Serial.print("   Sum days :");
         Serial.println((time_diff[i] - time_diff[i - 1]) / (24 * 60 * 60));
       }
       break;
