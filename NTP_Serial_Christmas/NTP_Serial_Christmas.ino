@@ -4,17 +4,10 @@
 
    This sketch uses the ESP8266WiFi library
 */
+#include <wifi_utils.h>
 
 #include <TimeLib.h>
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
-
 #include <dst.h>
-
-// Wi-Fi settings:
-#include "credentials.h"
-const char* ssid = WIFI_SSID;          //from credentials.h file
-const char* pass = WIFI_PASSWORD;      //from credentials.h file
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
@@ -25,17 +18,11 @@ const int timeZone = -6; // CST
 int SetTimeZone = timeZone;
 const bool do_DST = true;
 
-WiFiUDP Udp;
-unsigned int localPort = 8888;  // local port to listen for UDP packets
-
-int rssi = 0; // Wifi signal strengh variable
-
 time_t getNtpTime();
 void sendNTPpacket(IPAddress &address);
 void serialClockDisplay();
 
 const bool do_Christmas = true;
-int isLeapYear (int input_year, int default_debugLY = 0); // set default function value
 void serialChristmas();
 
 #define PRINT_DELAY 250 // print delay in milliseconds
@@ -60,15 +47,7 @@ void setup() {
   delay(PRINT_DELAY);
 
   // Wi-Fi settings
-  Serial.print("Connecting to ");
-  Serial.print(ssid);
-  WiFi.begin(ssid, pass);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    delay(500);
-    Serial.print(".");
-  }
+  wifi_start();
   Serial.print("connected\n");
   rssi = WiFi.RSSI();
   Serial.print("signal strength (RSSI):");
@@ -255,15 +234,6 @@ void serialClockDisplay() {
   if (do_Christmas) serialChristmas();
 }
 
-
-int isLeapYear(int in_year, int debugLY) {
-  char buff[128];
-  sprintf(buff, "%d input\n", in_year);
-  Serial.print(buff);
-  sprintf(buff, "leap year debug = %d\n", debugLY);
-  Serial.print(buff);
-}
-
 void serialChristmas() {
   // check month
   char buff[128];
@@ -273,8 +243,6 @@ void serialChristmas() {
   Serial.print(buff);
   if (dmonth > 0) {
     sprintf(buff, "must do more programming\n");
-    Serial.print(buff);
-    sprintf(buff, "leap year = %d\n", isLeapYear(year()));
     Serial.print(buff);
   }
   else {
