@@ -55,7 +55,7 @@ void setup() {
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
 
-  // set text position
+  // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
 
@@ -336,8 +336,10 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
+  
   if (do_Christmas)
     calcChristmas();
+  
   Serial.println();
 }
 
@@ -574,7 +576,7 @@ void OLEDClockDisplay() {
     // print time to serial
     if (debug > 0)
       Serial.println(buff);
-    // calculate display position
+    // calculate OLED display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
     // display time
@@ -643,6 +645,7 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  // print status
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2); // cue light for sync status
@@ -651,20 +654,29 @@ time_t getNtpTime() {
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+
+  // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
+
+  // wait for response
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
+      // print status
       Serial.println("Receive NTP Response");
+
+      // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
-
       readNTP_packet();
 
+      // parse packet
       parseNTP_time(packetWords);
 
       Serial.println(serdiv);
+
+      // return time
       return NTPlocalTime;
     }
   }

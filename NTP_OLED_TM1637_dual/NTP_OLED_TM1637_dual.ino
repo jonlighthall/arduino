@@ -9,13 +9,14 @@
 #include "oled_utils.h"
 #include <dst.h>
 
+// LED display options
 #include <TM1637Display.h>
 const int CLK = D6; //Set the CLK pin connection to the display
 const int DIO = D5; //Set the DIO pin connection to the display
+TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
 
 const int CLK2 = D1; //Set the CLK pin connection to the display
 const int DIO2 = D2; //Set the DIO pin connection to the display
-TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
 TM1637Display display2(CLK2, DIO2); //set up the 4-Digit Display.
 #include <seven-segment_text.h>
 
@@ -28,7 +29,6 @@ const int debug = 0;
 void serialClockDisplay();
 
 const bool do_milliseconds = true;
-
 const bool do_rssi = false;
 
 #define PRINT_DELAY 250 // print delay in milliseconds
@@ -39,6 +39,7 @@ bool do_sec_top = false;
 bool do_cyc = false;
 bool do_sec_mod = false;
 
+// fractional seconds
 int prev_disp_ms;
 float sec_frac;
 
@@ -77,11 +78,11 @@ void setup() {
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
 
-  // set text position
+  // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
 
-  u8g2.drawStr(xpos, ypos, buff);	// write something to the internal memory
+  u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
   u8g2.sendBuffer(); // transfer internal memory to the display
   delay(PRINT_DELAY);
 
@@ -368,7 +369,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
-
+  
   Serial.println();
 }
 
@@ -414,7 +415,7 @@ void OLEDClockDisplay() {
     // print time to serial
     if (debug > 0)
       Serial.println(buff);
-    // calculate display position
+    // calculate OLED display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
     // display time
@@ -451,9 +452,9 @@ void OLEDClockDisplay() {
   if (do_RSSI) OLED_RSSI_Bars();
 }
 
+// LED Display
 void DigitalClockDisplay() {
-  int dig_time ;
-  int dig_sec;
+  int dig_time;
 
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
@@ -470,6 +471,8 @@ void DigitalClockDisplay() {
     Serial.println(buff);
   }
 
+  // display seconds
+  int dig_sec;
   dig_sec = second() * 100;
   display2.showNumberDecEx(dig_sec, 0b01000000, true);
 
@@ -525,6 +528,7 @@ time_t getNtpTime() {
   u8g2.drawBox(0, 0, 2, 2); // cue light for sync status
   u8g2.sendBuffer();
   display.setSegments(SEG_SYNC);
+  display2.setSegments(SEG_SYNC);
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
