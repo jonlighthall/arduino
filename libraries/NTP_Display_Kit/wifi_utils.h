@@ -7,8 +7,8 @@
 
 // Wi-Fi settings:
 #include "credentials.h"
-const char* ssid = mySSID;          //from credentials.h file
-const char* pass = myPASSWORD;      //from credentials.h file
+const char* ssid = WIFI_SSID;          //from credentials.h file
+const char* pass = WIFI_PASSWORD;      //from credentials.h file
 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
