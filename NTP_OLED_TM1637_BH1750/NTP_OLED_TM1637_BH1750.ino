@@ -1,14 +1,14 @@
 /*
-   TimeNTP_ESP8266WiFi.ino
-   Example showing time sync to NTP time source
-
-   This sketch uses the ESP8266WiFi library
+  TimeNTP_ESP8266WiFi.ino
+  Example showing time sync to NTP time source
 */
 
 #include <wifi_utils.h>
 #include <oled_utils.h>
+#include <dst.h>
 
 #include <TimeLib.h>
+
 #include <Arduino.h>
 #include <BH1750.h>
 BH1750 lightMeter(0x23);
@@ -21,14 +21,12 @@ int tlast = -1;
 const int lux_low_thresh = 30;
 const int lux_high_thresh = 100;
 
+// LED display options
 #include <TM1637Display.h>
 const int CLK = D6; //Set the CLK pin connection to the display
 const int DIO = D5; //Set the DIO pin connection to the display
 TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
 #include <seven-segment_text.h>
-
-
-#include <dst.h>
 
 // NTP Servers:
 //static const char ntpServerName[] = "us.pool.ntp.org";
@@ -47,6 +45,9 @@ const int timeZone = -6; // CST
 int SetTimeZone = timeZone;
 const bool do_DST = true;
 
+#define PRINT_DELAY 250 // print delay in milliseconds
+#define SYNC_DELAY 300 // print delay in seconds
+
 // LED display options
 bool do_mil = false;
 bool do_sec_top = false;
@@ -58,8 +59,6 @@ void serialClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 
-#define PRINT_DELAY 250 // print delay in milliseconds
-#define SYNC_DELAY 300 // print delay in seconds
 
 void setup() {
   // initialize on-board LED
@@ -73,12 +72,9 @@ void setup() {
 
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  //delay(PRINT_DELAY);
-  //testDST();
   delay(PRINT_DELAY);
-  Serial.println();
   char buff[64];
-  sprintf(buff, "\nTimeNTP Example");
+  sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
 
   // Initialize the I2C bus (BH1750 library doesn't do this automatically)
@@ -100,24 +96,24 @@ void setup() {
 
   // display settings
   u8g2.begin();
-  u8g2.clearBuffer();			// clear the internal memory
+  u8g2.clearBuffer(); // clear the internal memory
 
   // get display dimensions
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
 
-  u8g2.setFont(u8g2_font_timB08_tr);	// choose a suitable font
+  u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
   // get text dimensions
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
 
-  // set text position
+  // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
 
-  u8g2.drawStr(xpos, ypos, buff);        	// write something to the internal memory
-  u8g2.sendBuffer();			// transfer internal memory to the display
+  u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
+  u8g2.sendBuffer(); // transfer internal memory to the display
   delay(PRINT_DELAY);
 
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
@@ -140,26 +136,40 @@ void setup() {
   display.setSegments(SEG_CONN);
   WiFi.begin(ssid, pass);
 
+  // print text throbber
+  xpos += u8g2.getStrWidth(buff) + 1;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print("."); 
+    Serial.print(".");
     sprintf(buff, "X  ");
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
 
     delay(500);
+
+    // draw black background
+    u8g2.setDrawColor(0);
+    u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
+    u8g2.setDrawColor(1);
+
     Serial.print(".");
     sprintf(buff, "O   ");
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
   }
+
   Serial.print("connected\n");
+  // draw black background
+  u8g2.setDrawColor(0);
+  u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
+  u8g2.setDrawColor(1);
+
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
   rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
@@ -167,7 +177,7 @@ void setup() {
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
-  Serial.println("waiting for sync");
+  Serial.println("waiting for sync...");
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
@@ -180,7 +190,7 @@ void setup() {
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
-    ;
+    Serial.print(".");
   }
   setSyncInterval(1);
   Serial.println("sync complete");
@@ -195,7 +205,8 @@ void setup() {
     SetTimeZone = timeZone + isDST(1);
     Serial.println();
     if (isDST() > 0) {
-      delay(1001);
+      Serial.println("refreshing time...");
+      delay(1001); // why wait?
       serialClockDisplay();
     }
   } else {
@@ -274,7 +285,6 @@ void loop() {
         uint32_t elap = tnow - prevDisplay;
         sprintf(buff, "elap = %d\n", elap);
         Serial.print(buff);
-
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
@@ -368,8 +378,8 @@ void loop() {
         Serial.println(millis());
       }
     }
-  }
-}
+  } // end timeNotSet
+} // end loop
 
 void serialClockDisplay() {
   // digital clock display of the time
@@ -377,7 +387,7 @@ void serialClockDisplay() {
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
   Serial.print(buff);
-  // print numperical date
+  // print numeric date
   sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
   Serial.print(buff);
   // print string date
@@ -394,11 +404,13 @@ void serialClockDisplay() {
   isDST(1);
   Serial.print(")");
 
-  // print signal strength
-  rssi = WiFi.RSSI();
-  Serial.print(" RSSI: ");
-  Serial.print(rssi);
-
+  if (do_RSSI) {
+    // print signal strength
+    rssi = WiFi.RSSI();
+    Serial.print(" RSSI: ");
+    Serial.print(rssi);
+  }
+  
   Serial.println();
 }
 
@@ -429,12 +441,17 @@ void OLEDClockDisplay() {
     }
 
     // write seconds
+    // set font
     u8g2.setFont(u8g2_font_profont15_tn);
+    // create time buffer
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+    // print time to serial
     if (debug > 0)
       Serial.println(buff);
+    // calculate OLED display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
+    // display time
     u8g2.drawStr(xpos, ypos, buff);
   }
 
@@ -468,6 +485,7 @@ void OLEDClockDisplay() {
   if (do_RSSI) OLED_RSSI_Bars();
 }
 
+// LED Display
 void DigitalClockDisplay() {
   int dig_time ;
 
@@ -531,26 +549,31 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  // print status
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
-  u8g2.drawBox(0, 0, 2, 2);
+  u8g2.drawBox(0, 0, 2, 2); // cue light for sync status
   u8g2.sendBuffer();
-  //digitalWrite(LED_BUILTIN, LOW); // on
   display.setSegments(SEG_SYNC);
-  // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+
+  // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
   Serial.print("SetTimeZone = ");
   Serial.println(SetTimeZone);
+
+  // wait for response
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
+      // print status
       Serial.println("Receive NTP Response");
-      digitalWrite(LED_BUILTIN, HIGH); // off
+
+      // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       bufferTime = millis();
       unsigned long secsSince1900;
@@ -578,7 +601,6 @@ time_t getNtpTime() {
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
-  digitalWrite(LED_BUILTIN, HIGH); // off
   return 0; // return 0 if unable to get the time
 }
 
