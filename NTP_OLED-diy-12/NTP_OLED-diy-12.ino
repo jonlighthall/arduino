@@ -19,18 +19,13 @@
   The functions are inspired by work of G6EJD ( https://www.youtube.com/channel/UCgtlqH_lkMdIa4jZLItcsTg )
 */
 
-#include <ESP8266WiFi.h>
+#include <wifi_utils.h>
 #include <time.h>
 
 // OLED packages
 #include <U8x8lib.h>
 
 #include "date_time_fmt.h"
-
-// Wi-Fi settings
-#include "credentials.h"
-const char* ssid = WIFI_SSID;              //from credentials.h file
-const char* password = WIFI_PASSWORD;      //from credentials.h file
 
 // NTP settings
 const char* NTP_SERVER = "time.nist.gov";
@@ -66,7 +61,7 @@ void setup() {
   u8x8.clear();
   u8x8.home();
   u8x8.print("Connecting to network");
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, pass);
   
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
