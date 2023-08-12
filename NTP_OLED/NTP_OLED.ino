@@ -40,7 +40,6 @@ void serialClockDisplay();
 void sendNTPpacket(IPAddress &address);
 
 // OLED display options
-const bool do_RSSI = false;
 const bool do_SyncBar = false;
 const bool do_SecondsBar = false;
 void OLEDClockDisplay();

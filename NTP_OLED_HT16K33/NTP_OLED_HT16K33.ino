@@ -43,7 +43,6 @@ const int timeZone = -6; // CST
 int SetTimeZone = timeZone;
 const bool do_DST = true;
 // OLED display options
-const bool do_RSSI = false;
 const bool do_SyncBar = false;
 const bool do_SecondsBar = false;
 
