@@ -3,21 +3,20 @@
   Example showing time sync to NTP time source
 */
 
-#include <TimeLib.h>
-
-#include <wifi_utils.h>
-#include <dst.h>
-
 //-------------------------------
 const int debug = 0;
 //-------------------------------
+
+#include <wifi_utils.h>
+#include <TimeLib.h>
+#include <dst.h>
 #include "binary_utils.h"
 #include "ntp_utils.h"
 
+// Serial display settings
 void serialClockDisplay();
-
 const bool do_milliseconds = true;
-
+const bool do_RSSI = false;
 #define PRINT_DELAY 250 // print delay in milliseconds
 
 void setup() {
@@ -25,33 +24,21 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
+  // initialize Serial
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  //delay(PRINT_DELAY);
-  //testDST();
   delay(PRINT_DELAY);
-  Serial.println();
+  // Serial welcome message
   char buff[64];
-  sprintf(buff, "\nTimeNTP Example");
+  sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
-
   delay(PRINT_DELAY);
 
   // Wi-Fi settings
-  Serial.print("Connecting to ");
-  Serial.print(ssid);
-  WiFi.begin(ssid, pass);
-
-  // print text throbber
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    delay(500);
-    Serial.print(".");
-  }
+  wifi_start();
   Serial.print("connected\n");
   rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
@@ -59,15 +46,14 @@ void setup() {
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
-  Serial.println("waiting for sync");
-  sprintf(buff, "NTP sync...");
+  Serial.println("waiting for sync...");
   setSyncProvider(getNtpTime);
 
   // wait for time to be set
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
-    ;
+    Serial.print(".");
   }
   setSyncInterval(1);
   Serial.println("sync complete");
@@ -78,7 +64,7 @@ void setup() {
     SetTimeZone = timeZone + isDST(1);
     Serial.println();
     if (isDST() > 0) {
-      Serial.println("here");
+      Serial.println("refreshing time...");
       delay(1001); // why wait?
       serialClockDisplay();
     }
@@ -87,7 +73,8 @@ void setup() {
   }
 
   setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
-  Serial.println("starting...");
+  Serial.println("done with setup");
+  Serial.println("starting loop...");
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -208,8 +195,8 @@ void loop() {
         Serial.println(millis());
       }
     }
-  }
-}
+  } // end timeNotSet
+} // end loop
 
 void serialClockDisplay() {
   // digital clock display of the time
@@ -217,7 +204,7 @@ void serialClockDisplay() {
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
   Serial.print(buff);
-  // print numperical date
+  // print numeric date
   sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
   Serial.print(buff);
   // print string date
@@ -240,6 +227,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
+  
   Serial.println();
 }
 
@@ -250,27 +238,36 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  // print status
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+
+  // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
+
+  // wait for response
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
+      // print status
       Serial.println("Receive NTP Response");
+
+      // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       LastSyncTime = millis();
-
       readNTP_packet();
-      //parseNTP_header(packetWords);
+
+      // parse packet
       parseNTP_time(packetWords);
-      //parseNTP_fraction(packetWords);
 
       Serial.println(serdiv);
+
+      // return time
       return NTPlocalTime;
     }
   }
