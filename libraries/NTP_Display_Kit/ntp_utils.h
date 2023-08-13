@@ -1,3 +1,5 @@
+#include <TimeLib.h>
+
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
 
