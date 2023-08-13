@@ -1,14 +1,15 @@
 /*
-   TimeNTP_ESP8266WiFi.ino
-   Example showing time sync to NTP time source
-
-   This sketch uses the ESP8266WiFi library
+  TimeNTP_ESP8266WiFi.ino
+  Example showing time sync to NTP time source
 */
 
-#include <TimeLib.h>
+//-------------------------------
+const int debug = 0;
+//-------------------------------
 
-#include <dst.h>
 #include <wifi_utils.h>
+#include <TimeLib.h>
+#include <dst.h>
 #include <oled_utils.h>
 
 // NTP Servers:
@@ -19,25 +20,24 @@ const int timeZone = -6; // CST
 
 int SetTimeZone = timeZone;
 const bool do_DST = true;
-
+#define SYNC_DELAY 300 // print delay in seconds
 time_t getNtpTime();
-void serialClockDisplay();
 void sendNTPpacket(IPAddress &address);
 
+// Serial display settings
+void serialClockDisplay();
 #define PRINT_DELAY 250 // print delay in milliseconds
-#define SYNC_DELAY 300 // print delay in seconds
 
 void setup() {
   // initialize on-board LED
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
+  // initialize Serial
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
-  //delay(PRINT_DELAY);
-  //testDST();
   delay(PRINT_DELAY);
-  Serial.println();
+  // Serial welcome message
   char buff[64];
   sprintf(buff, "\nTimeNTP Example");
   Serial.println(buff);
@@ -135,7 +135,7 @@ void setup() {
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
-    ;
+    Serial.print(".");
   }
   setSyncInterval(1);
   Serial.println("sync complete");
@@ -150,7 +150,8 @@ void setup() {
     SetTimeZone = timeZone + isDST(1);
     Serial.println();
     if (isDST() > 0) {
-      delay(1001);
+      Serial.println("refreshing time...");
+      delay(1001); // why wait?
       serialClockDisplay();
     }
   } else {
@@ -164,7 +165,8 @@ void setup() {
   u8g2.sendBuffer();
 
   setSyncInterval(SYNC_DELAY); // refresh rate in seconds
-  Serial.println("starting...");
+  Serial.println("done with setup");
+  Serial.println("starting loop...");
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -172,7 +174,7 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 uint32_t bufferTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
-int debug = 0;
+
 int syncTime = SYNC_DELAY * 1e3;
 void loop() {
   char buff[64];
@@ -189,7 +191,6 @@ void loop() {
         uint32_t elap = tnow - prevDisplay;
         sprintf(buff, "elap = %d\n", elap);
         Serial.print(buff);
-
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
@@ -273,17 +274,22 @@ void loop() {
           Serial.println(serdiv);
         }
       }
+      int beforeTime = millis();
       serialClockDisplay();
+      int midTime = millis();
       OLEDClockDisplay();
       //OLEDBarDisplay();
 
       if (debug > 1) {
+        sprintf(buff, "serialClockDisplay takes %d\n", midTime - beforeTime);
+        Serial.print(buff);
+
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
     }
-  }
-}
+  } // end timeNotSet
+} // end loop
 
 void serialClockDisplay() {
   // digital clock display of the time
@@ -291,7 +297,7 @@ void serialClockDisplay() {
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
   Serial.print(buff);
-  // print numperical date
+  // print numeric date
   sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
   Serial.print(buff);
   // print string date
@@ -391,6 +397,7 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  // print status
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   u8g2.drawBox(0, 0, 2, 2);
@@ -401,15 +408,21 @@ time_t getNtpTime() {
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+
+  // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
   Serial.print("SetTimeZone = ");
   Serial.println(SetTimeZone);
+
+  // wait for response
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
+      // print status
       Serial.println("Receive NTP Response");
-      digitalWrite(LED_BUILTIN, HIGH); // off
+
+      // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       bufferTime = millis();
       unsigned long secsSince1900;
@@ -437,7 +450,6 @@ time_t getNtpTime() {
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
-  digitalWrite(LED_BUILTIN, HIGH); // off
   return 0; // return 0 if unable to get the time
 }
 
