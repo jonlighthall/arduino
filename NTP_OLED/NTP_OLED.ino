@@ -39,31 +39,27 @@ void setup() {
   delay(PRINT_DELAY);
   // Serial welcome message
   char buff[64];
-  sprintf(buff, "\nTimeNTP Example");
+  sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
 
-  // display settings
+  // initialize OLED display
   u8g2.begin();
-  u8g2.clearBuffer();			// clear the internal memory
-
-  // get display dimensions
+  u8g2.clearBuffer(); // clear the internal memory
+  // get OLED display dimensions
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
-
-  u8g2.setFont(u8g2_font_timB08_tr);	// choose a suitable font
+  // OLED welcome message
+  u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
   // get text dimensions
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
-
-  // set text position
+  // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
-
-  u8g2.drawStr(xpos, ypos, buff);        	// write something to the internal memory
-  u8g2.sendBuffer();			// transfer internal memory to the display
-  delay(PRINT_DELAY);
-
+  u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
+  u8g2.sendBuffer(); // transfer internal memory to the display
+  // print OLED display dimensions
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
   Serial.println(buff);
   sprintf(buff, "disp is %d x %d", dispwid, disphei);
@@ -104,18 +100,18 @@ void setup() {
     u8g2.drawStr(xpos, ypos, buff);
     u8g2.sendBuffer();
   }
+
   Serial.print("connected\n");
-  // draw black background
+  // OLED connected message
   u8g2.setDrawColor(0);
   u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
   u8g2.setDrawColor(1);
-
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
   rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
@@ -123,7 +119,8 @@ void setup() {
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
-  Serial.println("waiting for sync");
+  Serial.println("waiting for sync...");
+  // OLED sync message
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
@@ -139,6 +136,7 @@ void setup() {
   }
   setSyncInterval(1);
   Serial.println("sync complete");
+  // OLED sync complete message
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
@@ -158,6 +156,7 @@ void setup() {
     SetTimeZone = timeZone;
   }
 
+  // OLED timezone message
   sprintf(buff, "Timezone = %d", SetTimeZone);
   xpos = dispwid - u8g2.getStrWidth(buff);
   ypos += texthei + 2;
@@ -349,12 +348,17 @@ void OLEDClockDisplay() {
     }
 
     // write seconds
+    // set font
     u8g2.setFont(u8g2_font_profont15_tn);
+    // create time buffer
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+    // print time to serial
     if (debug > 0)
       Serial.println(buff);
+    // calculate OLED display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
+    // display time
     u8g2.drawStr(xpos, ypos, buff);
   }
 
@@ -400,10 +404,9 @@ time_t getNtpTime() {
   // print status
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
+  // OLED cue light for sync status
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
-  //digitalWrite(LED_BUILTIN, LOW); // on
-  // get a random server from the pool
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
