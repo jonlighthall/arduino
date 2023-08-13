@@ -48,20 +48,25 @@ void setup() {
   // initialize OLED display
   u8g2.begin();
   u8g2.clearBuffer(); // clear the internal memory
+
   // get OLED display dimensions
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
+
   // OLED welcome message
   u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
+
   // get text dimensions
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
+
   // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
   u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
   u8g2.sendBuffer(); // transfer internal memory to the display
+
   // print OLED display dimensions
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
   Serial.println(buff);
