@@ -45,7 +45,6 @@ void setup() {
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
 
-  
   // initialize OLED display
   u8g2.begin();
   u8g2.clearBuffer(); // clear the internal memory
@@ -88,6 +87,7 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  // LED connecting message
   display.setSegments(SEG_CONN);
   WiFi.begin(ssid, pass);
 
@@ -138,6 +138,7 @@ void setup() {
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+  // LED sync message
   display.setSegments(SEG_SYNC);
   setSyncProvider(getNtpTime);
 
