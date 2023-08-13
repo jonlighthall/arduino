@@ -1,3 +1,5 @@
+#include <TimeLib.h>
+
 int isDST(int default_debugDST = 0); // set default function value
 /*
    Debug level
