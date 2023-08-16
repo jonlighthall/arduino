@@ -39,41 +39,22 @@ Pin Connectiions
 
 */
 
-#include <SoftwareSerial.h>
+// custom library headers
+#include <wifi_utils.h>
 
-#include <WiFiEsp.h>
-#include <WiFiEspClient.h>
-#include <WiFiEspServer.h>
-#include <WiFiEspUdp.h>
-
+// project headers
 #include <EasyNTPClient.h>
 
-
-char ssid[] = "ssid";            // your network SSID (name)
-char password[] = "password";        // your network password
-
-const int pinEspRx = 2;  //  Esp Rx <----> Arduino Tx
-const int pinEspTx = 3; //  Esp Tx <----> Arduino Rx
-SoftwareSerial ESP8266(pinEspTx, pinEspRx);
-
-WiFiEspUDP udp;
-EasyNTPClient ntpClient(udp, "pool.ntp.org", ((5*60*60)+(30*60))); // IST = GMT + 5:30
+EasyNTPClient ntpClient(Udp, "pool.ntp.org", ((5*60*60)+(30*60))); // IST = GMT + 5:30
 
 void setup(){
   Serial.begin(9600);
-  ESP8266.begin(115200);
-  WiFi.init(&ESP8266);
-  WiFi.begin(ssid, password);
   
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  udp.begin(123);
+  wifi_start();
+  Udp.begin(123);
 }
 
 void loop() {
-  Serial.println(ntpClient.getUnixTime());
-  
+  Serial.println(ntpClient.getUnixTime());  
   delay(20000); // wait for 20 seconds before refreshing.
 }

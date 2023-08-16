@@ -7,11 +7,15 @@
 const int debug = 0;
 //-------------------------------
 
-#include <wifi_utils.h>
+// standard library headers
 #include <TimeLib.h>
+
+// custom library headers
+#include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
 
+// project headers
 #include "binary_utils.h"
 #include "ntp_utils.h"
 

@@ -1,19 +1,21 @@
 // This example sketch gets current time from NTP server, and prints it to Serial.
 
+// standard library headers
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
 #include <TZ.h>
 using ssid_char_t = const char;
-#include <ESPPerfectTime.h>
 
-ssid_char_t *ssid     = "your_ssid";
-ssid_char_t *password = "your_password";
+// custom library headers
+#include <wifi_utils.h>
+
+// project headers
+#include <ESPPerfectTime.h>
 
 // NTP server
 const char *ntpServer = "time.nist.gov";
 
 void connectWiFi() {
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, pass);
 
   Serial.print("\nconnecting...");
   while (WiFi.status() != WL_CONNECTED) {
