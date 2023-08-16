@@ -1,21 +1,16 @@
 // This example sketch gets current time from NTP server, and prints it to Serial.
 
 #include <Arduino.h>
-#ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <TZ.h>
 using ssid_char_t = const char;
-#else // ESP32
-#include <WiFi.h>
-using ssid_char_t = char;
-#endif
 #include <ESPPerfectTime.h>
 
 ssid_char_t *ssid     = "your_ssid";
 ssid_char_t *password = "your_password";
 
-// Japanese NTP server
-const char *ntpServer = "ntp.nict.jp";
+// NTP server
+const char *ntpServer = "time.nist.gov";
 
 void connectWiFi() {
   WiFi.begin(ssid, password);
@@ -41,15 +36,11 @@ void printTime(struct tm *tm, suseconds_t usec) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   connectWiFi();
 
   // Configure SNTP client in the same way as built-in one
-#ifdef ESP8266
   pftime::configTzTime(TZ_Asia_Tokyo, ntpServer);
-#else // ESP32
-  pftime::configTzTime(PSTR("JST-9"), ntpServer);
-#endif
 
   // This is deprecated:
   //pftime::configTime(9 * 3600, 0, ntpServer);
