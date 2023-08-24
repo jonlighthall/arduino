@@ -23,28 +23,28 @@ char * getDOW(uint8_t tm_wday)
   switch(tm_wday)
   {
     case 1:
-      return "Monday";
+      return (char*) "Monday";
       break;
     case 2:
-      return "Tuesday";
+      return (char*) "Tuesday";
       break;
     case 3:
-      return "Wednesday";
+      return (char*) "Wednesday";
       break;
     case 4:
-      return "Thursday";
+      return (char*) "Thursday";
       break;
     case 5:
-      return "Friday";
+      return (char*) "Friday";
       break;
     case 6:
-      return "Saturday";
+      return (char*) "Saturday";
       break;
     case 7:
-      return "Sunday";
+      return (char*) "Sunday";
       break;
     default:
-      return "Error";
+      return (char*) "Error";
       break;
   }
 }
@@ -54,43 +54,43 @@ char * getMo(uint8_t tm_mon)
   switch(tm_mon)
   {
     case 1:
-      return "Jan";
+      return (char*) "Jan";
       break;
     case 2:
-      return "Feb";
+      return (char*) "Feb";
       break;
     case 3:
-      return "Mar";
+      return (char*) "Mar";
       break;
     case 4:
-      return "Apr";
+      return (char*) "Apr";
       break;
     case 5:
-      return "May";
+      return (char*) "May";
       break;
     case 6:
-      return "Jun";
+      return (char*) "Jun";
       break;
     case 7:
-      return "Jul";
+      return (char*) "Jul";
       break;
       case 8:
-      return "Aug";
+      return (char*) "Aug";
       break;
     case 9:
-      return "Sep";
+      return (char*) "Sep";
       break;
     case 10:
-      return "Oct";
+      return (char*) "Oct";
       break;
     case 11:
-      return "Nov";
+      return (char*) "Nov";
       break;
     case 12:
-      return "Dec";
+      return (char*) "Dec";
       break;
     default:
-      return "Error";
+      return (char*) "Error";
       break;
   }
 }
