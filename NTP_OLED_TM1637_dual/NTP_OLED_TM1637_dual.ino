@@ -381,10 +381,10 @@ void loop() {
       sec_frac = float(second()) + sec_dec;
       int  dig_sec = sec_frac * 100;
       if (debug > 1) {
-      Serial.print("t diff ms = ");
-      Serial.print(t_diff_ms);      
-      Serial.print(", dig sec = ");
-      Serial.println(sec_frac);
+	Serial.print("t diff ms = ");
+	Serial.print(t_diff_ms);      
+	Serial.print(", dig sec = ");
+	Serial.println(sec_frac);
       }
       display2.showNumberDecEx(dig_sec, 0b01000000, true);
     }
@@ -426,14 +426,14 @@ void serialClockDisplay() {
 }
 
 void OLEDClockDisplay() {
-  // defin OLED variables
+  // define OLED variables
   int xpos, ypos;
   char buff[dispwid];
 
   u8g2.clearBuffer();
 
   if (do_BigTime) {
-    // draw clock display
+    // draw OLED clock display
     u8g2.setFont(u8g2_font_profont22_tn);
     sprintf(buff, "%02d:%02d", hour(), minute());
     if (debug > 0)
@@ -571,7 +571,6 @@ void DigitalClockDisplayOpt() {
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
-  char buff[64];
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets

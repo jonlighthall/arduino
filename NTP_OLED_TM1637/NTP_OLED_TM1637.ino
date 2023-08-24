@@ -7,11 +7,15 @@
 const int debug = 0;
 //-------------------------------
 
-#include <wifi_utils.h>
+// standard library headers
 #include <TimeLib.h>
+
+// custom library headers
+#include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
 
+// project headers
 #include "binary_utils.h"
 #include "ntp_utils.h"
 
@@ -351,14 +355,14 @@ void serialClockDisplay() {
 }
 
 void OLEDClockDisplay() {
-  // defin OLED variables
+  // define OLED variables
   int xpos, ypos;
   char buff[dispwid];
 
   u8g2.clearBuffer();
 
   if (do_BigTime) {
-    // draw clock display
+    // draw OLED clock display
     u8g2.setFont(u8g2_font_profont22_tn);
     sprintf(buff, "%02d:%02d", hour(), minute());
     if (debug > 0)
@@ -432,7 +436,7 @@ void OLEDClockDisplay() {
 
 // LED Display
 void DigitalClockDisplay() {
-  int dig_time ;
+  int dig_time;
 
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
@@ -488,7 +492,6 @@ void DigitalClockDisplayOpt() {
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
-  char buff[64];
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets

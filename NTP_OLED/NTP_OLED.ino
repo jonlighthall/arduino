@@ -7,8 +7,11 @@
 const int debug = 0;
 //-------------------------------
 
-#include <wifi_utils.h>
+// standard library headers
 #include <TimeLib.h>
+
+// custom library headers
+#include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
 
@@ -45,20 +48,25 @@ void setup() {
   // initialize OLED display
   u8g2.begin();
   u8g2.clearBuffer(); // clear the internal memory
+
   // get OLED display dimensions
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
+
   // OLED welcome message
   u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
+
   // get text dimensions
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
+
   // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
   u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
   u8g2.sendBuffer(); // transfer internal memory to the display
+
   // print OLED display dimensions
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
   Serial.println(buff);
@@ -313,23 +321,29 @@ void serialClockDisplay() {
   isDST(1);
   Serial.print(")");
 
-  // print signal strength
-  rssi = WiFi.RSSI();
-  Serial.print(" RSSI: ");
-  Serial.print(rssi);
-
+  if (do_RSSI) {
+    // print signal strength
+    rssi = WiFi.RSSI();
+    Serial.print(" RSSI: ");
+    Serial.print(rssi);
+  }
+  
   Serial.println();
 }
 
 void OLEDClockDisplay() {
-  u8g2.clearBuffer();
-  u8g2.setFont(u8g2_font_profont22_tn);
+  // defin OLED variables
+  int xpos, ypos;
   char buff[dispwid];
+
+  u8g2.clearBuffer();
+
+  u8g2.setFont(u8g2_font_profont22_tn);
   sprintf(buff, "%02d:%02d", hour(), minute());
   if (debug > 0)
     Serial.println(buff);
-  int xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  int ypos = u8g2.getAscent();
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos = u8g2.getAscent();
   u8g2.drawStr(xpos, ypos, buff);
 
   if (do_SecondsBar) {
@@ -346,7 +360,9 @@ void OLEDClockDisplay() {
     for (int i = 0; i < second() + 1; i = i + 15) {
       u8g2.drawPixel(i + 3, ypos);
     }
+  }
 
+  if (do_Seconds) {
     // write seconds
     // set font
     u8g2.setFont(u8g2_font_profont15_tn);
