@@ -7,17 +7,22 @@
 const int debug = 0;
 //-------------------------------
 
-#include <wifi_utils.h>
+// standard library headers
 #include <TimeLib.h>
+
+// custom library headers
+#include <wifi_utils.h>
 #include <dst.h>
+
+// project library headers
 #include "binary_utils.h"
 #include "ntp_utils.h"
 
 // Serial display settings
 void serialClockDisplay();
+#define PRINT_DELAY 250 // print delay in milliseconds
 const bool do_milliseconds = true;
 const bool do_RSSI = false;
-#define PRINT_DELAY 250 // print delay in milliseconds
 
 void setup() {
   // initialize on-board LED
@@ -32,6 +37,7 @@ void setup() {
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
+  // pause for readability
   delay(PRINT_DELAY);
 
   // Wi-Fi settings
@@ -194,12 +200,12 @@ void loop() {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
-    }
+    } // end prevDisplay
   } // end timeNotSet
 } // end loop
 
 void serialClockDisplay() {
-  // digital clock display of the time
+  // send date/time to Serial Monitor
   char buff[128];
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
@@ -238,7 +244,7 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
-  // print status
+  // Serial sync message
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   WiFi.hostByName(ntpServerName, ntpServerIP);

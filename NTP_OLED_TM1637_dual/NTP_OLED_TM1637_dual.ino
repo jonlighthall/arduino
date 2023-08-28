@@ -57,9 +57,14 @@ const int debug = 0;
 #include <dst.h>
 #include <oled_utils.h>
 
-// project headers
+// project library headers
 #include "binary_utils.h"
 #include "ntp_utils.h"
+
+// Serial display settings
+void serialClockDisplay();
+#define PRINT_DELAY 250 // print delay in milliseconds
+const bool do_milliseconds = true;
 
 // LED display options
 #include <TM1637Display.h>
@@ -75,11 +80,6 @@ bool do_mil = false;
 bool do_sec_top = false;
 bool do_cyc = false;
 bool do_sec_mod = false;
-
-// Serial display settings
-void serialClockDisplay();
-const bool do_milliseconds = true;
-#define PRINT_DELAY 250 // print delay in milliseconds
 
 // fractional seconds
 int prev_disp_ms;
@@ -133,18 +133,20 @@ void setup() {
   // initialize LED display
   display.clear();
   display.setBrightness(7);
+
   // LED welcome message
   display.setSegments(SEG_hEllo);
-
   display2.clear();
   display2.setBrightness(7);
   display2.setSegments(SEG_hEllo);
 
+  // pause for readability
   delay(PRINT_DELAY);
-  
-  // Wi-Fi settings
+
+  // Serial connect message
   Serial.print("Connecting to ");
   Serial.print(ssid);
+  // OLED connect message
   sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei + 2;
@@ -153,6 +155,7 @@ void setup() {
   // LED connecting message
   display.setSegments(SEG_CONN);
   display2.setSegments(SEG_CONN);
+
   WiFi.begin(ssid, pass);
 
   // print text throbber
@@ -376,6 +379,7 @@ void loop() {
       }
     } // end prevDisplay
     else {
+      // caclculate fractional seconds between displaying whole seconds
       int t_diff_ms = millis() - prev_disp_ms;
       float sec_dec = (float(t_diff_ms) / 1000.0);
       sec_frac = float(second()) + sec_dec;
@@ -392,7 +396,7 @@ void loop() {
 } // end loop
 
 void serialClockDisplay() {
-  // digital clock display of the time
+  // send date/time to Serial Monitor
   char buff[128];
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
@@ -531,6 +535,7 @@ void DigitalClockDisplay() {
 
 }
 
+// LED Display options
 void DigitalClockDisplayOpt() {
   // set brightness
   if ((hour() >= 20) || (hour() <= 6)) { // night
@@ -574,19 +579,19 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
-  // print status
+  // Serial sync message
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
-  // OLED cue light for sync status
+  WiFi.hostByName(ntpServerName, ntpServerIP);
+  Serial.print(ntpServerName);
+  Serial.print(": ");
+  Serial.println(ntpServerIP);
+  // OLED sync message (cue light)
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
   // LED sync message
   display.setSegments(SEG_SYNC);
   display2.setSegments(SEG_SYNC);
-  WiFi.hostByName(ntpServerName, ntpServerIP);
-  Serial.print(ntpServerName);
-  Serial.print(": ");
-  Serial.println(ntpServerIP);
 
   // send packet
   sendNTPpacket(ntpServerIP);
