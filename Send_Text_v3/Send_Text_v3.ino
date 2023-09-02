@@ -40,22 +40,19 @@
 /** For Gmail, the app password will be used for log in
  *  Check out https://github.com/mobizt/ESP-Mail-Client#gmail-smtp-and-imap-required-app-passwords-to-sign-in
  *
- * For Yahoo mail, log in to your yahoo mail in web browser and generate app password by go to
- * https://login.yahoo.com/account/security/app-passwords/add/confirm?src=noSrc
- *
- * To use Gmai and Yahoo's App Password to sign in, define the AUTHOR_PASSWORD with your App Password
+ * To use Gmail's App Password to sign in, define the AUTHOR_PASSWORD with your App Password
  * and AUTHOR_EMAIL with your account email.
  */
 
-/** The smtp host name e.g. smtp.gmail.com for GMail or smtp.office365.com for Outlook or smtp.mail.yahoo.com */
-#define SMTP_HOST "<host>"
+/** The smtp host name e.g. smtp.gmail.com for GMail */
+#define SMTP_HOST "smtp.gmail.com"
 
 /** The smtp port e.g.
  * 25  or esp_mail_smtp_port_25
  * 465 or esp_mail_smtp_port_465
  * 587 or esp_mail_smtp_port_587
  */
-#define SMTP_PORT esp_mail_smtp_port_587 // port 465 is not available for Outlook.com
+#define SMTP_PORT esp_mail_smtp_port_587
 
 /* The log in credentials */
 #define AUTHOR_EMAIL "<email>"
