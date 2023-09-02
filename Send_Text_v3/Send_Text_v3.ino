@@ -73,43 +73,22 @@ void smtpCallback(SMTP_Status status);
 // const char rootCACert[] PROGMEM = "-----BEGIN CERTIFICATE-----\n"
 //                                   "-----END CERTIFICATE-----\n";
 
-#if defined(ARDUINO_RASPBERRY_PI_PICO_W)
-WiFiMulti multi;
-#endif
-
 void setup()
 {
 
   Serial.begin(115200);
 
-#if defined(ARDUINO_ARCH_SAMD)
-  while (!Serial)
-    ;
-#endif
 
   Serial.println();
 
-#if defined(ARDUINO_RASPBERRY_PI_PICO_W)
-  multi.addAP(WIFI_SSID, WIFI_PASSWORD);
-  multi.run();
-#else
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-#endif
 
   Serial.print("Connecting to Wi-Fi");
-
-#if defined(ARDUINO_RASPBERRY_PI_PICO_W)
-  unsigned long ms = millis();
-#endif
 
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
     delay(300);
-#if defined(ARDUINO_RASPBERRY_PI_PICO_W)
-    if (millis() - ms > 10000)
-      break;
-#endif
   }
   Serial.println();
   Serial.print("Connected with IP: ");
@@ -118,13 +97,6 @@ void setup()
 
   /*  Set the network reconnection option */
   MailClient.networkReconnect(true);
-
-  // The WiFi credentials are required for Pico W
-  // due to it does not have reconnect feature.
-#if defined(ARDUINO_RASPBERRY_PI_PICO_W)
-  MailClient.clearAP();
-  MailClient.addAP(WIFI_SSID, WIFI_PASSWORD);
-#endif
 
   /** Enable the debug via Serial port
    * 0 for no debugging
