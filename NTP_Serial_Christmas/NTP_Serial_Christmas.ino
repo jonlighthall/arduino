@@ -7,29 +7,28 @@
 const int debug = 0;
 //-------------------------------
 
-#include <wifi_utils.h>
+// standard library headers
 #include <TimeLib.h>
+
+// custom library headers
+#include <wifi_utils.h>
 #include <dst.h>
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
-
-// Set Standard time zone
 const int timeZone = -6; // CST
-
 int SetTimeZone = timeZone;
 const bool do_DST = true;
-
 time_t getNtpTime();
 void sendNTPpacket(IPAddress &address);
 #define SYNC_DELAY 300 // print delay in seconds
 
 // Serial display settings
 void serialClockDisplay();
-const bool do_Christmas = true;
-void serialChristmas();
 #define PRINT_DELAY 250 // print delay in milliseconds
 
+const bool do_Christmas = true;
+void serialChristmas();
 int syncBar = 0;
 
 void setup() {
@@ -45,6 +44,8 @@ void setup() {
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
+
+  // pause for readability
   delay(PRINT_DELAY);
 
   // Wi-Fi settings
@@ -91,12 +92,11 @@ void setup() {
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
-
 uint32_t bufferTime;
 uint32_t fracTime;
 char serdiv[] = "----------------------------"; // serial print divider
-
 int syncTime = SYNC_DELAY * 1e3;
+
 void loop() {
   char buff[64];
   if (timeStatus() != timeNotSet) {
@@ -205,12 +205,12 @@ void loop() {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
-    }
+    } // end prevDisplay
   } // end timeNotSet
 } // end loop
 
 void serialClockDisplay() {
-  // digital clock display of the time
+  // send date/time to Serial Monitor
   char buff[128];
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
@@ -273,7 +273,7 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
-  // print status
+  // Serial sync message
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
   WiFi.hostByName(ntpServerName, ntpServerIP);
@@ -284,8 +284,6 @@ time_t getNtpTime() {
   // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
-  Serial.print("SetTimeZone = ");
-  Serial.println(SetTimeZone);
 
   // wait for response
   while (millis() - beginWait < 1500) {
@@ -297,6 +295,8 @@ time_t getNtpTime() {
       // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       bufferTime = millis();
+
+      // parse packet
       unsigned long secsSince1900;
       // convert four bytes starting at location 40 to a long integer
       secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
@@ -317,6 +317,8 @@ time_t getNtpTime() {
         Serial.println(fracTime);
       }
       Serial.println(serdiv);
+
+      // return time
       return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
     }
   }

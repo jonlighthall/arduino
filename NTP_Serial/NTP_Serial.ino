@@ -37,6 +37,7 @@ void setup() {
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
+
   // pause for readability
   delay(PRINT_DELAY);
 
@@ -240,7 +241,6 @@ void serialClockDisplay() {
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
-  char buff[64];
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
