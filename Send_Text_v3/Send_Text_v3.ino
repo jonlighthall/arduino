@@ -64,9 +64,7 @@ void smtpCallback(SMTP_Status status);
 
 void setup()
 {
-
-  Serial.begin(115200);
-
+  Serial.begin(9600);
   Serial.println();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -114,7 +112,7 @@ void setup()
    *
    * Assign any text to this option may cause the connection rejection.
    */
-  config.login.user_domain = F("127.0.0.1");
+  config.login.user_domain = F("172.3.254.4");
 
   /** If non-secure port is prefered (not allow SSL and TLS connection), use
    *  config.secure.mode = esp_mail_secure_mode_nonsecure;
@@ -135,7 +133,7 @@ void setup()
   See https://en.wikipedia.org/wiki/Time_zone for a list of the GMT/UTC timezone offsets
   */
   config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
-  config.time.gmt_offset = 3;
+  config.time.gmt_offset = -5;
   config.time.day_light_offset = 0;
 
   /* The full message sending logs can now save to file */
@@ -227,7 +225,7 @@ void setup()
    * esp_mail_smtp_priority_low or 5
    * The default value is esp_mail_smtp_priority_low
    */
-  message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
+  message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_normal;
 
   // message.response.reply_to = "someone@somemail.com";
   // message.response.return_path = "someone@somemail.com";
@@ -239,7 +237,7 @@ void setup()
    * esp_mail_smtp_notify_delay
    * The default value is esp_mail_smtp_notify_never
    */
-  // message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
+  message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
 
   /* Set the custom message header */
   message.addHeader(F("Message-ID: <abcde.fghij@gmail.com>"));
