@@ -34,8 +34,7 @@
 
 #include <ESP_Mail_Client.h>
 
-#define WIFI_SSID "<ssid>"
-#define WIFI_PASSWORD "<password>"
+#include <credentials.h>
 
 /** For Gmail, the app password will be used for log in
  *  Check out https://github.com/mobizt/ESP-Mail-Client#gmail-smtp-and-imap-required-app-passwords-to-sign-in
@@ -54,10 +53,6 @@
  */
 #define SMTP_PORT esp_mail_smtp_port_587
 
-/* The log in credentials */
-#define AUTHOR_EMAIL "<email>"
-#define AUTHOR_PASSWORD "<password>"
-
 /* Recipient email address */
 #define RECIPIENT_EMAIL "<recipient email here>"
 
@@ -74,7 +69,6 @@ void setup()
 {
 
   Serial.begin(115200);
-
 
   Serial.println();
 
@@ -259,8 +253,6 @@ void setup()
   // config.certificate.cert_file = "/path/to/der/file";
   // config.certificate.cert_file_storage_type = esp_mail_file_storage_type_flash; // esp_mail_file_storage_type_sd
   // config.certificate.verify = true;
-
-  // The WiFiNINA firmware the Root CA certification can be added via the option in Firmware update tool in Arduino IDE
 
   /* Connect to server with the session config */
 
