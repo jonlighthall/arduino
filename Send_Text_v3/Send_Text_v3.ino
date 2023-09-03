@@ -53,9 +53,6 @@
  */
 #define SMTP_PORT esp_mail_smtp_port_587
 
-/* Recipient email address */
-#define RECIPIENT_EMAIL "<recipient email here>"
-
 /* Declare the global used SMTPSession object for SMTP transport */
 SMTPSession smtp;
 
