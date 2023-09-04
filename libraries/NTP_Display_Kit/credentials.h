@@ -33,6 +33,27 @@
 #define AUTHOR_EMAIL "email_user.name@domain.tld"
 #define AUTHOR_PASSWORD "email_password"
 
+/* The smtp host name e.g. smtp.gmail.com for GMail or smtp.office365.com for Outlook or smtp.mail.yahoo.com */
+#define SMTP_HOST "<host>"
+
+/* The smtp port e.g.
+ * 25  or esp_mail_smtp_port_25
+ * 465 or esp_mail_smtp_port_465
+ * 587 or esp_mail_smtp_port_587
+ */
+#define SMTP_PORT esp_mail_smtp_port_587 // port 465 is not available for Outlook.com
+
+  /* Assign your host name or you public IPv4 or IPv6 only
+   * as this is the part of EHLO/HELO command to identify the client system
+   * to prevent connection rejection.
+   * If host name or public IP is not available, ignore this or
+   * use loopback address "127.0.0.1".
+   *
+   * Assign any text to this option may cause the connection rejection.
+   */
+
+#define USER_DOMAIN F("127.0.0.1");
+
 /* Recipient email address */
 #define RECIPIENT_EMAIL "email_user.name@domain.tld"
 

@@ -36,23 +36,6 @@
 
 #include <credentials.h>
 
-/** For Gmail, the app password will be used for log in
- *  Check out https://github.com/mobizt/ESP-Mail-Client#gmail-smtp-and-imap-required-app-passwords-to-sign-in
- *
- * To use Gmail's App Password to sign in, define the AUTHOR_PASSWORD with your App Password
- * and AUTHOR_EMAIL with your account email.
- */
-
-/** The smtp host name e.g. smtp.gmail.com for GMail */
-#define SMTP_HOST "smtp.gmail.com"
-
-/** The smtp port e.g.
- * 25  or esp_mail_smtp_port_25
- * 465 or esp_mail_smtp_port_465
- * 587 or esp_mail_smtp_port_587
- */
-#define SMTP_PORT esp_mail_smtp_port_587
-
 /* Declare the global used SMTPSession object for SMTP transport */
 SMTPSession smtp;
 
@@ -103,16 +86,7 @@ void setup()
   config.server.port = SMTP_PORT;
   config.login.email = AUTHOR_EMAIL;
   config.login.password = AUTHOR_PASSWORD;
-
-  /** Assign your host name or you public IPv4 or IPv6 only
-   * as this is the part of EHLO/HELO command to identify the client system
-   * to prevent connection rejection.
-   * If host name or public IP is not available, ignore this or
-   * use loopback address "127.0.0.1".
-   *
-   * Assign any text to this option may cause the connection rejection.
-   */
-  config.login.user_domain = F("172.3.254.4");
+  config.login.user_domain = USER_DOMAIN;
 
   /** If non-secure port is prefered (not allow SSL and TLS connection), use
    *  config.secure.mode = esp_mail_secure_mode_nonsecure;

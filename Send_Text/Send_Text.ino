@@ -11,8 +11,6 @@
 #include <ESP_Mail_Client.h>
 
 #include <credentials.h>
-#define SMTP_HOST "smtp.gmail.com"
-#define SMTP_PORT 587
 SMTPSession smtp;
 
 /* Callback function to get the Email sending status */
@@ -53,7 +51,7 @@ void setup()
   session.server.port = SMTP_PORT;
   session.login.email = AUTHOR_EMAIL;
   session.login.password = AUTHOR_PASSWORD;
-  session.login.user_domain = "mydomain.net";
+  session.login.user_domain = USER_DOMAIN;
   SMTP_Message message;
 
   /* Set the message headers */
