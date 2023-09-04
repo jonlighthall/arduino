@@ -27,3 +27,7 @@
 
 /* Recipient email address */
 #define RECIPIENT_EMAIL "email_user.name@domain.tld"
+
+void add_recip(SMTP_Message &message) {
+  //message.addRecipient(F("Someone"), RECIPIENT_EMAIL);
+}

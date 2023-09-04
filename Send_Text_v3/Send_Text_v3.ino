@@ -178,8 +178,8 @@ void setup()
  */
 
   message.subject = F("Test sending plain text Email");
-  message.addRecipient(F("Someone"), RECIPIENT_EMAIL);
-
+  add_recip(message); // in credentials.h
+  
   String textMsg = "This is simple plain text message";
   message.text.content = textMsg;
 

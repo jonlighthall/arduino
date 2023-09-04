@@ -60,8 +60,7 @@ void setup()
   message.sender.name = "ESP Mail";
   message.sender.email = AUTHOR_EMAIL;
   message.subject = "Test sending plain text Email";
-  message.addRecipient("Someone", "####@#####_dot_com");
-
+  add_recip(message); // in credentials.h
   String textMsg = "This is simple plain text message";
   message.text.content = textMsg.c_str();
   message.text.charSet = "us-ascii";
