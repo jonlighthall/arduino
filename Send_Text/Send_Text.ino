@@ -54,6 +54,11 @@ void setup()
   session.login.user_domain = USER_DOMAIN;
   SMTP_Message message;
 
+  /* Set the NTP config time */
+  session.time.ntp_server = F("pool.ntp.org,time.nist.gov");
+  session.time.gmt_offset = -5;
+  session.time.day_light_offset = 0;
+
   /* Set the message headers */
   message.sender.name = "ESP Mail";
   message.sender.email = AUTHOR_EMAIL;
