@@ -10,6 +10,9 @@
   >   git update-index --no-skip-worktree credentials.h
 */
 
+#ifndef CREDENTIALS
+#define CREDENTIALS
+
 // add your Wi-Fi network name and password on the following lines
 #define WIFI_SSID "network_name"
 #define WIFI_PASSWORD "network_password"
@@ -60,3 +63,4 @@
 void add_recip(SMTP_Message &message) {
   //message.addRecipient(F("Someone"), RECIPIENT_EMAIL);
 }
+#endif
