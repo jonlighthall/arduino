@@ -10,15 +10,15 @@
   >   git update-index --no-skip-worktree credentials.h
 */
 
+// add your Wi-Fi network name and password on the following lines
+#define WIFI_SSID "network_name"
+#define WIFI_PASSWORD "network_password"
+
 /**
  * This file contains excerpts from Send_Text.ino created by K. Suwatchai (Mobizt)
  * Github: https://github.com/mobizt/ESP-Mail-Client
  * Copyright (c) 2021, 2023 mobizt
  */
-
-// add your Wi-Fi network name and password on the following lines
-#define WIFI_SSID "network_name"
-#define WIFI_PASSWORD "network_password"
 
 /*
   Add your (the sender's) email username and password on the following lines. Since since May 30,
