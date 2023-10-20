@@ -13,9 +13,7 @@
 #ifndef CREDENTIALS
 #define CREDENTIALS
 
-// add your Wi-Fi network name and password on the following lines
-#define WIFI_SSID "network_name"
-#define WIFI_PASSWORD "network_password"
+#include <wifi_credentials.h>
 
 /**
  * This file contains excerpts from Send_Text.ino created by K. Suwatchai (Mobizt)
