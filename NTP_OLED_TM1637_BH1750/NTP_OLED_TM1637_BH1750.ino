@@ -102,6 +102,8 @@ void setup() {
   // initialize LED display
   display.clear();
   display.setBrightness(7);
+
+  // LED welcome message
   display.setSegments(SEG_hEllo);
 
   // Initialize the I2C bus (BH1750 library doesn't do this automatically)
@@ -137,6 +139,7 @@ void setup() {
   u8g2.sendBuffer();
   // LED connecting message
   display.setSegments(SEG_CONN);
+
   WiFi.begin(ssid, pass);
 
   // print text throbber
@@ -300,7 +303,7 @@ void loop() {
       // check DST
       if (do_DST) {
         if (debug > 0)
-          Serial.print("checking DST status... ");
+          Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
         if (debug > 0)
           Serial.println();
@@ -378,8 +381,8 @@ void loop() {
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
-      // Display time, OLED
       int midTime = millis();
+      // Display time, OLED
       OLEDClockDisplay();
       int afterTime = millis();
       // Display time, LED
@@ -446,8 +449,10 @@ void OLEDClockDisplay() {
   // draw OLED clock display
   u8g2.setFont(u8g2_font_profont22_tn);
   sprintf(buff, "%02d:%02d", hour(), minute());
-  if (debug > 0)
-    Serial.println(buff);
+  if (debug > 0) {
+      Serial.print("   ");
+      Serial.println(buff);
+    }
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   ypos = u8g2.getAscent();
   u8g2.drawStr(xpos, ypos, buff);
@@ -473,8 +478,10 @@ void OLEDClockDisplay() {
     // create time buffer
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
     // print time to serial
-    if (debug > 0)
+    if (debug > 0) {
+      Serial.print("   ");
       Serial.println(buff);
+    }
     // calculate OLED display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
@@ -485,8 +492,10 @@ void OLEDClockDisplay() {
   // write day
   u8g2.setFont(u8g2_font_timB08_tr);
   sprintf(buff, "%s", dayStr(weekday()));
-  if (debug > 0)
+  if (debug > 0) {
+    Serial.print("   ");
     Serial.println(buff);
+  }
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   ypos += u8g2.getAscent() + 2;
   u8g2.drawStr(xpos, ypos, buff);
@@ -494,8 +503,10 @@ void OLEDClockDisplay() {
   // write date
   //sprintf(buff, "%s %s %d",dayStr(weekday()),monthStr(month()),day());
   sprintf(buff, "%s %d", monthStr(month()), day());
-  if (debug > 0)
+  if (debug > 0) {
+    Serial.print("   ");
     Serial.println(buff);
+  }
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   ypos += u8g2.getAscent() + 1;
   u8g2.drawStr(xpos, ypos, buff);
@@ -527,7 +538,7 @@ void DigitalClockDisplay() {
 
   if (debug > 0) {
     char buff[dispwid];
-    sprintf(buff, "digital time: %d", dig_time);
+    sprintf(buff, "   digital time: %d", dig_time);
     Serial.println(buff);
   }
 }
@@ -589,7 +600,7 @@ time_t getNtpTime() {
   u8g2.sendBuffer();
   // LED sync message
   display.setSegments(SEG_SYNC);
-  
+
   // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();

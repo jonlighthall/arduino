@@ -114,7 +114,7 @@ void loop() {
       // check DST
       if (do_DST) {
         if (debug > 0)
-          Serial.print("checking DST status... ");
+          Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
         if (debug > 0)
           Serial.println();
@@ -150,7 +150,7 @@ void loop() {
 
         // wait until top of second to print time
         if (debug > 0) {
-          sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
+          sprintf(buff, "   NTPfracTime = %d\n", NTPfracTime);
           Serial.print(buff);
         }
 
