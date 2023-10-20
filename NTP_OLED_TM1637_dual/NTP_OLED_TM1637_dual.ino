@@ -20,9 +20,9 @@
   +-----+--------+-------+----------------+
   | D6  | GPIO12 | MISO  | LED display CLK
   +-----+--------+-------+----------------+
-  | D7  | GPIO13 | MOSI  | 
+  | D7  | GPIO13 | MOSI  |
   +-----+--------+-------+----------------+
-  | D8  | GPIO15 | CS    | 
+  | D8  | GPIO15 | CS    |
   +-----+--------+-------+----------------+
   | 3V3 |  3.3V  |       |
   +-----+--------+-------+----------------+
@@ -34,7 +34,7 @@
   +-----+--------+-------+----------------+
   | D2  | GPIO4  | SDA   | LED display2 DIO
   +-----+--------+-------+----------------+
-  | D3  | GPIO0  | FLASH | 
+  | D3  | GPIO0  | FLASH |
   +-----+--------+-------+----------------+
   | D4  | GPIO2  | LED   | sync cue
   +-----+--------+-------+----------------+
@@ -46,7 +46,7 @@
 */
 
 //-------------------------------
-const int debug = 0;
+const int debug = 1;
 //-------------------------------
 
 // standard library headers
@@ -282,7 +282,7 @@ void loop() {
       // check DST
       if (do_DST) {
         if (debug > 0)
-          Serial.print("checking DST status... ");
+          Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
         if (debug > 0)
           Serial.println();
@@ -318,7 +318,7 @@ void loop() {
 
         // wait until top of second to print time
         if (debug > 0) {
-          sprintf(buff, "NTPfracTime = %d\n", NTPfracTime);
+          sprintf(buff, "   NTPfracTime = %d\n", NTPfracTime);
           Serial.print(buff);
         }
 
@@ -364,8 +364,8 @@ void loop() {
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
-      int midTime = millis();
       // Display time, OLED
+      int midTime = millis();
       OLEDClockDisplay();
       int afterTime = millis();
       // Display time, LED
@@ -393,10 +393,10 @@ void loop() {
       sec_frac = float(second()) + sec_dec;
       int  dig_sec = sec_frac * 100;
       if (debug > 1) {
-	Serial.print("t diff ms = ");
-	Serial.print(t_diff_ms);      
-	Serial.print(", dig sec = ");
-	Serial.println(sec_frac);
+        Serial.print("t diff ms = ");
+        Serial.print(t_diff_ms);
+        Serial.print(", dig sec = ");
+        Serial.println(sec_frac);
       }
       display2.showNumberDecEx(dig_sec, 0b01000000, true);
     }
@@ -408,7 +408,7 @@ void serialClockDisplay() {
   char buff[128];
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
-  sprintf(buff, "%02d:%02d:%06.3f ", hour(), minute(), sec_frac);   
+  sprintf(buff, "%02d:%02d:%06.3f ", hour(), minute(), sec_frac);
   Serial.print(buff);
   // print numeric date
   sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
@@ -448,8 +448,10 @@ void OLEDClockDisplay() {
     // draw OLED clock display
     u8g2.setFont(u8g2_font_profont22_tn);
     sprintf(buff, "%02d:%02d", hour(), minute());
-    if (debug > 0)
+    if (debug > 0) {
+      Serial.print("   ");
       Serial.println(buff);
+    }
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos = u8g2.getAscent();
     u8g2.drawStr(xpos, ypos, buff);
@@ -478,8 +480,10 @@ void OLEDClockDisplay() {
     // create time buffer
     sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
     // print time to serial
-    if (debug > 0)
+    if (debug > 0) {
+      Serial.print("   ");
       Serial.println(buff);
+    }
     // calculate OLED display position
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
@@ -490,8 +494,10 @@ void OLEDClockDisplay() {
   // write day
   u8g2.setFont(u8g2_font_timB08_tr);
   sprintf(buff, "%s", dayStr(weekday()));
-  if (debug > 0)
+  if (debug > 0) {
+    Serial.print("   ");
     Serial.println(buff);
+  }
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   ypos += u8g2.getAscent() + 2;
   u8g2.drawStr(xpos, ypos, buff);
@@ -499,8 +505,10 @@ void OLEDClockDisplay() {
   // write date
   //sprintf(buff, "%s %s %d",dayStr(weekday()),monthStr(month()),day());
   sprintf(buff, "%s %d", monthStr(month()), day());
-  if (debug > 0)
+  if (debug > 0) {
+    Serial.print("   ");
     Serial.println(buff);
+  }
   xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
   ypos += u8g2.getAscent() + 1;
   u8g2.drawStr(xpos, ypos, buff);
@@ -532,7 +540,7 @@ void DigitalClockDisplay() {
 
   if (debug > 0) {
     char buff[dispwid];
-    sprintf(buff, "digital time: %d", dig_time);
+    sprintf(buff, "   digital time: %d", dig_time);
     Serial.println(buff);
   }
 
