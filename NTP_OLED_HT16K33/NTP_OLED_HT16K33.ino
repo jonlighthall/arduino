@@ -3,27 +3,59 @@
   Example showing time sync to NTP time source
 */
 
+/*
+
+  Wemos D1 Mini Pin Connections
+
+  +-----+--------+-------+----------------+
+  | Pin | ESP    | Use   |
+  +-----+--------+-------+----------------+
+  | RST | RST    | Reset |
+  +-----+--------+-------+----------------+
+  | A0  | A0     | ADC   |
+  +-----+--------+-------+----------------+
+  | D0  | GPIO16 | WAKE  |
+  +-----+--------+-------+----------------+
+  | D5  | GPIO14 | SCLK  | 
+  +-----+--------+-------+----------------+
+  | D6  | GPIO12 | MISO  | 
+  +-----+--------+-------+----------------+
+  | D7  | GPIO13 | MOSI  | 
+  +-----+--------+-------+----------------+
+  | D8  | GPIO15 | CS    | 
+  +-----+--------+-------+----------------+
+  | 3V3 | 3.3V   |       | LED V_IO
+  +-----+--------+-------+----------------+
+  | TX  | GPIO1  | TX    |
+  +-----+--------+-------+----------------+
+  | RX  | GPIO3  | RX    |
+  +-----+--------+-------+----------------+
+  | D1  | GPIO5  | SCL   | LED matrix SCL
+  +-----+--------+-------+----------------+
+  | D2  | GPIO4  | SDA   | LED matrix SDA
+  +-----+--------+-------+----------------+
+  | D3  | GPIO0  | FLASH | 
+  +-----+--------+-------+----------------+
+  | D4  | GPIO2  | LED   | sync cue
+  +-----+--------+-------+----------------+
+  | G   | GND    | GND   | LED GND
+  +-----+--------+-------+----------------+
+  | 5V  | N/A    | VCC   | LED +5V
+  +-----+--------+-------+----------------+
+
+*/
+
 //-------------------------------
 const int debug = 0;
 //-------------------------------
 
 // standard library headers
 #include <TimeLib.h>
-#include <Adafruit_GFX.h>
-#include "Adafruit_LEDBackpack.h"
 
 // custom library headers
 #include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
-
-// I2C address of the display.  Stick with the default address of 0x70
-// unless you've changed the address jumpers on the back of the display.
-#define DISPLAY_ADDRESS   0x70
-
-// Create display object.  This is a global variable that
-// can be accessed from both the setup and loop function below.
-Adafruit_7segment matrix = Adafruit_7segment();
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
@@ -37,17 +69,23 @@ const bool do_DST = true;
 time_t getNtpTime();
 void sendNTPpacket(IPAddress &address);
 
-// LED display options
-bool do_mil = false;
-bool do_sec_top = false;
-bool do_cyc = false;
-bool do_sec_mod = true;
-
 // Serial display settings
 void serialClockDisplay();
 #define PRINT_DELAY 250 // print delay in milliseconds
 
-void printDigits(int digits);
+// LED display options
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+// I2C address of the display.  Stick with the default address of 0x70
+// unless you've changed the address jumpers on the back of the display.
+#define DISPLAY_ADDRESS   0x70
+// Create display object.  This is a global variable that
+// can be accessed from both the setup and loop function below.
+Adafruit_7segment matrix = Adafruit_7segment();
+bool do_mil = false;
+bool do_sec_top = false;
+bool do_cyc = false;
+bool do_sec_mod = true;
 
 void setup() {
   // initialize on-board LED
@@ -59,9 +97,12 @@ void setup() {
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
   // Serial welcome message
+  Serial.println();
+  Serial.println("---------------");
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
+  Serial.println("---------------");
 
   // initialize OLED display
   u8g2.begin();
@@ -98,26 +139,27 @@ void setup() {
   matrix.begin(DISPLAY_ADDRESS);
   matrix.clear();
   matrix.setBrightness(15);
-  //display.setSegments(SEG_hEllo);
+
+  // LED welcome message
   matrix.writeDigitRaw(0, 0b01110100);//h
   matrix.writeDigitRaw(1, 0b01111001);//E
   matrix.writeDigitRaw(3, 0b00110110);//ll
   matrix.writeDigitRaw(4, 0b01011100);//o
-  //  matrix.print("HELO");
   matrix.writeDisplay();
 
+  // pause for readability
   delay(PRINT_DELAY);
 
-  // Wi-Fi settings
+  // Serial connect message
   Serial.print("Connecting to ");
   Serial.print(ssid);
+  // OLED connect message
   sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
   // LED connecting message
-  //display.setSegments(SEG_CONN);
   matrix.clear();
   matrix.writeDigitRaw(0, 0b01011000);//c
   matrix.writeDigitRaw(1, 0b01011100);//o
@@ -175,7 +217,6 @@ void setup() {
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
   // LED sync message
-  //display.setSegments(SEG_SYNC);
   matrix.clear();
   matrix.writeDigitRaw(0, 0b01101101);//S
   matrix.writeDigitRaw(1, 0b01101110);//y
@@ -330,13 +371,16 @@ void loop() {
           Serial.println(serdiv);
         }
       }
+      // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
+      // Display time, OLED
       int midTime = millis();
       OLEDClockDisplay();
       int afterTime = millis();
+      // Display time, LED
       DigitalClockDisplayOpt();
-      
+
       if (debug > 1) {
         sprintf(buff, "serialClockDisplay takes %d\n", midTime - beforeTime);
         Serial.print(buff);
@@ -350,12 +394,12 @@ void loop() {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
-    }
+    } // end prevDisplay
   } // end timeNotSet
 } // end loop
 
 void serialClockDisplay() {
-  // digital clock display of the time
+  // send date/time to Serial Monitor
   char buff[128];
   // print time
   sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
@@ -383,7 +427,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
-  
+
   Serial.println();
 }
 
@@ -469,7 +513,7 @@ void OLEDClockDisplay() {
 
 // LED Display
 void DigitalClockDisplay() {
-  int dig_time ;
+  int dig_time;
 
   if (do_mil) {
     dig_time = (hour() * 100) + minute();
@@ -489,6 +533,7 @@ void DigitalClockDisplay() {
   }
 }
 
+// LED Display options
 void DigitalClockDisplayOpt() {
   // set brightness
   if ((hour() >= 20) || (hour() <= 6)) { // night
@@ -536,16 +581,16 @@ time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
-  // print status
+  // Serial sync message
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
-  // OLED cue light for sync status
-  u8g2.drawBox(0, 0, 2, 2);
-  u8g2.sendBuffer();
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+  // OLED sync message (cue light)
+  u8g2.drawBox(0, 0, 2, 2);
+  u8g2.sendBuffer();
 
   // send packet
   sendNTPpacket(ntpServerIP);
@@ -563,6 +608,8 @@ time_t getNtpTime() {
       // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       bufferTime = millis();
+
+      // parse packet
       unsigned long secsSince1900;
       // convert four bytes starting at location 40 to a long integer
       secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
@@ -575,14 +622,16 @@ time_t getNtpTime() {
       frac |= (unsigned long) packetBuffer[45] << 16;
       frac |= (unsigned long) packetBuffer[46] <<  8;
       frac |= (unsigned long) packetBuffer[47];
-
       // convert the fractional part to milliseconds
       fracTime = ((uint64_t) frac * 1000) >> 32;
       if (debug > 1) {
         Serial.print("fracTime = ");
         Serial.println(fracTime);
       }
+
       Serial.println(serdiv);
+
+      // return time
       return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
     }
   }

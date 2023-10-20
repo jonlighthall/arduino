@@ -16,9 +16,9 @@
   +-----+--------+-------+----------------+
   | D0  | GPIO16 | WAKE  |
   +-----+--------+-------+----------------+
-  | D5  | GPIO14 | SCLK  | DIO
+  | D5  | GPIO14 | SCLK  | LED display DIO
   +-----+--------+-------+----------------+
-  | D6  | GPIO12 | MISO  | CLK
+  | D6  | GPIO12 | MISO  | LED display CLK
   +-----+--------+-------+----------------+
   | D7  | GPIO13 | MOSI  | 
   +-----+--------+-------+----------------+
@@ -30,17 +30,17 @@
   +-----+--------+-------+----------------+
   | RX  | GPIO3  | RX    |
   +-----+--------+-------+----------------+
-  | D1  | GPIO5  | SCL   | CLK
+  | D1  | GPIO5  | SCL   | LED display2 CLK
   +-----+--------+-------+----------------+
-  | D2  | GPIO4  | SDA   | DIO
+  | D2  | GPIO4  | SDA   | LED display2 DIO
   +-----+--------+-------+----------------+
   | D3  | GPIO0  | FLASH | 
   +-----+--------+-------+----------------+
-  | D4  | GPIO2  | LED   | 
+  | D4  | GPIO2  | LED   | sync cue
   +-----+--------+-------+----------------+
-  | G   | GND    |       | GND
+  | G   | GND    | GND   | LED GND
   +-----+--------+-------+----------------+
-  | 5V  | N/A    |       | 5V
+  | 5V  | N/A    |       | LED 5V
   +-----+--------+-------+----------------+
 
 */
@@ -72,18 +72,20 @@ const int CLK = D6; //Set the CLK pin connection to the display
 const int DIO = D5; //Set the DIO pin connection to the display
 TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
 
+// LED display2 settings
 const int CLK2 = D1; //Set the CLK pin connection to the display
 const int DIO2 = D2; //Set the DIO pin connection to the display
 TM1637Display display2(CLK2, DIO2); //set up the 4-Digit Display.
+
+// fractional seconds
+int prev_disp_ms;
+float sec_frac;
+
 #include <seven-segment_text.h>
 bool do_mil = false;
 bool do_sec_top = false;
 bool do_cyc = false;
 bool do_sec_mod = false;
-
-// fractional seconds
-int prev_disp_ms;
-float sec_frac;
 
 void setup() {
   // initialize on-board LED
@@ -95,9 +97,12 @@ void setup() {
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
   // Serial welcome message
+  Serial.println();
+  Serial.println("---------------");
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
+  Serial.println("---------------");
 
   // initialize OLED display
   u8g2.begin();
@@ -356,11 +361,14 @@ void loop() {
           }
         }
       }
+      // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
       int midTime = millis();
+      // Display time, OLED
       OLEDClockDisplay();
       int afterTime = millis();
+      // Display time, LED
       DigitalClockDisplayOpt();
       prev_disp_ms = millis();
 
@@ -425,7 +433,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
-  
+
   Serial.println();
 }
 

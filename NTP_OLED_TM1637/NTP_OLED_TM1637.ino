@@ -3,6 +3,48 @@
   Example showing time sync to NTP time source
 */
 
+/*
+
+  Wemos D1 Mini Pin Connections
+
+  +-----+--------+-------+----------------+
+  | Pin | ESP    | Use   |
+  +-----+--------+-------+----------------+
+  | RST | RST    | Reset |
+  +-----+--------+-------+----------------+
+  | A0  | A0     | ADC   |
+  +-----+--------+-------+----------------+
+  | D0  | GPIO16 | WAKE  |
+  +-----+--------+-------+----------------+
+  | D5  | GPIO14 | SCLK  | LED display DIO
+  +-----+--------+-------+----------------+
+  | D6  | GPIO12 | MISO  | LED display CLK
+  +-----+--------+-------+----------------+
+  | D7  | GPIO13 | MOSI  | 
+  +-----+--------+-------+----------------+
+  | D8  | GPIO15 | CS    | 
+  +-----+--------+-------+----------------+
+  | 3V3 | 3.3V   |       | LED VCC
+  +-----+--------+-------+----------------+
+  | TX  | GPIO1  | TX    |
+  +-----+--------+-------+----------------+
+  | RX  | GPIO3  | RX    |
+  +-----+--------+-------+----------------+
+  | D1  | GPIO5  | SCL   | 
+  +-----+--------+-------+----------------+
+  | D2  | GPIO4  | SDA   | 
+  +-----+--------+-------+----------------+
+  | D3  | GPIO0  | FLASH | 
+  +-----+--------+-------+----------------+
+  | D4  | GPIO2  | LED   | sync cue
+  +-----+--------+-------+----------------+
+  | G   | GND    | GND   | LED GND
+  +-----+--------+-------+----------------+
+  | 5V  | N/A    | VCC   | 
+  +-----+--------+-------+----------------+
+
+*/
+
 //-------------------------------
 const int debug = 0;
 //-------------------------------
@@ -45,9 +87,12 @@ void setup() {
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
   // Serial welcome message
+  Serial.println();
+  Serial.println("---------------");
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
+  Serial.println("---------------");
 
   // initialize OLED display
   u8g2.begin();
@@ -86,7 +131,7 @@ void setup() {
 
   // LED welcome message
   display.setSegments(SEG_hEllo);
-  
+
   // pause for readability
   delay(PRINT_DELAY);
 
@@ -301,13 +346,16 @@ void loop() {
           }
         }
       }
+      // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
+      // Display time, OLED
       int midTime = millis();
       OLEDClockDisplay();
       int afterTime = millis();
+      // Display time, LED
       DigitalClockDisplayOpt();
-      
+
       if (debug > 1) {
         sprintf(buff, "serialClockDisplay takes %d\n", midTime - beforeTime);
         Serial.print(buff);
@@ -354,7 +402,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
-  
+
   Serial.println();
 }
 

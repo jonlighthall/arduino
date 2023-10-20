@@ -43,26 +43,33 @@ U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);   // EastRising 0.
 void setup() {
   Serial.begin(9600);
   delay(PRINT_DELAY);
+  // Serial welcome message
   Serial.println();
+  Serial.println("---------------");
   Serial.println("NTP Time");
+  Serial.println("---------------");
 
-  // display settings
+  // initialize OLED display
   u8x8.begin();
   u8x8.clear();
   u8x8.home();
 
+  // OLED welcome message
   u8x8.setFont(u8x8_font_8x13_1x2_f);
   u8x8.println("NTP Time");
   delay(PRINT_DELAY);
 
-  // Wi-Fi settings
+  // Serial connect message
   Serial.print("Connecting to ");
   Serial.print(ssid);
+  // OLED connect message
   u8x8.clear();
   u8x8.home();
   u8x8.print("Connecting to network");
+
   WiFi.begin(ssid, pass);
   
+  // print text throbber
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(200);    

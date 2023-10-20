@@ -34,14 +34,17 @@ void setup() {
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
   // Serial welcome message
+  Serial.println();
+  Serial.println("---------------");
   char buff[64];
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
-
+  Serial.println("---------------");
+  
   // pause for readability
   delay(PRINT_DELAY);
 
-  // Wi-Fi settings
+  // Serial connect message
   wifi_start();
   Serial.print("connected\n");
   rssi = WiFi.RSSI();
@@ -190,6 +193,7 @@ void loop() {
           }
         }
       }
+      // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
       int midTime = millis();
@@ -234,7 +238,7 @@ void serialClockDisplay() {
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
-  
+
   Serial.println();
 }
 
