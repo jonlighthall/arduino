@@ -50,7 +50,7 @@ void sendNTPpacket(IPAddress & address) {
   Udp.endPacket();
 }
 
-void parseNTP_header (byte words[]) {
+void parseNTP_header (uint32_t words[]) {
   char buff[64];
   // define variables
   uint32_t  rootDelay = words[2];
@@ -129,7 +129,7 @@ void parseNTP_header (byte words[]) {
   }
 }
 
-void parseNTP_time (byte words[]) {
+void parseNTP_time (uint32_t words[]) {
   char buff[64];  
   // print raw NTP time      
   Serial.println("\nraw 64-bit timestamps");
@@ -175,7 +175,7 @@ void parseNTP_time (byte words[]) {
   NTPlocalTime=localTime[3];
 }
 
-void parseNTP_fraction (byte words[]) {
+void parseNTP_fraction (uint32_t words[]) {
   char buff[64];
   uint32_t fracSecs[4];
   // print raw NTP time
