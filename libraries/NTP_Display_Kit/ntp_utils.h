@@ -130,12 +130,14 @@ void parseNTP_header (uint32_t words[]) {
 }
 
 void parseNTP_time (uint32_t words[]) {
-  char buff[64];  
-  // print raw NTP time      
-  Serial.println("\nraw 64-bit timestamps");
-  for (int i = 0; i < 4; i++) {
-    sprintf(buff, "i = %1d %010u %010u %s\n", i + 1, words[4 + i * 2], words[5 + i * 2], NTP_names[i]);
-    Serial.print(buff);
+  char buff[64];
+  if (debug > 0 ) {    
+    // print raw NTP time
+    Serial.println("\nraw 64-bit timestamps");
+    for (int i = 0; i < 4; i++) {
+      sprintf(buff, "i = %1d %010u %010u %s\n", i + 1, words[4 + i * 2], words[5 + i * 2], NTP_names[i]);
+      Serial.print(buff);
+    }
   }
 
   //calculate times
@@ -152,25 +154,30 @@ void parseNTP_time (uint32_t words[]) {
     localTime[i] = secsSince1970[i] + SetTimeZone * SECS_PER_HOUR;
   }
 
-  // print raw NTP time
-  Serial.println("\nraw 32-bit timestamps (seconds)");
-  for (int i = 0; i < 4; i++) {
-    sprintf(buff, "i = %1d %010u %s\n", i + 1, secsSince1900[i], NTP_names[i]);
-    Serial.print(buff);
-  }     
+  if (debug > 1) {
+    // print raw NTP time
+    Serial.println("\nraw 32-bit timestamps (seconds)");
+    for (int i = 0; i < 4; i++) {
+      sprintf(buff, "i = %1d %010u %s\n", i + 1, secsSince1900[i], NTP_names[i]);
+      Serial.print(buff);
+    }
 
-  // print unix time
-  Serial.println("\n32-bit unix timestamps");
-  for (int i = 0; i < 4; i++) {
-    sprintf(buff, "i = %2d %010u %s\n", i, secsSince1970[i], NTP_names[i]);
-    Serial.print(buff);
-  }
+    Serial.print("epoch offset = ");
+    Serial.println(NTP_UNIX_OFFSET_SECONDS );
 
-  // print unix time
-  Serial.println("\nlocal 32-bit timestamps");
-  for (int i = 0; i < 4; i++) {
-    sprintf(buff, "i = %2d %010u %s\n", i, localTime[i], NTP_names[i]);
-    Serial.print(buff);
+    // print unix time
+    Serial.println("\n32-bit unix timestamps");
+    for (int i = 0; i < 4; i++) {
+      sprintf(buff, "i = %2d %010u %s\n", i, secsSince1970[i], NTP_names[i]);
+      Serial.print(buff);
+    }
+
+    // print unix time
+    Serial.println("\nlocal 32-bit timestamps");
+    for (int i = 0; i < 4; i++) {
+      sprintf(buff, "i = %2d %010u %s\n", i, localTime[i], NTP_names[i]);
+      Serial.print(buff);
+    }
   }
 
   // export time
