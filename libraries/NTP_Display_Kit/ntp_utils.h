@@ -57,20 +57,7 @@ void readNTP_packet () {
   // read packet
   for (int i = 0; i < 12; i++) {
     packetWords[i] = getWord(packetBuffer, i * 4);
-  }
-
-  if (debug > -1) {
-    // print raw packet
-    Serial.println("\nraw 32-bit packet elements");
-    Serial.println(" i |  decimal   |  hex     |  binary");
-    Serial.println("-----------------------------------------------------------------");
-    for (int i = 0; i < 12; i++) {
-      sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
-      Serial.print(buff);
-      print_binary(packetWords[i], 32);
-      Serial.println();
-    }
-  }
+  }  
 }
 
 void parseNTP_header (uint32_t words[]) {
@@ -98,33 +85,57 @@ void parseNTP_header (uint32_t words[]) {
   sprintf(RefID, "%c%c%c%c", a, b, c, d);
 
   // print header
+  if (debug > -1) {
+    // print raw packet
+    Serial.println("\nraw 32-bit packet elements");
+    Serial.println(" i |  decimal   |  hex     |  binary");
+    Serial.println("---+------------+----------+-------------------------------------");
+    for (int i = 0; i < 12; i++) {
+      sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
+      Serial.print(buff);
+      print_binary(packetWords[i], 32);
+      Serial.println();
+    }
+  }
+  
   if (debug > 0) {
     Serial.print("\nheader: ");
     print_uint32(words[0]);
     Serial.println();
   }
-
   // Print variables
-  Serial.print("       LI: ");
+  Serial.print("\n       LI: ");
+
   if (debug > 0) {
     print_uint8(LI);
     Serial.println("should be dec 0-3 or bin 00-11");
-  }  
-  print_binary(LI, 2); Serial.println();
+  }
+
+  print_binary(LI, 2);
+  sprintf(buff, "       %3d ", LI);
+  Serial.print(buff);
+  Serial.println();
 
   Serial.print("  Version: ");
   if (debug > 0) {
     print_uint8(VN);
     Serial.println("should be dec 4 or bin 100");
   }
-  print_binary(VN, 3); Serial.println();
+  Serial.print("  ");
+  print_binary(VN, 3);
+  sprintf(buff, "    %3d\n", VN);
+  Serial.print(buff);
 
   Serial.print("     Mode: ");
   if (debug > 0) {
     print_uint8(Mode);
     Serial.println("should be dec 3 or bin 011");
   }
-  print_binary(Mode, 3); Serial.println();
+  Serial.print("     ");
+  print_binary(Mode, 3);
+  sprintf(buff, " %3d ", Mode);
+  Serial.print(buff);
+  Serial.println();
 
   Serial.print("  Stratum: ");
   if (debug > 0) {
@@ -132,7 +143,8 @@ void parseNTP_header (uint32_t words[]) {
     Serial.println("should be dec 0-16, hex 0-F");
     Serial.println("should be dec 1, hex 1");
   }
-  print_binary(Stratum, 8); Serial.println();
+  print_binary(Stratum, 8);
+  Serial.println();
 
   Serial.print("     Poll: ");
   if (debug > 0) {
@@ -140,9 +152,8 @@ void parseNTP_header (uint32_t words[]) {
     Serial.println("8-bit signed int");
   }
   print_binary(Poll, 8);
-  Serial.print(", int: ");
-  Serial.print(Poll_interval);
-  Serial.print(" seconds\n");
+  sprintf(buff, " %3d seconds\n", Poll_interval);
+  Serial.print(buff);
 
   Serial.print("Precision: ");
   if (debug > 0) {
@@ -150,26 +161,18 @@ void parseNTP_header (uint32_t words[]) {
     Serial.println("8-bit signed int");
   }
   print_binary(Precision, 8);
-  Serial.print(", int: ");
-  Serial.print(ppower);
-  Serial.print(" log2(seconds), ");
-  Serial.print(sprec);
-  sprintf(buff, "%.15f seconds\n", sprec);
+  sprintf(buff, " %3d log2(seconds), %.15f seconds\n", ppower, sprec);
   Serial.print(buff);
 
-  sprintf(buff, "%010u Root Delay\n", rootDelay);
+  sprintf(buff, "\n          Root Delay: %010u\n", rootDelay);
   Serial.print(buff);
-  sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
+  sprintf(buff, "     Root Dispersion: %010u\n", rootDispersion);
   Serial.print(buff);
-  sprintf(buff, "%010u Reference Identifier\n", referenceIdentifier);
+  sprintf(buff, "Reference Identifier: %010u", referenceIdentifier);
   Serial.print(buff);
 
   if (Stratum == 1) {
-    print_binary(referenceIdentifier, 32); Serial.println();
-    print_binary_spc(referenceIdentifier, 32, 8); Serial.println();
-    Serial.println();
-    sprintf(buff, "server id: %c%c%c%c\n", a, b, c, d);
-    sprintf(buff, "server id: %s\n", RefID);
+    sprintf(buff, ", server id: %s\n", RefID);
     Serial.print(buff);
   }
 }
