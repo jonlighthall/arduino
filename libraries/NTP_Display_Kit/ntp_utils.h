@@ -94,6 +94,20 @@ void parseNTP_header (uint32_t words[]) {
       sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
       Serial.print(buff);
       print_binary(packetWords[i], 32);
+      if (i < 4) {
+        sprintf(buff, " %s", NTP_header_names[i]);
+        Serial.print(buff);
+      }
+      else {
+        sprintf(buff, " %s ", NTP_names[(i - 4) / 2]);
+        Serial.print(buff);
+        if (((i - 4) % 2) == 0) {
+          Serial.print("seconds");
+        }
+        else {
+          Serial.print("fraction");
+        }
+      }
       Serial.println();
     }
   }
@@ -114,6 +128,26 @@ void parseNTP_header (uint32_t words[]) {
   print_binary(LI, 2);
   sprintf(buff, "       %3d ", LI);
   Serial.print(buff);
+  //Serial.print("\t");
+  //Serial.print(LI, DEC);
+  //Serial.print("\t");
+  switch (LI) {
+    case 0:
+      Serial.print("no leap second");
+      break;
+    case 1:
+      Serial.print("+1 leap second");
+      break;
+    case 2:
+      Serial.print("-1 leap second");
+      break;
+    case 3:
+      Serial.print("unsynced");
+      break;
+    default:
+      Serial.print("UNDEFINED");
+      break;
+  }
   Serial.println();
 
   Serial.print("  Version: ");
@@ -135,6 +169,8 @@ void parseNTP_header (uint32_t words[]) {
   print_binary(Mode, 3);
   sprintf(buff, " %3d ", Mode);
   Serial.print(buff);
+  if (Mode == 4)
+    Serial.print("server");
   Serial.println();
 
   Serial.print("  Stratum: ");
@@ -144,6 +180,14 @@ void parseNTP_header (uint32_t words[]) {
     Serial.println("should be dec 1, hex 1");
   }
   print_binary(Stratum, 8);
+  sprintf(buff, " %3d ", Stratum);
+  Serial.print(buff);
+  if (Stratum == 1)
+    Serial.print("primary");
+  if (Stratum > 1 && Stratum < 16)
+    Serial.print("secondary");
+  if (Stratum == 16)
+    Serial.print("unsynched");
   Serial.println();
 
   Serial.print("     Poll: ");
