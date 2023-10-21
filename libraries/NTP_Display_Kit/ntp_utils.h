@@ -58,7 +58,7 @@ void readNTP_packet () {
     packetWords[i] = getWord(packetBuffer, i * 4);
   }
 
-  if (debug > 0) {
+  if (debug > -1) {
     // print raw packet
     Serial.println("\nraw 32-bit packet elements");
     Serial.println(" i |  decimal  |  hex     |  binary");
@@ -82,47 +82,50 @@ void parseNTP_header (uint32_t words[]) {
   Serial.print("header: ");
   print_uint32(words[0]);
   Serial.println();
-  // define variables
-  uint32_t  LI = getBits32(words[0], 0, 2);
+
+  // Print variables
+  byte  LI = getBits32(words[0], 0, 2);
   Serial.print("\nLI: ");
   print_uint8(LI);
   Serial.println("should be dec 0-3 or bin 00-11");
-  uint32_t  VN = getBits32(words[0], 2, 3);
+
+  byte VN = getBits32(words[0], 2, 3);
   Serial.print("\nVN: ");
   print_uint8(VN);
   Serial.println("should be dec 4 or bin 100");
-  uint32_t  Mode = getBits32(words[0], 5, 3);
+
+  byte Mode = getBits32(words[0], 5, 3);
   Serial.print("\nMode: ");
   print_uint8(Mode);
 
-  uint32_t  Stratum = getBits32(words[0], 8, 8);
+  byte Stratum = getBits32(words[0], 8, 8);
   Serial.print("\nStra: ");
   print_uint8(Stratum);
   Serial.println("should be dec 0-16, hex 0-F");
 
-  uint32_t  Poll = getBits32(words[0], 16, 8);
+  byte Poll = getBits32(words[0], 16, 8);
   Serial.print("\nPoll: ");
   print_uint8(Poll);
+  Serial.println("8-bit signed int");
   Serial.print("int: ");
   int8_t pinterval = int8_t(Poll);
   Serial.print(pinterval);
   Serial.print(" seconds\n");
-  Serial.println("8-bit signed int");
 
-  uint32_t  Precision = getBits32(words[0], 24, 8);
+
+  byte Precision = getBits32(words[0], 24, 8);
   Serial.print("\nPrec: ");
   print_uint8(Precision);
+  Serial.println("\n8-bit signed int");
   Serial.print("int: ");
   int8_t ppower = int8_t(Precision);
   Serial.print(ppower);
   Serial.print(", seconds ");
   double sprec = pow(2, ppower);
-
   Serial.print(sprec);
   sprintf(buff, "precision: %.30f seconds\n", sprec);
   Serial.print(buff);
-  Serial.println("\n8-bit signed int");
-
+  
   sprintf(buff, "%010u Root Delay\n", rootDelay);
   Serial.print(buff);
   sprintf(buff, "%010u Root Dispersion\n", rootDispersion);
