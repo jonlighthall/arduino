@@ -61,8 +61,8 @@ void readNTP_packet () {
   if (debug > -1) {
     // print raw packet
     Serial.println("\nraw 32-bit packet elements");
-    Serial.println(" i |  decimal  |  hex     |  binary");
-    Serial.println("---------------------------------------------------------------------");
+    Serial.println(" i |  decimal   |  hex     |  binary");
+    Serial.println("-----------------------------------------------------------------");
     for (int i = 0; i < 12; i++) {
       sprintf(buff, "%2d | %010u | %08X | ", i, packetWords[i], packetWords[i]);
       Serial.print(buff);
@@ -86,41 +86,44 @@ void parseNTP_header (uint32_t words[]) {
   uint32_t referenceIdentifier = words[3];
 
   // define converted variables
-  int8_t pinterval = int8_t(Poll);
+  int8_t Poll_interval = int8_t(Poll);
   int8_t ppower = int8_t(Precision);
   double sprec = pow(2, ppower);
   uint8_t a = getBits32(referenceIdentifier, 0, 8) ;
   uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
   uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
   uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
-  
-  Serial.print("header: ");
-  print_uint32(words[0]);
-  Serial.println();
+
+  // print header
+  if (debug > 0) {
+    Serial.print("\nheader: ");
+    print_uint32(words[0]);
+    Serial.println();
+  }
 
   // Print variables
-  Serial.print("\nLI: ");
+  Serial.print("       LI: ");
   if (debug > 0) {
     print_uint8(LI);
     Serial.println("should be dec 0-3 or bin 00-11");
   }  
   print_binary(LI, 2); Serial.println();
-  
-  Serial.print("\nVN: ");
+
+  Serial.print("  Version: ");
   if (debug > 0) {
     print_uint8(VN);
     Serial.println("should be dec 4 or bin 100");
   }
   print_binary(VN, 3); Serial.println();
 
-  Serial.print("\nMode: ");
+  Serial.print("     Mode: ");
   if (debug > 0) {
     print_uint8(Mode);
     Serial.println("should be dec 3 or bin 011");
   }
   print_binary(Mode, 3); Serial.println();
 
-  Serial.print("\nStra: ");
+  Serial.print("  Stratum: ");
   if (debug > 0) {
     print_uint8(Stratum);
     Serial.println("should be dec 0-16, hex 0-F");
@@ -128,23 +131,23 @@ void parseNTP_header (uint32_t words[]) {
   }
   print_binary(Stratum, 8); Serial.println();
 
-  Serial.print("\nPoll: ");
+  Serial.print("     Poll: ");
   if (debug > 0) {
     print_uint8(Poll);
     Serial.println("8-bit signed int");
   }
-  print_binary(Poll, 8); Serial.println();
+  print_binary(Poll, 8);
   Serial.print(", int: ");
-  Serial.print(pinterval);
+  Serial.print(Poll_interval);
   Serial.print(" seconds\n");
 
-  Serial.print("\nPrec: ");
+  Serial.print("Precision: ");
   if (debug > 0) {
     print_uint8(Precision);
     Serial.println("8-bit signed int");
   }
-  print_binary(Precision, 8); Serial.println();
-  Serial.print("int: ");
+  print_binary(Precision, 8);
+  Serial.print(", int: ");
   Serial.print(ppower);
   Serial.print(" log2(seconds), ");
   Serial.print(sprec);
