@@ -7,16 +7,13 @@
 const int debug = 0;
 //-------------------------------
 
-// standard library headers
+// custom library headers
 #include <TimeLib.h>
 
-// custom library headers
+// project library headers
 #include <wifi_utils.h>
 #include <dst.h>
-
-// project library headers
-#include "binary_utils.h"
-#include "ntp_utils.h"
+#include <ntp_utils.h>
 
 // Serial display settings
 void serialClockDisplay();
@@ -44,7 +41,6 @@ void setup() {
   // pause for readability
   delay(PRINT_DELAY);
 
-  // Serial connect message
   wifi_start();
   /* print connected message */
   // Serial

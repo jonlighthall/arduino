@@ -49,17 +49,14 @@
 const int debug = 1;
 //-------------------------------
 
-// standard library headers
+// custom library headers
 #include <TimeLib.h>
 
-// custom library headers
+// project library headers
 #include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
-
-// project library headers
-#include "binary_utils.h"
-#include "ntp_utils.h"
+#include <ntp_utils.h>
 
 // Serial display settings
 void serialClockDisplay();

@@ -49,17 +49,14 @@
 const int debug = 0;
 //-------------------------------
 
-// standard library headers
+// custom library headers
 #include <TimeLib.h>
 
-// custom library headers
+// project library headers
 #include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
-
-// project library headers
-#include "binary_utils.h"
-#include "ntp_utils.h"
+#include <ntp_utils.h>
 
 // Serial display settings
 void serialClockDisplay();
@@ -75,7 +72,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
-  // Serial welcome message
+  /* print welcome message */
+  // Serial
   Serial.println();
   Serial.println("---------------");
   char buff[64];

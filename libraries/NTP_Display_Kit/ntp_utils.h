@@ -1,6 +1,15 @@
+// standard library headers
+#include <WiFiUdp.h>
+
+// custom library headers
 #include <TimeLib.h>
 
-#include <WiFiUdp.h>
+// project library headers
+#include <wifi_utils.h>
+#include <dst.h>
+#include <binary_utils.h>
+
+// UDP settings
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 
