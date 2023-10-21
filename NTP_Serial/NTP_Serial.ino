@@ -46,16 +46,25 @@ void setup() {
 
   // Serial connect message
   wifi_start();
+  /* print connected message */
+  // Serial
   Serial.print("connected\n");
+
+  /* print Wi-Fi connection status */
   rssi = WiFi.RSSI();
   Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
-  Serial.println("Starting UDP");
+
+  /* start UDP */  
+  Serial.println("Starting UDP...");
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
+
+  /* print sync message */
+  // Serial
   Serial.println("waiting for sync...");
   setSyncProvider(getNtpTime);
 
@@ -66,6 +75,9 @@ void setup() {
     Serial.print(".");
   }
   setSyncInterval(1);
+
+  /* print sync complete message */
+  // Serial
   Serial.println("sync complete");
 
   if (do_DST) {

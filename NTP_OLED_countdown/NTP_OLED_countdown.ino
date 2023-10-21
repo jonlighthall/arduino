@@ -91,11 +91,11 @@ void setup() {
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
 
-  // OLED welcome message
+  // print OLED welcome message
   u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
 
-  // get text dimensions
+  // get OLED text dimensions
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
 
@@ -117,10 +117,11 @@ void setup() {
   // pause for readability
   delay(PRINT_DELAY);
 
-  // Serial connect message
+  /* print connecting message */
+  // Serial
   Serial.print("Connecting to ");
   Serial.print(ssid);
-  // OLED connect message
+  // OLED
   sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei + 2;
@@ -151,8 +152,10 @@ void setup() {
     u8g2.sendBuffer();
   }
 
+  /* print connected message */
+  // Serial
   Serial.print("connected\n");
-  // OLED connected message
+  // OLED
   u8g2.setDrawColor(0);
   u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
   u8g2.setDrawColor(1);
@@ -160,17 +163,24 @@ void setup() {
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+
+  /* print Wi-Fi connection status */
   rssi = WiFi.RSSI();
   Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
-  Serial.println("Starting UDP");
+
+  /* start UDP */  
+  Serial.println("Starting UDP...");
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
+
+  /* print sync message */
+  // Serial
   Serial.println("waiting for sync...");
-  // OLED sync message
+  // OLED
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
@@ -185,8 +195,11 @@ void setup() {
     Serial.print(".");
   }
   setSyncInterval(1);
+
+  /* print sync complete message */
+  // Serial
   Serial.println("sync complete");
-  // OLED sync complete message
+  // OLED
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);

@@ -96,7 +96,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
-  // print Serial welcome message
+  /* print welcome message */
+  // Serial
   Serial.println();
   Serial.println("---------------");
   char buff[64];
@@ -309,6 +310,7 @@ void loop() {
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
         float syncWait = (float)TimeSinceSync / syncInterval;
+	// define OLED sync bar
         syncBar = syncWait * disphei;
         if (debug > 1) {
           Serial.print("last sync time = ");
@@ -377,8 +379,8 @@ void loop() {
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
-      // Display time, OLED
       int midTime = millis();
+      // Display time, OLED
       OLEDClockDisplay();
       int afterTime = millis();
       // Display time, LED
