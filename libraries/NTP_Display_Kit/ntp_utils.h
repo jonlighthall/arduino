@@ -86,35 +86,45 @@ void parseNTP_header (uint32_t words[]) {
   // Print variables
   byte  LI = getBits32(words[0], 0, 2);
   Serial.print("\nLI: ");
-  print_uint8(LI);
-  Serial.println("should be dec 0-3 or bin 00-11");
+  if (debug > 0) {
+    print_uint8(LI);
+    Serial.println("should be dec 0-3 or bin 00-11");
+  }
   print_binary(LI, 2); Serial.println();
 
   byte VN = getBits32(words[0], 2, 3);
   Serial.print("\nVN: ");
-  print_uint8(VN);
-  Serial.println("should be dec 4 or bin 100");
+  if (debug > 0) {
+    print_uint8(VN);
+    Serial.println("should be dec 4 or bin 100");
+  }
   print_binary(VN, 3); Serial.println();
 
 
   byte Mode = getBits32(words[0], 5, 3);
   Serial.print("\nMode: ");
-  print_uint8(Mode);
-  Serial.println("should be dec 3 or bin 011");
+  if (debug > 0) {
+    print_uint8(Mode);
+    Serial.println("should be dec 3 or bin 011");
+  }
   print_binary(Mode, 3); Serial.println();
 
 
   byte Stratum = getBits32(words[0], 8, 8);
   Serial.print("\nStra: ");
-  print_uint8(Stratum);
-  Serial.println("should be dec 0-16, hex 0-F");
-  Serial.println("should be dec 1, hex 1");
+  if (debug > 0) {
+    print_uint8(Stratum);
+    Serial.println("should be dec 0-16, hex 0-F");
+    Serial.println("should be dec 1, hex 1");
+  }
   print_binary(Stratum, 8); Serial.println();
 
   byte Poll = getBits32(words[0], 16, 8);
   Serial.print("\nPoll: ");
-  print_uint8(Poll);
-  Serial.println("8-bit signed int");
+  if (debug > 0) {
+    print_uint8(Poll);
+    Serial.println("8-bit signed int");
+  }
   print_binary(Poll, 8); Serial.println();
   Serial.print(", int: ");
   int8_t pinterval = int8_t(Poll);
@@ -124,8 +134,10 @@ void parseNTP_header (uint32_t words[]) {
 
   byte Precision = getBits32(words[0], 24, 8);
   Serial.print("\nPrec: ");
-  print_uint8(Precision);
-  Serial.println("8-bit signed int");
+  if (debug > 0) {
+    print_uint8(Precision);
+    Serial.println("8-bit signed int");
+  }
   print_binary(Precision, 8); Serial.println();
   Serial.print("int: ");
   int8_t ppower = int8_t(Precision);
