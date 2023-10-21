@@ -1,5 +1,9 @@
 #include <TimeLib.h>
 
+#include <WiFiUdp.h>
+WiFiUDP Udp;
+unsigned int localPort = 8888;  // local port to listen for UDP packets
+
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
 

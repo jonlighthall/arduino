@@ -3,15 +3,11 @@
 */
 
 #include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
 
 // Wi-Fi settings:
 #include "wifi_credentials.h"
 const char* ssid = WIFI_SSID;          //from credentials.h file
 const char* pass = WIFI_PASSWORD;      //from credentials.h file
-
-WiFiUDP Udp;
-unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 int rssi = 0; // Wifi signal strengh variable
 
