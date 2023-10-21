@@ -163,7 +163,7 @@ void parseNTP_header (uint32_t words[]) {
 
   if (Stratum == 1) {
     print_binary(referenceIdentifier, 32); Serial.println();
-    print_binary_spc(referenceIdentifier, 32); Serial.println();
+    print_binary_spc(referenceIdentifier, 32, 8); Serial.println();
     Serial.println();
 
     sprintf(buff, "here\n");
