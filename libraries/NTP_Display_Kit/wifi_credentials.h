@@ -3,11 +3,11 @@
   
   Use the following command to ignore changes to this files, both local and upstream
   
-  >   git update-index --skip-worktree credentials.h
+  >   git update-index --skip-worktree wifi_credentials.h
 
   Use the following command to track changes to the file
 
-  >   git update-index --no-skip-worktree credentials.h
+  >   git update-index --no-skip-worktree wifi_credentials.h
 */
 
 #ifndef CREDENTIALS_WIFI
