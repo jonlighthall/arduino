@@ -18,7 +18,6 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 // TimeLib settings
 time_t getNtpTime();
-setSyncProvider(getNtpTime);
 #define SYNC_INTERVAL 30 // print delay in seconds
 int syncInterval = SYNC_INTERVAL * 1e3;
 
@@ -60,7 +59,7 @@ void udp_start () {
   Serial.println(Udp.localPort());
 }
 
-readNTP_packet () {
+void readNTP_packet () {
   char buff[64];
   // read packet
   for (int i = 0; i < NTP_PACKET_LENGTH; i++) {
