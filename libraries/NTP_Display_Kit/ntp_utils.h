@@ -12,24 +12,27 @@
 #include <dst.h>
 #include <binary_utils.h>
 
-// UDP settings
+// ESP8266 Wi-Fi UDP settings 
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
+
+// TimeLib settings
+time_t getNtpTime();
+setSyncProvider(getNtpTime);
+#define SYNC_INTERVAL 30 // print delay in seconds
+int syncInterval = SYNC_INTERVAL * 1e3;
+
+// Set Standard time zone
+const int timeZone = -6; // CST
+int SetTimeZone = timeZone;
+
+// DST settings
+const bool do_DST = true;
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
 
-// Set Standard time zone
-const int timeZone = -6; // CST
-
-int SetTimeZone = timeZone;
-const bool do_DST = true;
-
-time_t getNtpTime();
-void sendNTPpacket(IPAddress &address);
-
-#define SYNC_INTERVAL 30 // print delay in seconds
-int syncInterval = SYNC_INTERVAL * 1e3;
+//void sendNTPpacket(IPAddress &address);
 
 uint32_t NTPfracTime;
 uint32_t NTPlocalTime;
@@ -49,7 +52,15 @@ constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
 const char* NTP_header_names[4] = {"header", "root delay", "root dispersion", "reference identifier"};
 const char* NTP_names[4] = {"reference", "origin", "receive", "transmit"};
 
-void readNTP_packet () {
+void udp_start () {
+  // start UDP
+  Serial.println("Starting UDP...");
+  Udp.begin(localPort);
+  Serial.print("Local port: ");
+  Serial.println(Udp.localPort());
+}
+
+readNTP_packet () {
   char buff[64];
   // read packet
   for (int i = 0; i < NTP_PACKET_LENGTH; i++) {
@@ -138,21 +149,21 @@ void parseNTP_header (uint32_t words[]) {
   //Serial.print(LI, DEC);
   //Serial.print("\t");
   switch (LI) {
-    case 0:
-      Serial.print("no leap second");
-      break;
-    case 1:
-      Serial.print("+1 leap second");
-      break;
-    case 2:
-      Serial.print("-1 leap second");
-      break;
-    case 3:
-      Serial.print("unsynced");
-      break;
-    default:
-      Serial.print("UNDEFINED");
-      break;
+  case 0:
+    Serial.print("no leap second");
+    break;
+  case 1:
+    Serial.print("+1 leap second");
+    break;
+  case 2:
+    Serial.print("-1 leap second");
+    break;
+  case 3:
+    Serial.print("unsynced");
+    break;
+  default:
+    Serial.print("UNDEFINED");
+    break;
   }
   Serial.println();
 
