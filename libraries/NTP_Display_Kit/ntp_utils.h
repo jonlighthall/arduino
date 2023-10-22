@@ -1,3 +1,6 @@
+#ifndef NTP_UTILS
+#define NTP_UTILS
+
 // standard library headers
 #include <WiFiUdp.h>
 
@@ -337,3 +340,5 @@ void sendNTPpacket(IPAddress & address) {
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
 }
+
+#endif

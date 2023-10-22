@@ -1,3 +1,6 @@
+#ifndef BIN_UTILS
+#define BIN_UTILS
+
 uint32_t getWord(byte packet[48], int idx) {
   uint32_t bit_word;
   bit_word =  (unsigned long)packet[idx] << 24;
@@ -188,3 +191,5 @@ uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
   else
     return out3;
 }
+
+#endif

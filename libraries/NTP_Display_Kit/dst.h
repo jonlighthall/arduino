@@ -1,3 +1,6 @@
+#ifndef DST_UTILS
+#define DST_UTILS
+
 #include <TimeLib.h>
 
 int isDST(int default_debugDST = 0); // set default function value
@@ -208,3 +211,5 @@ void testDST(int test_debugDST) {
     }
   }
 }
+
+#endif

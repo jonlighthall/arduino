@@ -2,6 +2,9 @@
    This sketch uses the ESP8266WiFi library
 */
 
+#ifndef WIFI_UTILS
+#define WIFI_UTILS
+
 #include <ESP8266WiFi.h>
 
 // Wi-Fi settings:
@@ -21,3 +24,5 @@ void wifi_start() {
     Serial.print ( "." );
   }
 }
+
+#endif
