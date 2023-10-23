@@ -49,25 +49,14 @@
 const int debug = 0;
 //-------------------------------
 
-// standard library headers
+// custom library headers
 #include <TimeLib.h>
 
-// custom library headers
+// project library headers
 #include <wifi_utils.h>
 #include <dst.h>
 #include <oled_utils.h>
-
-// NTP Servers:
-static const char ntpServerName[] = "time.nist.gov";
-
-// Set Standard time zone
-const int timeZone = -6; // CST
-
-int SetTimeZone = timeZone;
-const bool do_DST = true;
-#define SYNC_DELAY 300 // print delay in seconds
-time_t getNtpTime();
-void sendNTPpacket(IPAddress &address);
+#include <ntp_utils.h>
 
 // Serial display settings
 void serialClockDisplay();
@@ -96,7 +85,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
-  // Serial welcome message
+  /* print welcome message */
+  // Serial
   Serial.println();
   Serial.println("---------------");
   char buff[64];
@@ -112,11 +102,11 @@ void setup() {
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
 
-  // OLED welcome message
+  // print OLED welcome message
   u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
   sprintf(buff, "NTP Time");
 
-  // get text dimensions
+  // get OLED text dimensions
   int textwid = u8g2.getStrWidth(buff);
   int texthei = u8g2.getAscent();
 
@@ -150,10 +140,11 @@ void setup() {
   // pause for readability
   delay(PRINT_DELAY);
 
-  // Serial connect message
+  /* print connecting message */
+  // Serial
   Serial.print("Connecting to ");
   Serial.print(ssid);
-  // OLED connect message
+  // OLED
   sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei + 2;
@@ -191,8 +182,10 @@ void setup() {
     u8g2.sendBuffer();
   }
 
+  /* print connected message */
+  // Serial
   Serial.print("connected\n");
-  // OLED connected message
+  // OLED
   u8g2.setDrawColor(0);
   u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
   u8g2.setDrawColor(1);
@@ -200,17 +193,20 @@ void setup() {
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
+
+  /* print Wi-Fi connection status */
   rssi = WiFi.RSSI();
   Serial.print("signal strength (RSSI): ");
   Serial.println(rssi);
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
-  Serial.println("Starting UDP");
-  Udp.begin(localPort);
-  Serial.print("Local port: ");
-  Serial.println(Udp.localPort());
+
+  udp_start();
+  
+  /* print sync message */
+  // Serial
   Serial.println("waiting for sync...");
-  // OLED sync message
+  // OLED
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
@@ -224,17 +220,19 @@ void setup() {
   matrix.writeDigitRaw(4, 0b01011000);//c
   matrix.writeDisplay();
 
-  setSyncProvider(getNtpTime);
-
   // wait for time to be set
+  setSyncProvider(getNtpTime);
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
     Serial.print(".");
   }
   setSyncInterval(1);
+
+  /* print sync complete message */
+  // Serial
   Serial.println("sync complete");
-  // OLED sync complete message
+  // OLED
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
   u8g2.drawStr(xpos, ypos, buff);
@@ -261,18 +259,15 @@ void setup() {
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
 
-  setSyncInterval(SYNC_DELAY); // refresh rate in seconds
+  setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
   Serial.println("done with setup");
   Serial.println("starting loop...");
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
-
-uint32_t bufferTime;
-uint32_t fracTime;
+uint32_t LastSyncTime;
 char serdiv[] = "----------------------------"; // serial print divider
 
-int syncTime = SYNC_DELAY * 1e3;
 void loop() {
   char buff[64];
   if (timeStatus() != timeNotSet) {
@@ -307,28 +302,28 @@ void loop() {
       // check time in milliseconds
       uint32_t printTime = millis();
       // calculate time since/until last/next sync
-      int delayTime = printTime - bufferTime;
-      int ToSyncTime = syncTime - delayTime;
-      float syncWait = (float)delayTime / syncTime;
+      int TimeSinceSync = printTime - LastSyncTime;
+      int ToSyncTime = syncInterval - TimeSinceSync;
+      float syncWait = (float)TimeSinceSync / syncInterval;
       syncBar = syncWait * disphei;
       if (debug > 1) {
         Serial.print("buffer time = ");
-        Serial.println(bufferTime);
+        Serial.println(LastSyncTime);
         Serial.print(" print time = ");
         Serial.println(printTime);
         Serial.print(" delay time = ");
-        Serial.println(delayTime);
+        Serial.println(TimeSinceSync);
         // print time since/until last/next sync
-        sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
+        sprintf(buff, "Time since last sync = %.3fs\n", TimeSinceSync / 1e3);
         Serial.print(buff);
-        sprintf(buff, "Time since last sync = %dms\n", delayTime);
+        sprintf(buff, "Time since last sync = %dms\n", TimeSinceSync);
         Serial.print(buff);
-        sprintf(buff, "Time since last sync = %.3fs\n", delayTime / 1e3);
+        sprintf(buff, "Time since last sync = %.3fs\n", TimeSinceSync / 1e3);
         Serial.print(buff);
         // print time between syns percentage
-        sprintf(buff, "Time between syncs = %dms\n", syncTime);
+        sprintf(buff, "Time between syncs = %dms\n", syncInterval);
         Serial.print(buff);
-        sprintf(buff, "Time between syncs = %.3fs\n", syncTime / 1e3);
+        sprintf(buff, "Time between syncs = %.3fs\n", syncInterval / 1e3);
         Serial.print(buff);
 
         sprintf(buff, "Time until next sync = %dms\n", ToSyncTime);
@@ -344,8 +339,8 @@ void loop() {
       }
 
       // wait until top of second to print time
-      if ((delayTime < 1000) && (delayTime > 0)) {
-        int totalDelay = fracTime + delayTime;
+      if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
+        int totalDelay = NTPfracTime + TimeSinceSync;
         int setDelay = totalDelay % 1000;
         int offsetTime = 1000 - setDelay;
         if (debug > 1) {
@@ -364,7 +359,7 @@ void loop() {
       }
       else {
         if (debug > 1) {
-          int delayError = delayTime % 1000;
+          int delayError = TimeSinceSync % 1000;
           Serial.println(serdiv);
           sprintf(buff, "delay error = %d\n", delayError);
           Serial.print(buff);
@@ -521,13 +516,16 @@ void OLEDClockDisplay() {
 
 // LED Display
 void DigitalClockDisplay() {
+  // Display Time
   int dig_time;
 
   if (do_mil) {
+    // military time
     dig_time = (hour() * 100) + minute();
     matrix.print(dig_time, DEC);
   }
   else {
+    // 12-hour time
     dig_time = (hourFormat12() * 100) + minute();
     matrix.print(dig_time, DEC);
   }
@@ -582,9 +580,6 @@ void DigitalClockDisplayOpt() {
 
 /*-------- NTP code ----------*/
 
-const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
-byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
-
 time_t getNtpTime() {
   IPAddress ntpServerIP; // NTP server's ip address
 
@@ -615,57 +610,19 @@ time_t getNtpTime() {
 
       // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
-      bufferTime = millis();
+      LastSyncTime = millis();
+      readNTP_packet();
 
       // parse packet
-      unsigned long secsSince1900;
-      // convert four bytes starting at location 40 to a long integer
-      secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
-      secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
-      secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
-      secsSince1900 |= (unsigned long)packetBuffer[43];
-      // convert four bytes starting at location 44 to a long integer
-      unsigned long frac;
-      frac  = (unsigned long) packetBuffer[44] << 24;
-      frac |= (unsigned long) packetBuffer[45] << 16;
-      frac |= (unsigned long) packetBuffer[46] <<  8;
-      frac |= (unsigned long) packetBuffer[47];
-      // convert the fractional part to milliseconds
-      fracTime = ((uint64_t) frac * 1000) >> 32;
-      if (debug > 1) {
-        Serial.print("fracTime = ");
-        Serial.println(fracTime);
-      }
+      parseNTP_time(packetWords);
 
       Serial.println(serdiv);
 
       // return time
-      return secsSince1900 - 2208988800UL + SetTimeZone * SECS_PER_HOUR;
+      return NTPlocalTime;
     }
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
   return 0; // return 0 if unable to get the time
-}
-
-// send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress & address) {
-  // set all bytes in the buffer to 0
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  packetBuffer[12] = 49;
-  packetBuffer[13] = 0x4E;
-  packetBuffer[14] = 49;
-  packetBuffer[15] = 52;
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  Udp.beginPacket(address, 123); //NTP requests are to port 123
-  Udp.write(packetBuffer, NTP_PACKET_SIZE);
-  Udp.endPacket();
 }
