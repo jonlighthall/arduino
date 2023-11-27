@@ -78,8 +78,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
-  /* print welcome message */
-  // Serial
+  // Serial welcome message
   Serial.println();
   Serial.println("---------------");
   char buff[64];
@@ -125,7 +124,7 @@ void setup() {
   // Serial
   Serial.print("Connecting to ");
   Serial.print(ssid);
-  // OLED
+  // OLED connect message
   sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei + 2;
@@ -184,7 +183,7 @@ void setup() {
   /* print sync message */
   // Serial
   Serial.println("waiting for sync...");
-  // OLED
+  // OLED sync message
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
@@ -355,6 +354,8 @@ void loop() {
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
+      if (do_Christmas)
+	calcChristmas();
       int midTime = millis();
       // Display time, OLED
       OLEDClockDisplay();
@@ -422,10 +423,6 @@ void calcChristmas() {
   char buff[128];
   int dhour = 24 - hour();
   int dmonth = 12 - month();
-
-  if (debug > 0) {
-    Serial.println("\nCalculating time until christmas...");
-  }
   time_t time_now = now();
   time_t time_diff[3] = {0};
   int diff_sec[3];
@@ -433,7 +430,10 @@ void calcChristmas() {
   float diff_hr[3];
   float diff_day[3];
 
-  Serial.println();
+  if (debug > 0) {
+    Serial.println("\nCalculating time until christmas...");
+  }
+
   // calculate time relative to xmas last year, this year, and next year
   for (int i = 0; i < 3; i++) {
 
@@ -469,8 +469,8 @@ void calcChristmas() {
       }
       diff_DAYS = floor(diff_day[i]);
       
-        sprintf(buff, "   Time until next Christmas: %d sec or %.1f days", time_diff[i], diff_day[i]); //no linebreak needed
-        Serial.print(buff);
+      sprintf(buff, "   Time until next Christmas: %d sec or %.1f days\n", time_diff[i], diff_day[i]);
+      Serial.print(buff);
       if (debug > 0) {  
         Serial.print("   Time until next Christmas is:");
         Serial.println(time_diff[i]);
