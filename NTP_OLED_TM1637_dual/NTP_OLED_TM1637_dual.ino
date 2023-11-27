@@ -136,11 +136,11 @@ void setup() {
   // initialize LED display
   display.clear();
   display.setBrightness(7);
+  display2.clear();
+  display2.setBrightness(7);
 
   // print LED welcome message
   display.setSegments(SEG_hEllo);
-  display2.clear();
-  display2.setBrightness(7);
   display2.setSegments(SEG_hEllo);
 
   // pause for readability
@@ -203,11 +203,7 @@ void setup() {
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
 
-  /* start UDP */  
-  Serial.println("Starting UDP...");
-  Udp.begin(localPort);
-  Serial.print("Local port: ");
-  Serial.println(Udp.localPort());
+  udp_start();
 
   /* print sync message */
   // Serial
@@ -221,9 +217,9 @@ void setup() {
   // LED
   display.setSegments(SEG_SYNC);
   display2.setSegments(SEG_SYNC);
-  setSyncProvider(getNtpTime);
 
   // wait for time to be set
+  setSyncProvider(getNtpTime);
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {

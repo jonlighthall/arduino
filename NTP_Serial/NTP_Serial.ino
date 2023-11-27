@@ -53,18 +53,14 @@ void setup() {
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
 
-  /* start UDP */  
-  Serial.println("Starting UDP...");
-  Udp.begin(localPort);
-  Serial.print("Local port: ");
-  Serial.println(Udp.localPort());
-
+  udp_start();
+  
   /* print sync message */
   // Serial
   Serial.println("waiting for sync...");
-  setSyncProvider(getNtpTime);
 
   // wait for time to be set
+  setSyncProvider(getNtpTime);
   if (timeStatus() == timeNotSet)
     setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
