@@ -33,6 +33,9 @@ static const char ntpServerName[] = "time.nist.gov";
 
 //void sendNTPpacket(IPAddress &address);
 
+time_t prevDisplay = 0; // when the digital clock was displayed
+uint32_t LastSyncTime;
+
 uint32_t NTPfracTime;
 uint32_t NTPlocalTime;
 

@@ -240,8 +240,6 @@ void setup() {
   Serial.println("starting loop...");
 }
 
-time_t prevDisplay = 0; // when the digital clock was displayed
-uint32_t LastSyncTime;
 char serdiv[] = "----------------------------"; // serial print divider
 
 void loop() {
