@@ -20,9 +20,9 @@
   +-----+--------+-------+----------------+
   | D6  | GPIO12 | MISO  | LED display CLK
   +-----+--------+-------+----------------+
-  | D7  | GPIO13 | MOSI  | 
+  | D7  | GPIO13 | MOSI  |
   +-----+--------+-------+----------------+
-  | D8  | GPIO15 | CS    | 
+  | D8  | GPIO15 | CS    |
   +-----+--------+-------+----------------+
   | 3V3 | 3.3V   |       | LED VCC
   +-----+--------+-------+----------------+
@@ -34,7 +34,7 @@
   +-----+--------+-------+----------------+
   | D2  | GPIO4  | SDA   | 
   +-----+--------+-------+----------------+
-  | D3  | GPIO0  | FLASH | 
+  | D3  | GPIO0  | FLASH |
   +-----+--------+-------+----------------+
   | D4  | GPIO2  | LED   | sync cue
   +-----+--------+-------+----------------+
@@ -46,7 +46,7 @@
 */
 
 //-------------------------------
-const int debug = 0;
+const int debug = 1;
 //-------------------------------
 
 // custom library headers
@@ -83,8 +83,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(PRINT_DELAY);
-  /* print welcome message */
-  // Serial
+  // Serial welcome message
   Serial.println();
   Serial.println("---------------");
   char buff[64];
@@ -137,13 +136,13 @@ void setup() {
   // Serial
   Serial.print("Connecting to ");
   Serial.print(ssid);
-  // OLED
+  // OLED connecting message
   sprintf(buff, "Wi-Fi...");
   xpos = 0;
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  // LED
+  // LED connecting message
   display.setSegments(SEG_CONN);
 
   WiFi.begin(ssid, pass);
@@ -194,13 +193,13 @@ void setup() {
   /* print sync message */
   // Serial
   Serial.println("waiting for sync...");
-  // OLED
+  // OLED sync message
   sprintf(buff, "NTP sync...");
   xpos = 0;
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  // LED
+  // LED sync message
   display.setSegments(SEG_SYNC);
 
   // wait for time to be set
@@ -267,6 +266,7 @@ void loop() {
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
+      // save previous display time 
       prevDisplay = now();
 
       // check DST
@@ -307,12 +307,12 @@ void loop() {
           Serial.print(buff);
         }
 
-        // wait until top of second to print time
         if (debug > 0) {
           sprintf(buff, "   NTPfracTime = %d\n", NTPfracTime);
           Serial.print(buff);
         }
 
+        // wait until top of second to print time
         if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
           int totalDelay = NTPfracTime + TimeSinceSync;
           int setDelay = totalDelay % 1000;
@@ -351,7 +351,12 @@ void loop() {
             Serial.println(serdiv);
           }
         }
-      }
+      } // end do_milliseconds
+
+      //-------------------------------
+      // Output updated time
+      //-------------------------------
+      
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
@@ -360,7 +365,7 @@ void loop() {
       OLEDClockDisplay();
       int afterTime = millis();
       // Display time, LED
-      DigitalClockDisplayOpt();
+      DigitalClockDisplayOpt();      
 
       if (debug > 1) {
         sprintf(buff, "serialClockDisplay takes %d\n", midTime - beforeTime);
@@ -502,13 +507,16 @@ void OLEDClockDisplay() {
 
 // LED Display
 void DigitalClockDisplay() {
+  // Display Time
   int dig_time;
 
   if (do_mil) {
+    // military time
     dig_time = (hour() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, true);
   }
   else {
+    // 12-hour time
     dig_time = (hourFormat12() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, false);
   }
