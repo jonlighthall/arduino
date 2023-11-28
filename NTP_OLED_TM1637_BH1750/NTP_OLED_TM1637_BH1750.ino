@@ -275,8 +275,6 @@ void setup() {
   Serial.println("starting loop...");
 }
 
-char serdiv[] = "----------------------------";  // serial print divider
-
 void loop() {
   char buff[64];
   // ---------------------------------
