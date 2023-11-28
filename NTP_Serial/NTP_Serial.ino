@@ -24,21 +24,21 @@
   +-----+--------+-------+----------------+
   | D8  | GPIO15 | CS    |
   +-----+--------+-------+----------------+
-  | 3V3 | 3.3V   |       | 
+  | 3V3 | 3.3V   |       |
   +-----+--------+-------+----------------+
   | TX  | GPIO1  | TX    |
   +-----+--------+-------+----------------+
   | RX  | GPIO3  | RX    |
   +-----+--------+-------+----------------+
-  | D1  | GPIO5  | SCL   | 
+  | D1  | GPIO5  | SCL   |
   +-----+--------+-------+----------------+
-  | D2  | GPIO4  | SDA   | 
+  | D2  | GPIO4  | SDA   |
   +-----+--------+-------+----------------+
   | D3  | GPIO0  | FLASH |
   +-----+--------+-------+----------------+
   | D4  | GPIO2  | LED   | sync cue
   +-----+--------+-------+----------------+
-  | G   | GND    | GND   | 
+  | G   | GND    | GND   |
   +-----+--------+-------+----------------+
   | 5V  | N/A    | VCC   |
   +-----+--------+-------+----------------+
@@ -55,13 +55,8 @@ const int debug = 1;
 // project library headers
 #include <dst.h>
 #include <ntp_utils.h>
+#include <serial_utils.h>
 #include <wifi_utils.h>
-
-// Serial display settings
-void serialClockDisplay();
-#define PRINT_DELAY 250  // print delay in milliseconds
-const bool do_milliseconds = true;
-const bool do_RSSI = false;
 
 void setup() {
   // initialize on-board LED
@@ -171,7 +166,7 @@ void loop() {
         // calculate time since/until last/next sync
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
-        float syncWait = (float)TimeSinceSync / syncInterval;        
+        float syncWait = (float)TimeSinceSync / syncInterval;
         if (debug > 1) {
           Serial.print("last sync time = ");
           Serial.println(LastSyncTime);
@@ -259,39 +254,6 @@ void loop() {
     }  // end prevDisplay
   }    // end timeNotSet
 }  // end loop
-
-void serialClockDisplay() {
-  // send date/time to Serial Monitor
-  char buff[128];
-  // print time
-  sprintf(buff, "%02d:%02d:%02d ", hour(), minute(), second());
-  Serial.print(buff);
-  // print numeric date
-  sprintf(buff, "%02d/%02d/%04d ", month(), day(), year());
-  Serial.print(buff);
-  // print string date
-  sprintf(buff, "%s, ", dayStr(weekday()));
-  Serial.print(buff);
-  sprintf(buff, "%s ", monthStr(month()));
-  Serial.print(buff);
-  sprintf(buff, "%d ", day());
-  Serial.print(buff);
-
-  // print time zone
-  sprintf(buff, "UTC%d (", SetTimeZone);
-  Serial.print(buff);
-  isDST(1);
-  Serial.print(")");
-
-  if (do_RSSI) {
-    // print signal strength
-    rssi = WiFi.RSSI();
-    Serial.print(" RSSI: ");
-    Serial.print(rssi);
-  }
-
-  Serial.println();
-}
 
 /*-------- NTP code ----------*/
 
