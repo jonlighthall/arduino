@@ -1,4 +1,5 @@
-// This example sketch gets current time from NTP server, and prints it to Serial.
+// This example sketch gets current time from NTP server, and prints it to
+// Serial.
 
 // standard library headers
 #include <Arduino.h>
@@ -27,14 +28,9 @@ void connectWiFi() {
 }
 
 void printTime(struct tm *tm, suseconds_t usec) {
-  Serial.printf("%04d/%02d/%02d %02d:%02d:%02d.%06ld\n",
-                tm->tm_year + 1900,
-                tm->tm_mon + 1,
-                tm->tm_mday,
-                tm->tm_hour,
-                tm->tm_min,
-                tm->tm_sec,
-                usec);
+  Serial.printf("%04d/%02d/%02d %02d:%02d:%02d.%06ld\n", tm->tm_year + 1900,
+                tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min,
+                tm->tm_sec, usec);
 }
 
 void setup() {
@@ -45,14 +41,14 @@ void setup() {
   pftime::configTzTime(TZ_Asia_Tokyo, ntpServer);
 
   // This is deprecated:
-  //pftime::configTime(9 * 3600, 0, ntpServer);
+  // pftime::configTime(9 * 3600, 0, ntpServer);
 
-  // NOTE: ESP8266 Arduino core (2.7.0 to 2.7.1) has a sign-reversal bug for configTime(),
+  // NOTE: ESP8266 Arduino core (2.7.0 to 2.7.1) has a sign-reversal bug for
+  // configTime(),
   //       so using configTzTime() is recommended
 }
 
 void loop() {
-
   // Get current local time as struct tm
   // by calling pftime::localtime(nullptr)
   struct tm *tm = pftime::localtime(nullptr);

@@ -3,10 +3,10 @@
 
 // Wi-Fi settings:
 #include <credentials.h>
-const char* ssid = WIFI_SSID;          //from credentials.h file
-const char* pass = WIFI_PASSWORD;      //from credentials.h file
+const char* ssid = WIFI_SSID;      // from credentials.h file
+const char* pass = WIFI_PASSWORD;  // from credentials.h file
 
-#define PRINT_DELAY 250 // print delay in milliseconds
+#define PRINT_DELAY 250  // print delay in milliseconds
 
 WiFiUDP ntpUDP;
 
@@ -33,13 +33,13 @@ int wifi_stat() {
 }
 
 void wifi_con() {
-  Serial.println();  
+  Serial.println();
   wifi_stat();
   Serial.print(" Exit modem sleep mode...");
-  WiFi.forceSleepWake(); // Wifi on
+  WiFi.forceSleepWake();  // Wifi on
   Serial.println("done");
   wifi_stat();
-  WiFi.mode(WIFI_STA); // station mode
+  WiFi.mode(WIFI_STA);  // station mode
   Serial.print("Connecting to ");
   Serial.print(ssid);
   Serial.print("...");
@@ -68,9 +68,9 @@ void wifi_discon() {
   Serial.print("disconnected\n");
   wifi_stat();
   Serial.print("Enter modem sleep mode...");
-  WiFi.mode( WIFI_OFF );
+  WiFi.mode(WIFI_OFF);
   WiFi.forceSleepBegin();
-  delay(1); //the modem won't go to sleep unless you do a delay
+  delay(1);  // the modem won't go to sleep unless you do a delay
   Serial.println("done");
   wifi_stat();
 }

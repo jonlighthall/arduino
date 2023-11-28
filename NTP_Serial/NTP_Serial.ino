@@ -11,24 +11,26 @@ const int debug = 0;
 #include <TimeLib.h>
 
 // project library headers
-#include <wifi_utils.h>
 #include <dst.h>
 #include <ntp_utils.h>
+#include <wifi_utils.h>
 
 // Serial display settings
 void serialClockDisplay();
-#define PRINT_DELAY 250 // print delay in milliseconds
+#define PRINT_DELAY 250  // print delay in milliseconds
 const bool do_milliseconds = true;
 const bool do_RSSI = false;
 
 void setup() {
   // initialize on-board LED
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+  pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN,
+               HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize Serial
   Serial.begin(9600);
-  while (!Serial) ; // Needed for Leonardo only
+  while (!Serial)
+    ;  // Needed for Leonardo only
   delay(PRINT_DELAY);
   // Serial welcome message
   Serial.println();
@@ -37,7 +39,7 @@ void setup() {
   sprintf(buff, "TimeNTP Example");
   Serial.println(buff);
   Serial.println("---------------");
-  
+
   // pause for readability
   delay(PRINT_DELAY);
 
@@ -54,15 +56,14 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   udp_start();
-  
+
   /* print sync message */
   // Serial
   Serial.println("waiting for sync...");
 
   // wait for time to be set
   setSyncProvider(getNtpTime);
-  if (timeStatus() == timeNotSet)
-    setSyncInterval(0);
+  if (timeStatus() == timeNotSet) setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
     Serial.print(".");
   }
@@ -79,24 +80,24 @@ void setup() {
     Serial.println();
     if (isDST() > 0) {
       Serial.println("refreshing time...");
-      delay(1001); // why wait?
+      delay(1001);  // why wait?
       serialClockDisplay();
     }
   } else {
     SetTimeZone = timeZone;
   }
 
-  setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
+  setSyncInterval(SYNC_INTERVAL);  // refresh rate in seconds
   Serial.println("done with setup");
   Serial.println("starting loop...");
 }
 
-char serdiv[] = "----------------------------"; // serial print divider
+char serdiv[] = "----------------------------";  // serial print divider
 
 void loop() {
   char buff[64];
   if (timeStatus() != timeNotSet) {
-    if (now() != prevDisplay) { //update the display only if time has changed
+    if (now() != prevDisplay) {  // update the display only if time has changed
       if (debug > 1) {
         // check time in seconds
         uint32_t tprev = prevDisplay;
@@ -115,11 +116,9 @@ void loop() {
 
       // check DST
       if (do_DST) {
-        if (debug > 0)
-          Serial.print("   checking DST status... ");
+        if (debug > 0) Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
-        if (debug > 0)
-          Serial.println();
+        if (debug > 0) Serial.println();
       } else {
         SetTimeZone = timeZone;
       }
@@ -139,12 +138,15 @@ void loop() {
           Serial.print("  elapsed time = ");
           Serial.println(TimeSinceSync);
           // print time since/until last/next sync
-          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n", TimeSinceSync, TimeSinceSync / 1e3);
+          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n",
+                  TimeSinceSync, TimeSinceSync / 1e3);
           Serial.print(buff);
           // print time between syncs percentage
-          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n", syncInterval, syncInterval / 1e3);
+          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n",
+                  syncInterval, syncInterval / 1e3);
           Serial.print(buff);
-          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n", ToSyncTime, ToSyncTime / 1e3);
+          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n",
+                  ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
           sprintf(buff, "Sync delay percentage = %7.3f%%\n", syncWait * 100);
           Serial.print(buff);
@@ -162,9 +164,9 @@ void loop() {
           int offsetTime = 1000 - setDelay;
           if (debug > 1) {
             Serial.println(serdiv);
-            sprintf(buff, "total delay = %d\n", totalDelay );
+            sprintf(buff, "total delay = %d\n", totalDelay);
             Serial.print(buff);
-            sprintf(buff, "  set delay = %d\n", setDelay  );
+            sprintf(buff, "  set delay = %d\n", setDelay);
             Serial.print(buff);
             Serial.print("offset time = ");
             Serial.println(offsetTime);
@@ -176,13 +178,13 @@ void loop() {
             Serial.println("done");
             Serial.println(serdiv);
           }
-        }
-        else {
+        } else {
           if (debug > 1) {
             int delayError = TimeSinceSync % 1000;
             int delayDiff = 1000 - delayError;
             Serial.println(serdiv);
-            sprintf(buff, "elapsed time since last sync = %d ms\n", TimeSinceSync);
+            sprintf(buff, "elapsed time since last sync = %d ms\n",
+                    TimeSinceSync);
             Serial.print(buff);
             sprintf(buff, "sub-second error = %d ms\n", delayError);
             Serial.print(buff);
@@ -207,9 +209,9 @@ void loop() {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
-    } // end prevDisplay
-  } // end timeNotSet
-} // end loop
+    }  // end prevDisplay
+  }    // end timeNotSet
+}  // end loop
 
 void serialClockDisplay() {
   // send date/time to Serial Monitor
@@ -247,9 +249,10 @@ void serialClockDisplay() {
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
-  IPAddress ntpServerIP; // NTP server's ip address
+  IPAddress ntpServerIP;  // NTP server's ip address
 
-  while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  while (Udp.parsePacket() > 0)
+    ;  // discard any previously received packets
   // Serial sync message
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
@@ -285,5 +288,5 @@ time_t getNtpTime() {
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
-  return 0; // return 0 if unable to get the time
+  return 0;  // return 0 if unable to get the time
 }

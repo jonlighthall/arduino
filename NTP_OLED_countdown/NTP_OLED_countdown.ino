@@ -16,9 +16,9 @@
   +-----+--------+-------+----------------+
   | D0  | GPIO16 | WAKE  |
   +-----+--------+-------+----------------+
-  | D5  | GPIO14 | SCLK  | 
+  | D5  | GPIO14 | SCLK  |
   +-----+--------+-------+----------------+
-  | D6  | GPIO12 | MISO  | 
+  | D6  | GPIO12 | MISO  |
   +-----+--------+-------+----------------+
   | D7  | GPIO13 | MOSI  |
   +-----+--------+-------+----------------+
@@ -40,7 +40,7 @@
   +-----+--------+-------+----------------+
   | G   | GND    | GND   | OLED GND
   +-----+--------+-------+----------------+
-  | 5V  | N/A    | VCC   | 
+  | 5V  | N/A    | VCC   |
   +-----+--------+-------+----------------+
 
 */
@@ -53,24 +53,26 @@ const int debug = 1;
 #include <TimeLib.h>
 
 // project library headers
-#include <wifi_utils.h>
 #include <dst.h>
-#include <oled_utils.h>
 #include <ntp_utils.h>
+#include <oled_utils.h>
+#include <wifi_utils.h>
 
 // Serial display settings
 void serialClockDisplay();
-#define PRINT_DELAY 250 // print delay in milliseconds
+#define PRINT_DELAY 250  // print delay in milliseconds
 const bool do_milliseconds = true;
 
 void setup() {
   // initialize on-board LED
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+  pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN,
+               HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize Serial
   Serial.begin(9600);
-  while (!Serial) ; // Needed for Leonardo only
+  while (!Serial)
+    ;  // Needed for Leonardo only
   delay(PRINT_DELAY);
   // Serial welcome message
   Serial.println();
@@ -82,14 +84,14 @@ void setup() {
 
   // initialize OLED display
   u8g2.begin();
-  u8g2.clearBuffer(); // clear the internal memory
+  u8g2.clearBuffer();  // clear the internal memory
 
   // get OLED display dimensions
   dispwid = u8g2.getDisplayWidth();
   disphei = u8g2.getDisplayHeight();
 
   // print OLED welcome message
-  u8g2.setFont(u8g2_font_timB08_tr); // choose a suitable font
+  u8g2.setFont(u8g2_font_timB08_tr);  // choose a suitable font
   sprintf(buff, "NTP Time");
 
   // get OLED text dimensions
@@ -99,8 +101,8 @@ void setup() {
   // set OLED text position
   int xpos = (dispwid - textwid) / 2;
   int ypos = texthei;
-  u8g2.drawStr(xpos, ypos, buff); // write something to the internal memory
-  u8g2.sendBuffer(); // transfer internal memory to the display
+  u8g2.drawStr(xpos, ypos, buff);  // write something to the internal memory
+  u8g2.sendBuffer();               // transfer internal memory to the display
 
   // print OLED display dimensions
   sprintf(buff, "display dimensions are %d x %d", dispwid, disphei);
@@ -140,7 +142,7 @@ void setup() {
 
     // draw black background
     u8g2.setDrawColor(0);
-    u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
+    u8g2.drawBox(xpos, ypos - texthei, 9, texthei);
     u8g2.setDrawColor(1);
 
     Serial.print(".");
@@ -154,7 +156,7 @@ void setup() {
   Serial.print("connected\n");
   // OLED
   u8g2.setDrawColor(0);
-  u8g2.drawBox(xpos, ypos - texthei, 9,  texthei);
+  u8g2.drawBox(xpos, ypos - texthei, 9, texthei);
   u8g2.setDrawColor(1);
   sprintf(buff, "OK");
   xpos = dispwid - u8g2.getStrWidth(buff);
@@ -182,8 +184,7 @@ void setup() {
 
   // wait for time to be set
   setSyncProvider(getNtpTime);
-  if (timeStatus() == timeNotSet)
-    setSyncInterval(0);
+  if (timeStatus() == timeNotSet) setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
     Serial.print(".");
   }
@@ -205,7 +206,7 @@ void setup() {
     Serial.println();
     if (isDST() > 0) {
       Serial.println("refreshing time...");
-      delay(1001); // why wait?
+      delay(1001);  // why wait?
       serialClockDisplay();
     }
   } else {
@@ -219,17 +220,17 @@ void setup() {
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
 
-  setSyncInterval(SYNC_INTERVAL); // refresh rate in seconds
+  setSyncInterval(SYNC_INTERVAL);  // refresh rate in seconds
   Serial.println("done with setup");
   Serial.println("starting loop...");
 }
 
-char serdiv[] = "----------------------------"; // serial print divider
+char serdiv[] = "----------------------------";  // serial print divider
 
 void loop() {
   char buff[64];
   if (timeStatus() != timeNotSet) {
-    if (now() != prevDisplay) { //update the display only if time has changed
+    if (now() != prevDisplay) {  // update the display only if time has changed
       if (debug > 1) {
         // check time in seconds
         uint32_t tprev = prevDisplay;
@@ -244,16 +245,14 @@ void loop() {
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
-      // save previous display time 
+      // save previous display time
       prevDisplay = now();
 
       // check DST
       if (do_DST) {
-        if (debug > 0)
-          Serial.print("   checking DST status... ");
+        if (debug > 0) Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
-        if (debug > 0)
-          Serial.println();
+        if (debug > 0) Serial.println();
       } else {
         SetTimeZone = timeZone;
       }
@@ -264,7 +263,7 @@ void loop() {
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
         float syncWait = (float)TimeSinceSync / syncInterval;
-	// define OLED sync bar
+        // define OLED sync bar
         syncBar = syncWait * disphei;
         if (debug > 1) {
           Serial.print("last sync time = ");
@@ -274,14 +273,18 @@ void loop() {
           Serial.print("  elapsed time = ");
           Serial.println(TimeSinceSync);
           // print time since/until last/next sync
-          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n", TimeSinceSync, TimeSinceSync / 1e3);
+          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n",
+                  TimeSinceSync, TimeSinceSync / 1e3);
           Serial.print(buff);
           // print time between syncs percentage
-          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n", syncInterval, syncInterval / 1e3);
+          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n",
+                  syncInterval, syncInterval / 1e3);
           Serial.print(buff);
-          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n", ToSyncTime, ToSyncTime / 1e3);
+          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n",
+                  ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
-          sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n", syncWait * 100, syncBar);
+          sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n",
+                  syncWait * 100, syncBar);
           Serial.print(buff);
         }
 
@@ -297,9 +300,9 @@ void loop() {
           int offsetTime = 1000 - setDelay;
           if (debug > 1) {
             Serial.println(serdiv);
-            sprintf(buff, "total delay = %d\n", totalDelay );
+            sprintf(buff, "total delay = %d\n", totalDelay);
             Serial.print(buff);
-            sprintf(buff, "  set delay = %d\n", setDelay  );
+            sprintf(buff, "  set delay = %d\n", setDelay);
             Serial.print(buff);
             Serial.print("offset time = ");
             Serial.println(offsetTime);
@@ -311,13 +314,13 @@ void loop() {
             Serial.println("done");
             Serial.println(serdiv);
           }
-        }
-        else {
+        } else {
           if (debug > 1) {
             int delayError = TimeSinceSync % 1000;
             int delayDiff = 1000 - delayError;
             Serial.println(serdiv);
-            sprintf(buff, "elapsed time since last sync = %d ms\n", TimeSinceSync);
+            sprintf(buff, "elapsed time since last sync = %d ms\n",
+                    TimeSinceSync);
             Serial.print(buff);
             sprintf(buff, "sub-second error = %d ms\n", delayError);
             Serial.print(buff);
@@ -329,12 +332,12 @@ void loop() {
             Serial.println(serdiv);
           }
         }
-      } // end do_milliseconds
+      }  // end do_milliseconds
 
       //-------------------------------
       // Output updated time
       //-------------------------------
-      
+
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
@@ -356,9 +359,9 @@ void loop() {
         Serial.print("end of loop, after display: millis = ");
         Serial.println(millis());
       }
-    } // end prevDisplay
-  } // end timeNotSet
-} // end loop
+    }  // end prevDisplay
+  }    // end timeNotSet
+}  // end loop
 
 void serialClockDisplay() {
   // send date/time to Serial Monitor
@@ -451,22 +454,19 @@ void OLEDClockDisplay() {
     int co_min = 60 - minute();
     if (co_sec < 60) {
       co_min--;
-    }
-    else if (co_sec == 60) {
+    } else if (co_sec == 60) {
       co_sec = 0;
     }
     int co_hr = 24 - hour();
     if (co_min < 60) {
       co_hr--;
-    }
-    else if (co_min == 60) {
+    } else if (co_min == 60) {
       co_min = 0;
     }
 
     // print "co-time"
     sprintf(buff, "%02d:%02d:%02d", co_hr, co_min, co_sec);
-    if (debug > 0)
-      Serial.println(buff);
+    if (debug > 0) Serial.println(buff);
     xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
     ypos += u8g2.getAscent() + 2;
     u8g2.drawStr(xpos, ypos, buff);
@@ -484,7 +484,7 @@ void OLEDClockDisplay() {
   u8g2.drawStr(xpos, ypos, buff);
 
   // write date
-  //sprintf(buff, "%s %s %d",dayStr(weekday()),monthStr(month()),day());
+  // sprintf(buff, "%s %s %d",dayStr(weekday()),monthStr(month()),day());
   sprintf(buff, "%s %d", monthStr(month()), day());
   if (debug > 0) {
     Serial.print("   ");
@@ -497,8 +497,7 @@ void OLEDClockDisplay() {
   // set brightness
   if ((hour() >= 20) || (hour() <= 6)) {
     u8g2.setContrast(0);
-  }
-  else {
+  } else {
     u8g2.setContrast(255);
   }
   u8g2.sendBuffer();
@@ -509,9 +508,10 @@ void OLEDClockDisplay() {
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
-  IPAddress ntpServerIP; // NTP server's ip address
+  IPAddress ntpServerIP;  // NTP server's ip address
 
-  while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  while (Udp.parsePacket() > 0)
+    ;  // discard any previously received packets
   // Serial sync message
   Serial.println(serdiv);
   Serial.println("Transmit NTP Request");
@@ -550,5 +550,5 @@ time_t getNtpTime() {
   }
   Serial.println("No NTP Response :-(");
   Serial.println(serdiv);
-  return 0; // return 0 if unable to get the time
+  return 0;  // return 0 if unable to get the time
 }
