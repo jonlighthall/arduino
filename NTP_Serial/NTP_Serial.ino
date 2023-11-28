@@ -3,8 +3,50 @@
   Example showing time sync to NTP time source
 */
 
+/*
+
+  Wemos D1 Mini Pin Connections
+
+  +-----+--------+-------+----------------+
+  | Pin | ESP    | Use   |
+  +-----+--------+-------+----------------+
+  | RST | RST    | Reset |
+  +-----+--------+-------+----------------+
+  | A0  | A0     | ADC   |
+  +-----+--------+-------+----------------+
+  | D0  | GPIO16 | WAKE  |
+  +-----+--------+-------+----------------+
+  | D5  | GPIO14 | SCLK  |
+  +-----+--------+-------+----------------+
+  | D6  | GPIO12 | MISO  |
+  +-----+--------+-------+----------------+
+  | D7  | GPIO13 | MOSI  |
+  +-----+--------+-------+----------------+
+  | D8  | GPIO15 | CS    |
+  +-----+--------+-------+----------------+
+  | 3V3 | 3.3V   |       | 
+  +-----+--------+-------+----------------+
+  | TX  | GPIO1  | TX    |
+  +-----+--------+-------+----------------+
+  | RX  | GPIO3  | RX    |
+  +-----+--------+-------+----------------+
+  | D1  | GPIO5  | SCL   | 
+  +-----+--------+-------+----------------+
+  | D2  | GPIO4  | SDA   | 
+  +-----+--------+-------+----------------+
+  | D3  | GPIO0  | FLASH |
+  +-----+--------+-------+----------------+
+  | D4  | GPIO2  | LED   | sync cue
+  +-----+--------+-------+----------------+
+  | G   | GND    | GND   | 
+  +-----+--------+-------+----------------+
+  | 5V  | N/A    | VCC   |
+  +-----+--------+-------+----------------+
+
+*/
+
 //-------------------------------
-const int debug = 0;
+const int debug = 1;
 //-------------------------------
 
 // custom library headers
@@ -112,6 +154,7 @@ void loop() {
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
+      // save previous display time
       prevDisplay = now();
 
       // check DST
@@ -128,8 +171,7 @@ void loop() {
         // calculate time since/until last/next sync
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
-        float syncWait = (float)TimeSinceSync / syncInterval;
-
+        float syncWait = (float)TimeSinceSync / syncInterval;        
         if (debug > 1) {
           Serial.print("last sync time = ");
           Serial.println(LastSyncTime);
@@ -148,16 +190,16 @@ void loop() {
           sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n",
                   ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
-          sprintf(buff, "Sync delay percentage = %7.3f%%\n", syncWait * 100);
-          Serial.print(buff);
+          sprintf(buff, "Sync delay percentage = %7.3f%%", syncWait * 100);
+          Serial.println(buff);
         }
 
-        // wait until top of second to print time
         if (debug > 0) {
           sprintf(buff, "   NTPfracTime = %d\n", NTPfracTime);
           Serial.print(buff);
         }
 
+        // wait until top of second to print time
         if ((TimeSinceSync < 1000) && (TimeSinceSync > 0)) {
           int totalDelay = NTPfracTime + TimeSinceSync;
           int setDelay = totalDelay % 1000;
@@ -196,7 +238,12 @@ void loop() {
             Serial.println(serdiv);
           }
         }
-      }
+      }  // end do_milliseconds
+
+      //-------------------------------
+      // Output updated time
+      //-------------------------------
+
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();

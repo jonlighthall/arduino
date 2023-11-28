@@ -144,12 +144,13 @@ void setup() {
   // print LED welcome message
   display.setSegments(SEG_hEllo);
 
-  // Initialize the I2C bus (BH1750 library doesn't do this automatically)
+  // initialize I2C bus
+  // the BH1750 library doesn't do this automatically
   // On esp8266 you can select SCL and SDA pins using Wire.begin(D4, D3);
   Wire.begin();
 
   // initialize BH1750
-  // begin returns a boolean that can be used to detect setup problems.
+  // begin() returns a boolean that can be used to detect setup problems.
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
     Serial.println(F("BH1750 Advanced begin"));
   } else {
@@ -353,38 +354,35 @@ void loop() {
         // calculate time since/until last/next sync
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
-        float syncWait = (float)TimeSinceSync / syncInterval;
-        // define OLED sync bar
-        syncBar = syncWait * disphei;
+        float syncWait = (float)TimeSinceSync / syncInterval;        
         if (debug > 1) {
-          Serial.print("buffer time = ");
+          Serial.print("last sync time = ");
           Serial.println(LastSyncTime);
-          Serial.print(" print time = ");
+          Serial.print("      time now = ");
           Serial.println(printTime);
-          Serial.print(" delay time = ");
+          Serial.print("  elapsed time = ");
           Serial.println(TimeSinceSync);
           // print time since/until last/next sync
-          sprintf(buff, "Time since last sync = %.3fs\n", TimeSinceSync / 1e3);
-          Serial.print(buff);
-          sprintf(buff, "Time since last sync = %dms\n", TimeSinceSync);
-          Serial.print(buff);
-          sprintf(buff, "Time since last sync = %.3fs\n", TimeSinceSync / 1e3);
+          sprintf(buff, " Time since last sync = %6d ms or %7.3f s\n",
+                  TimeSinceSync, TimeSinceSync / 1e3);
           Serial.print(buff);
           // print time between syncs percentage
-          sprintf(buff, "Time between syncs = %dms\n", syncInterval);
+          sprintf(buff, "   Time between syncs = %6d ms or %7.3f s\n",
+                  syncInterval, syncInterval / 1e3);
           Serial.print(buff);
-          sprintf(buff, "Time between syncs = %.3fs\n", syncInterval / 1e3);
+          sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n",
+                  ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
+          sprintf(buff, "Sync delay percentage = %7.3f%%", syncWait * 100);
+	  // define OLED sync bar
+	  syncBar = syncWait * disphei;
+          Serial.print(buff);
+          sprintf(buff, " or %2d pixels", syncBar);
+          Serial.println(buff);
+        }
 
-          sprintf(buff, "Time until next sync = %dms\n", ToSyncTime);
-          Serial.print(buff);
-          sprintf(buff, "Time until next sync = %.3fs\n", ToSyncTime / 1e3);
-          Serial.print(buff);
-
-          sprintf(buff, "Sync delay percentage = %.3f%%\n", syncWait * 100);
-          Serial.print(buff);
-
-          sprintf(buff, "Sync delay percentage = %d\n", syncBar);
+        if (debug > 0) {
+          sprintf(buff, "   NTPfracTime = %d\n", NTPfracTime);
           Serial.print(buff);
         }
 
@@ -401,17 +399,29 @@ void loop() {
             Serial.print(buff);
             Serial.print("offset time = ");
             Serial.println(offsetTime);
-            sprintf(buff, "delaying display by %d...\n", offsetTime);
+            sprintf(buff, "delaying display by %d...", offsetTime);
             Serial.print(buff);
-            Serial.println(serdiv);
           }
           delay(offsetTime);
+          if (debug > 1) {
+            Serial.println("done");
+            Serial.println(serdiv);
+          }
         } else {
           if (debug > 1) {
             int delayError = TimeSinceSync % 1000;
+            int delayDiff = 1000 - delayError;
             Serial.println(serdiv);
-            sprintf(buff, "delay error = %d\n", delayError);
+            sprintf(buff, "elapsed time since last sync = %d ms\n",
+                    TimeSinceSync);
             Serial.print(buff);
+            sprintf(buff, "sub-second error = %d ms\n", delayError);
+            Serial.print(buff);
+            int delayInterval = min(10, delayDiff);
+            sprintf(buff, "waiting %d ms...", delayInterval);
+            Serial.print(buff);
+            // delay(delayInterval);
+            Serial.println("done");
             Serial.println(serdiv);
           }
         }

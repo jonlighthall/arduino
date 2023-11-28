@@ -262,9 +262,7 @@ void loop() {
         // calculate time since/until last/next sync
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
-        float syncWait = (float)TimeSinceSync / syncInterval;
-        // define OLED sync bar
-        syncBar = syncWait * disphei;
+        float syncWait = (float)TimeSinceSync / syncInterval;        
         if (debug > 1) {
           Serial.print("last sync time = ");
           Serial.println(LastSyncTime);
@@ -283,9 +281,12 @@ void loop() {
           sprintf(buff, " Time until next sync = %6d ms or %7.3f s\n",
                   ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
-          sprintf(buff, "Sync delay percentage = %7.3f%% or %2d pixels\n",
-                  syncWait * 100, syncBar);
+          sprintf(buff, "Sync delay percentage = %7.3f%%", syncWait * 100);
+	  // define OLED sync bar
+	  syncBar = syncWait * disphei;
           Serial.print(buff);
+          sprintf(buff, " or %2d pixels", syncBar);
+          Serial.println(buff);
         }
 
         if (debug > 0) {
