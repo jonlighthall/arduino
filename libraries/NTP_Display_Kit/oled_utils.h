@@ -1,10 +1,13 @@
+#ifndef OLED_UTILS
+#define OLED_UTILS
+
 // OLED packages
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
 
 // OLED display options
-const bool do_RSSI = false;
+const bool do_RSSI_Bars = false;
 const bool do_SyncBar = false;
 const bool do_BigTime = false;
 const bool do_SecondsBar = true;
@@ -47,3 +50,93 @@ void OLED_RSSI_Bars () {
 
   u8g2.sendBuffer();
 }
+
+void OLEDClockDisplay() {
+  // define OLED variables
+  int xpos, ypos;
+  char buff[dispwid];
+
+  u8g2.clearBuffer();
+
+  if (do_BigTime) {
+    // draw OLED clock display
+    u8g2.setFont(u8g2_font_profont22_tn);
+    sprintf(buff, "%02d:%02d", hour(), minute());
+    if (debug > 0) {
+      Serial.print("   ");
+      Serial.println(buff);
+    }
+    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+    ypos = u8g2.getAscent();
+    u8g2.drawStr(xpos, ypos, buff);
+  }
+
+  if (do_SecondsBar) {
+    // draw seconds bar
+    ypos += 2;
+    for (int i = 0; i < second() + 1; i++) {
+      u8g2.drawPixel(i + 3, ypos);
+    }
+    ypos += 1;
+    for (int i = 0; i < second() + 1; i = i + 5) {
+      u8g2.drawPixel(i + 3, ypos);
+    }
+    ypos += 1;
+    for (int i = 0; i < second() + 1; i = i + 15) {
+      u8g2.drawPixel(i + 3, ypos);
+    }
+  }
+
+  if (do_Seconds) {
+    // write seconds
+    // set font
+    u8g2.setFont(u8g2_font_profont15_tn);
+    // create time buffer
+    sprintf(buff, "%02d:%02d:%02d", hour(), minute(), second());
+    // print time to serial
+    if (debug > 0) {
+      Serial.print("   ");
+      Serial.println(buff);
+    }
+    // calculate OLED display position
+    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+    ypos += u8g2.getAscent() + 2;
+    // display time
+    u8g2.drawStr(xpos, ypos, buff);
+  }
+
+  // write day
+  u8g2.setFont(u8g2_font_timB08_tr);
+  sprintf(buff, "%s", dayStr(weekday()));
+  if (debug > 0) {
+    Serial.print("   ");
+    Serial.println(buff);
+  }
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos += u8g2.getAscent() + 2;
+  u8g2.drawStr(xpos, ypos, buff);
+
+  // write date
+  //sprintf(buff, "%s %s %d",dayStr(weekday()),monthStr(month()),day());
+  sprintf(buff, "%s %d", monthStr(month()), day());
+  if (debug > 0) {
+    Serial.print("   ");
+    Serial.println(buff);
+  }
+  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+  ypos += u8g2.getAscent() + 1;
+  u8g2.drawStr(xpos, ypos, buff);
+
+  // set brightness
+  if ((hour() >= 20) || (hour() <= 6)) {
+    u8g2.setContrast(0);
+  }
+  else {
+    u8g2.setContrast(255);
+  }
+  u8g2.sendBuffer();
+  if (do_SyncBar) OLED_Sync_Bar();
+  if (do_RSSI_Bars) OLED_RSSI_Bars();
+}
+
+#endif
