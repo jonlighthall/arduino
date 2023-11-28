@@ -46,7 +46,7 @@
 */
 
 //-------------------------------
-const int debug = 0;
+const int debug = 1;
 //-------------------------------
 
 // standard library headers
@@ -336,6 +336,7 @@ void loop() {
         sprintf(buff, "%d %d %d\n", tprev, tnow, elap);
         Serial.print(buff);
       }
+      // save previous display time
       prevDisplay = now();
 
       // check DST
@@ -353,6 +354,7 @@ void loop() {
         int TimeSinceSync = printTime - LastSyncTime;
         int ToSyncTime = syncInterval - TimeSinceSync;
         float syncWait = (float)TimeSinceSync / syncInterval;
+        // define OLED sync bar
         syncBar = syncWait * disphei;
         if (debug > 1) {
           Serial.print("buffer time = ");
@@ -368,7 +370,7 @@ void loop() {
           Serial.print(buff);
           sprintf(buff, "Time since last sync = %.3fs\n", TimeSinceSync / 1e3);
           Serial.print(buff);
-          // print time between syns percentage
+          // print time between syncs percentage
           sprintf(buff, "Time between syncs = %dms\n", syncInterval);
           Serial.print(buff);
           sprintf(buff, "Time between syncs = %.3fs\n", syncInterval / 1e3);
@@ -413,7 +415,12 @@ void loop() {
             Serial.println(serdiv);
           }
         }
-      }
+      }  // end do_milliseconds
+
+      //-------------------------------
+      // Output updated time
+      //-------------------------------
+
       // Display time, serial
       int beforeTime = millis();
       serialClockDisplay();
@@ -481,16 +488,18 @@ void OLEDClockDisplay() {
 
   u8g2.clearBuffer();
 
-  // draw OLED clock display
-  u8g2.setFont(u8g2_font_profont22_tn);
-  sprintf(buff, "%02d:%02d", hour(), minute());
-  if (debug > 0) {
-    Serial.print("   ");
-    Serial.println(buff);
+  if (do_BigTime) {
+    // draw OLED clock display
+    u8g2.setFont(u8g2_font_profont22_tn);
+    sprintf(buff, "%02d:%02d", hour(), minute());
+    if (debug > 0) {
+      Serial.print("   ");
+      Serial.println(buff);
+    }
+    xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
+    ypos = u8g2.getAscent();
+    u8g2.drawStr(xpos, ypos, buff);
   }
-  xpos = (dispwid - u8g2.getStrWidth(buff)) / 2;
-  ypos = u8g2.getAscent();
-  u8g2.drawStr(xpos, ypos, buff);
 
   if (do_SecondsBar) {
     // draw seconds bar
@@ -561,12 +570,15 @@ void OLEDClockDisplay() {
 
 // LED Display
 void DigitalClockDisplay() {
+  // Display Time
   int dig_time;
 
   if (do_mil) {
+    // military time
     dig_time = (hour() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, true);
   } else {
+    // 12-hour time
     dig_time = (hourFormat12() * 100) + minute();
     display.showNumberDecEx(dig_time, 0b11100000, false);
   }
@@ -637,8 +649,6 @@ time_t getNtpTime() {
   // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
-  Serial.print("SetTimeZone = ");
-  Serial.println(SetTimeZone);
 
   // wait for response
   while (millis() - beginWait < 1500) {
