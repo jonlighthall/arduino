@@ -38,36 +38,47 @@ void DigitalClockDisplay() {
 // LED Display options
 void DigitalClockDisplayOpt() {
   // set brightness
-  if ((hour() >= 20) || (hour() <= 6)) {  // night
-    // dim display and show time only
-    display.setBrightness(0);
-    DigitalClockDisplay();
-  } else {  // day
-    // brighten display and show options
-    display.setBrightness(7);
-    int dig_time;
-    if ((do_cyc) && (second() == 30)) {  // nixie tube cycling
-      for (int i = 0; i < 10; i++) {
-        dig_time = 1111 * i;
-        display.showNumberDecEx(dig_time, 0, true);
-        delay(DISP_DELAY);
-      }
-      DigitalClockDisplay();
-    } else if (do_sec_top &&
-               ((second() >= 57) ||
-                (second() <= 2))) {  // show seconds at the top of the minute
-      dig_time = (minute() * 100) + second();
-      display.showNumberDecEx(dig_time, 0b11100000, true);
-    } else {
-      if (do_sec_mod && ((second() % 15) == 0) &&
-          (second() > 0)) {  // flash seconds periodically
-        dig_time = second();
-        display.clear();
-        display.showNumberDec(dig_time, true, 2, 1);
-        delay(DISP_DELAY);
-      }
-      DigitalClockDisplay();
-    }
+  if (do_ldr) {
+	Serial.print("setting brightness to ");
+	Serial.println(brite);
+	display.setBrightness(brite);
+  } else {
+	Serial.println("using default brightness");
+	if ((hour() >= 20) || (hour() <= 6)) {  // night
+	  // dim display and show time only
+	  display.setBrightness(0);
+	} else {  // day
+	  // brighten display and show options
+	  display.setBrightness(7);
+	}  	  
+  }
+  DigitalClockDisplay();
+
+  if ((hour() < 20) && (hour() > 6)) {  // day
+	// show options  
+	int dig_time;
+	if ((do_cyc) && (second() == 30)) {  // nixie tube cycling
+	  for (int i = 0; i < 10; i++) {
+		dig_time = 1111 * i;
+		display.showNumberDecEx(dig_time, 0, true);
+		delay(DISP_DELAY);
+	  }
+	  DigitalClockDisplay();
+	} else if (do_sec_top &&
+			   ((second() >= 57) ||
+				(second() <= 2))) {  // show seconds at the top of the minute
+	  dig_time = (minute() * 100) + second();
+	  display.showNumberDecEx(dig_time, 0b11100000, true);
+	} else {
+	  if (do_sec_mod && ((second() % 15) == 0) &&
+		  (second() > 0)) {  // flash seconds periodically
+		dig_time = second();
+		display.clear();
+		display.showNumberDec(dig_time, true, 2, 1);
+		delay(DISP_DELAY);
+	  }
+	  DigitalClockDisplay();
+	}
   }
 }
 #endif
