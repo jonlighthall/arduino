@@ -18,8 +18,10 @@ unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 // TimeLib settings
 time_t getNtpTime();
-#define SYNC_INTERVAL 30 // print delay in seconds
-int syncInterval = SYNC_INTERVAL * 1e3;
+// set synchronization interval in seconds
+#define SYNC_INTERVAL 60*10
+// set synchronization interval in milliseconds
+int syncInterval = SYNC_INTERVAL * 1e3; 
 
 // Set Standard time zone
 const int timeZone = -6; // CST
