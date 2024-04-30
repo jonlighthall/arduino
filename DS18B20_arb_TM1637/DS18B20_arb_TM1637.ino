@@ -22,11 +22,11 @@ int idx_probe = -1;
 
 // LED display settings
 #include <TM1637Display.h>
-const int CLK = D6; //Set the CLK pin connection to the display
-const int DIO = D5; //Set the DIO pin connection to the display
-TM1637Display display(CLK, DIO); //set up the 4-Digit Display.
+const int CLK = D6;               //Set the CLK pin connection to the display
+const int DIO = D5;               //Set the DIO pin connection to the display
+TM1637Display display(CLK, DIO);  //set up the 4-Digit Display.
 #include <seven-segment_text.h>
-#define PRINT_DELAY 1250 // print delay in milliseconds
+#define PRINT_DELAY 1250  // print delay in milliseconds
 
 // define ADC
 const int ADC = A0;
@@ -34,7 +34,7 @@ int ADCvalue = -1;
 
 void setup() {
   // initialize on-board LED
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, LOW);
 
   // start serial port
@@ -62,9 +62,8 @@ void setup() {
   Serial.print("Checking number of sensors vs array length: ");
   if (no_therm > array_size) {
     Serial.println("ERROR, make array larger!");
-    exit ;
-  }
-  else {
+    exit;
+  } else {
     Serial.print("OK ");
     Serial.print(no_therm);
     Serial.print(" < ");
@@ -81,8 +80,7 @@ void setup() {
     if (!oneWire.search(therm[i])) {
       Serial.print("Unable to find address for sensor ");
       Serial.println(i);
-    }
-    else {
+    } else {
       Serial.print("Device ");
       Serial.print(i);
       Serial.print(" Address: ");
@@ -172,12 +170,10 @@ void loop() {
       if (WiFi.status() != WL_CONNECTED) {
         display.setSegments(SEG_CONN);
         wifi_con();
-      }
-      else {
+      } else {
         Serial.println("Wi-Fi already connected. Continuing...");
       }
-    }
-    else {
+    } else {
       Serial.print(ssid);
       Serial.println(" not found");
     }
@@ -187,9 +183,8 @@ void loop() {
   else if (ADCvalue < 100) {
     Serial.println("Battery removed from power. Disconnecting from  Wi-Fi...");
     if (WiFi.status() == WL_CONNECTED) {
-      wifi_discon() ;
-    }
-    else {
+      wifi_discon();
+    } else {
       Serial.println("Wi-Fi already disconnected. Continuing...");
     }
   }
@@ -201,7 +196,7 @@ void loop() {
   Serial.println("OK");
 
   // print the device information
-  for (int i = 0 ; i < no_therm; i++) {
+  for (int i = 0; i < no_therm; i++) {
     printData(therm[i]);
     atempC[i] = sensors.getTempC(therm[i]);
     atempF[i] = sensors.getTempF(therm[i]);
@@ -213,7 +208,7 @@ void loop() {
   if (no_therm_sum > 1) {
     Serial.print("Average temperature = ");
     Serial.print(temp_mean);
-    for (int i = 0 ; i < no_therm; i++) {
+    for (int i = 0; i < no_therm; i++) {
       if (i != idx_probe) temp_var_sum += sq(atempF[i] - temp_mean);
     }
     temp_var_mean = temp_var_sum / no_therm_sum;
@@ -240,8 +235,7 @@ void loop() {
     if (temp_mean <= -100) {
       display.showNumberDec(temp_mean, false, 4, 0);
     }
-  }
-  else {
+  } else {
     display.setSegments(SEG_bad, 4, 0);
     Serial.println(" No temperature sensors found!");
   }
@@ -268,7 +262,7 @@ void wifi_scan() {
       Serial.print(i);
       Serial.print(": ");
       Serial.println(WiFi.SSID(i));
-      if (WiFi.SSID(i) == ssid) { //enter the ssid which you want to search
+      if (WiFi.SSID(i) == ssid) {  //enter the ssid which you want to search
         Serial.print(ssid);
         Serial.println(" is available");
         ssid_found = true;
@@ -279,13 +273,13 @@ void wifi_scan() {
 }
 
 void wifi_con() {
-  WiFi.forceSleepWake(); // Wifi on
+  WiFi.forceSleepWake();  // Wifi on
   Serial.println("Exit modem sleep mode");
   Serial.print("MAC address : ");
   Serial.println(WiFi.macAddress());
   Serial.print("Wi-Fi status : ");
   Serial.println(WiFi.status());
-  WiFi.mode(WIFI_STA); // station mode
+  WiFi.mode(WIFI_STA);  // station mode
   Serial.print("Connecting to ");
   Serial.print(ssid);
   Serial.print("...");
@@ -301,8 +295,6 @@ void wifi_con() {
     if (counter == wait_lim) {
       Serial.println("timeout");
     }
-
-
   }
 
   // print status
@@ -334,6 +326,6 @@ void wifi_discon() {
   Serial.println(WiFi.status());
 
   Serial.println("Enter modem sleep mode...");
-  WiFi.forceSleepBegin(); // Wifi off
-  delay(1); //the modem won't go to sleep unless you do a delay
+  WiFi.forceSleepBegin();  // Wifi off
+  delay(1);                //the modem won't go to sleep unless you do a delay
 }

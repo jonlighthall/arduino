@@ -24,8 +24,7 @@ DeviceAddress probe = {0x28, 0x67, 0x4A, 0xC8, 0xB1, 0x21, 0x06, 0xE6};
 int no_therm_sum;
 int idx_probe; 
 
-void setup(void)
-{
+void setup() {
   // start serial port
   Serial.begin(9600);
   Serial.println("Dallas Temperature IC Control Library Demo");
@@ -43,9 +42,8 @@ void setup(void)
   Serial.print("Checking number of sensors vs array length: ");
   if (no_therm > array_size) {
     Serial.println("ERROR, make array larger!");
-    exit ;
-  }
-  else {
+    exit;
+  } else {
     Serial.print("OK ");
     Serial.print(no_therm);
     Serial.print(" < ");
@@ -58,13 +56,11 @@ void setup(void)
   else Serial.println("OFF");
 
   oneWire.reset_search();
-
   for (int i = 0; i < no_therm; i++) {
     if (!oneWire.search(therm[i])) {
       Serial.print("Unable to find address for sensor ");
       Serial.println(i);
-    }
-    else {
+    } else {
       Serial.print("Device ");
       Serial.print(i);
       Serial.print(" Address: ");
@@ -93,7 +89,7 @@ void setup(void)
     if (nmatch[i] == 8) {
       Serial.print(" YES");
       idx_probe = i;
-      no_therm_sum=no_therm-1;
+      no_therm_sum = no_therm - 1;
     }
     else {
       Serial.print(" NO");
@@ -119,8 +115,7 @@ void setup(void)
 }
 
 // function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
+void printAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
     // zero pad the address if necessary
     if (deviceAddress[i] < 16) Serial.print("0");
@@ -150,18 +145,14 @@ void printResolution(DeviceAddress deviceAddress) {
 
 // main function to print information about a device
 void printData(DeviceAddress deviceAddress) {
-  Serial.print("Device Address: ");
+  Serial.print(" Device Address: ");
   printAddress(deviceAddress);
   Serial.print(" ");
   printTemperature(deviceAddress);
   Serial.println();
 }
 
-/*
-   Main function, calls the temperatures in a loop.
-*/
-void loop(void)
-{
+void loop() {
   float atempC[array_size];
   float atempF[array_size];
   float temp_sum = 0;
@@ -173,10 +164,10 @@ void loop(void)
   // request to all devices on the bus
   Serial.print("Requesting temperatures...");
   sensors.requestTemperatures();
-  Serial.println("DONE");
+  Serial.println("OK");
 
   // print the device information
-  for (int i = 0 ; i < no_therm; i++) {
+  for (int i = 0; i < no_therm; i++) {
     printData(therm[i]);
     atempC[i] = sensors.getTempC(therm[i]);
     atempF[i] = sensors.getTempF(therm[i]);
