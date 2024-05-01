@@ -56,10 +56,10 @@ const int NTP_PACKET_LENGTH = NTP_PACKET_SIZE / 4;
 // create an array of 32-bit unsigned integers to parse the packets
 uint32_t packetWords[NTP_PACKET_LENGTH];
 
-constexpr uint8_t NTP_UNIX_OFFSET_YEARS = 70;
-constexpr uint16_t DAYS_IN_YEAR = 365;
-constexpr uint8_t NUMBER_OF_LEAP_YEARS = 17;
-constexpr uint32_t SECONDS_IN_DAY = 86400;
+constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
+constexpr uint16_t DAYS_IN_YEAR          = 365;
+constexpr uint8_t  NUMBER_OF_LEAP_YEARS  = 17;
+constexpr uint32_t SECONDS_IN_DAY        = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
@@ -209,8 +209,40 @@ void parseNTP_header(uint32_t words[]) {
   print_binary(Mode, 3);
   sprintf(buff, " %3d ", Mode);
   Serial.print(buff);
-  if (Mode == 4)
+  switch (Mode) {
+    // Specifies the operating mode of the sender:
+  case 1:
+    // Symmetric active
+    Serial.print("active");
+    break;
+  case 2:
+    // Symmetric passive
+    Serial.print("passive");
+    break;
+  case 3:
+    // Client
+    Serial.print("client");
+    break;
+  case 4:
+    // Server
     Serial.print("server");
+    break;
+  case 5:
+    // Broadcast
+    Serial.print("broadcast");
+    break;
+  case 6:
+    // NTP control message (reserved for management)
+    Serial.print("control");
+    break;
+  case 7:
+    // Reserved for private use
+    Serial.print("private");
+    break;
+  default:
+    Serial.print("UNDEFINED");
+    break;
+  } 
   Serial.println();
 
   Serial.print("  Stratum: ");
@@ -223,6 +255,8 @@ void parseNTP_header(uint32_t words[]) {
   sprintf(buff, " %3d ", Stratum);
   Serial.print(buff);
   // Indicates the distance of the device from a primary reference clock.
+  if (Stratum == 0)
+    Serial.print("unspecified");
   if (Stratum == 1)
     Serial.print("primary");  // reference clock
   if (Stratum > 1 && Stratum < 16)
