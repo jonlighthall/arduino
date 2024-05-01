@@ -49,20 +49,26 @@ void DigitalClockDisplay() {
 // Apply LED display options
 void DigitalClockDisplayOpt() {
   // set brightness
-  if (do_ldr) {
-    Serial.print("setting brightness to ");
-    Serial.println(brite);
-    display.setBrightness(brite);
+  if (! do_ldr) {
+
   } else {
     Serial.println("using default brightness");
     if ((hour() >= 20) || (hour() <= 6)) {  // night
       // dim display and show time only
+      brite=0;
       display.setBrightness(0);
     } else {  // day
       // brighten display and show options
-      display.setBrightness(7);
+      brite=7;
+
     }  	  
   }
+  if (debug > 0) {
+    Serial.print("setting brightness to ");
+    Serial.println(brite);
+  }
+  
+  display.setBrightness(brite);
   DigitalClockDisplay();
 
   if ((hour() < 20) && (hour() > 6)) {  // day
