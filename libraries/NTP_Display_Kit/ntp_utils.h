@@ -12,19 +12,19 @@
 #include <dst.h>
 #include <binary_utils.h>
 
-// ESP8266 Wi-Fi UDP settings 
+// ESP8266 Wi-Fi UDP settings
 WiFiUDP Udp;
 unsigned int localPort = 8888;  // local port to listen for UDP packets
 
 // TimeLib settings
 time_t getNtpTime();
 // set synchronization interval in seconds
-#define SYNC_INTERVAL 60*10
+#define SYNC_INTERVAL 60 * 10
 // set synchronization interval in milliseconds
-int syncInterval = SYNC_INTERVAL * 1e3; 
+int syncInterval = SYNC_INTERVAL * 1e3;
 
 // Set Standard time zone
-const int timeZone = -6; // CST
+const int timeZone = -6;  // CST
 int SetTimeZone = timeZone;
 
 // DST settings
@@ -35,28 +35,28 @@ static const char ntpServerName[] = "time.nist.gov";
 
 //void sendNTPpacket(IPAddress &address);
 
-time_t prevDisplay = 0; // when the digital clock was displayed
+time_t prevDisplay = 0;  // when the digital clock was displayed
 uint32_t LastSyncTime;
 
 uint32_t NTPfracTime;
 uint32_t NTPlocalTime;
 
-const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
-byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
+const int NTP_PACKET_SIZE = 48;      // NTP time is in the first 48 bytes of message
+byte packetBuffer[NTP_PACKET_SIZE];  //buffer to hold incoming & outgoing packets
 const int NTP_PACKET_LENGTH = NTP_PACKET_SIZE / 4;
 uint32_t packetWords[NTP_PACKET_LENGTH];
 
-constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
-constexpr uint16_t DAYS_IN_YEAR          = 365;
-constexpr uint8_t  NUMBER_OF_LEAP_YEARS  = 17;
-constexpr uint32_t SECONDS_IN_DAY        = 86400;
+constexpr uint8_t NTP_UNIX_OFFSET_YEARS = 70;
+constexpr uint16_t DAYS_IN_YEAR = 365;
+constexpr uint8_t NUMBER_OF_LEAP_YEARS = 17;
+constexpr uint32_t SECONDS_IN_DAY = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
-const char* NTP_header_names[4] = {"header", "root delay", "root dispersion", "reference identifier"};
-const char* NTP_names[4] = {"reference", "origin", "receive", "transmit"};
+const char* NTP_header_names[4] = { "header", "root delay", "root dispersion", "reference identifier" };
+const char* NTP_names[4] = { "reference", "origin", "receive", "transmit" };
 
-void udp_start () {
+void udp_start() {
   // start UDP
   Serial.println("Starting UDP...");
   Udp.begin(localPort);
@@ -64,15 +64,15 @@ void udp_start () {
   Serial.println(Udp.localPort());
 }
 
-void readNTP_packet () {
+void readNTP_packet() {
   char buff[64];
   // read packet
   for (int i = 0; i < NTP_PACKET_LENGTH; i++) {
     packetWords[i] = getWord(packetBuffer, i * 4);
-  }  
+  }
 }
 
-void parseNTP_header (uint32_t words[]) {
+void parseNTP_header(uint32_t words[]) {
   char buff[64];
   // define raw variables
   byte LI = getBits32(words[0], 0, 2);
@@ -89,10 +89,10 @@ void parseNTP_header (uint32_t words[]) {
   int8_t Poll_interval = int8_t(Poll);
   int8_t ppower = int8_t(Precision);
   double sprec = pow(2, ppower);
-  uint8_t a = getBits32(referenceIdentifier, 0, 8) ;
-  uint8_t b = getBits32(referenceIdentifier, 8, 8) ;
-  uint8_t c = getBits32(referenceIdentifier, 16, 8) ;
-  uint8_t d = getBits32(referenceIdentifier, 24, 8) ;
+  uint8_t a = getBits32(referenceIdentifier, 0, 8);
+  uint8_t b = getBits32(referenceIdentifier, 8, 8);
+  uint8_t c = getBits32(referenceIdentifier, 16, 8);
+  uint8_t d = getBits32(referenceIdentifier, 24, 8);
   char RefID[4];
   sprintf(RefID, "%c%c%c%c", a, b, c, d);
 
@@ -118,21 +118,19 @@ void parseNTP_header (uint32_t words[]) {
       if (i < 4) {
         sprintf(buff, " %s", NTP_header_names[i]);
         Serial.print(buff);
-      }
-      else {
+      } else {
         sprintf(buff, " %s ", NTP_names[(i - 4) / 2]);
         Serial.print(buff);
         if (((i - 4) % 2) == 0) {
           Serial.print("seconds");
-        }
-        else {
+        } else {
           Serial.print("fraction");
         }
       }
       Serial.println();
     }
   }
-  
+
   if (debug > 0) {
     Serial.print("\nheader: ");
     print_uint32(words[0]);
@@ -153,21 +151,21 @@ void parseNTP_header (uint32_t words[]) {
   //Serial.print(LI, DEC);
   //Serial.print("\t");
   switch (LI) {
-  case 0:
-    Serial.print("no leap second");
-    break;
-  case 1:
-    Serial.print("+1 leap second");
-    break;
-  case 2:
-    Serial.print("-1 leap second");
-    break;
-  case 3:
-    Serial.print("unsynced");
-    break;
-  default:
-    Serial.print("UNDEFINED");
-    break;
+    case 0:
+      Serial.print("no leap second");
+      break;
+    case 1:
+      Serial.print("+1 leap second");
+      break;
+    case 2:
+      Serial.print("-1 leap second");
+      break;
+    case 3:
+      Serial.print("unsynced");
+      break;
+    default:
+      Serial.print("UNDEFINED");
+      break;
   }
   Serial.println();
 
@@ -242,9 +240,9 @@ void parseNTP_header (uint32_t words[]) {
   }
 }
 
-void parseNTP_time (uint32_t words[]) {
+void parseNTP_time(uint32_t words[]) {
   char buff[64];
-  if (debug > 0 ) {
+  if (debug > 0) {
     // print raw NTP time
     Serial.println("\nraw 64-bit timestamps");
     for (int i = 0; i < 4; i++) {
@@ -276,7 +274,7 @@ void parseNTP_time (uint32_t words[]) {
     }
 
     Serial.print("epoch offset = ");
-    Serial.println(NTP_UNIX_OFFSET_SECONDS );
+    Serial.println(NTP_UNIX_OFFSET_SECONDS);
 
     // print UTC unix time
     Serial.println("\n32-bit unix timestamps");
@@ -297,7 +295,7 @@ void parseNTP_time (uint32_t words[]) {
   NTPlocalTime = localTime[3];
 }
 
-void parseNTP_fraction (uint32_t words[]) {
+void parseNTP_fraction(uint32_t words[]) {
   char buff[64];
   uint32_t fracSecs[4];
   // print raw NTP time
@@ -315,7 +313,7 @@ void parseNTP_fraction (uint32_t words[]) {
     ifrac_secs[i] = words[5 + i * 2];
   }
 
-  NTPfracTime = ((uint64_t) fracSecs[3] * 1000) >> 32;
+  NTPfracTime = ((uint64_t)fracSecs[3] * 1000) >> 32;
 
   //      if (debug > 1) {
   // print fractional times
@@ -326,7 +324,7 @@ void parseNTP_fraction (uint32_t words[]) {
 }
 
 // send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress & address) {
+void sendNTPpacket(IPAddress& address) {
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   if (debug > 0) {
@@ -335,10 +333,10 @@ void sendNTPpacket(IPAddress & address) {
   }
   // Initialize values needed to form NTP request
   // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
+  packetBuffer[0] = 0b11100011;  // LI, Version, Mode
+  packetBuffer[1] = 0;           // Stratum, or type of clock
+  packetBuffer[2] = 6;           // Polling Interval
+  packetBuffer[3] = 0xEC;        // Peer Clock Precision
   // 8 bytes of zero for Root Delay & Root Dispersion
   packetBuffer[12] = 49;
   packetBuffer[13] = 0x4E;
@@ -351,7 +349,7 @@ void sendNTPpacket(IPAddress & address) {
     readNTP_packet();
     parseNTP_time(packetWords);
   }
-  Udp.beginPacket(address, 123); //NTP requests are to port 123
+  Udp.beginPacket(address, 123);  //NTP requests are to port 123
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
 }
