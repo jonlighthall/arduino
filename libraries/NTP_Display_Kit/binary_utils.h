@@ -2,7 +2,9 @@
 #define BIN_UTILS
 
 uint32_t getWord(byte packet[48], int idx) {
+  // extract a 32-bit segment of a 48-byte packet
   uint32_t bit_word;
+  // shift and OR 4 8-bit bytes to construct a 32-bit integer
   bit_word =  (unsigned long)packet[idx] << 24;
   bit_word |= (unsigned long)packet[idx + 1] << 16;
   bit_word |= (unsigned long)packet[idx + 2] << 8;
@@ -79,25 +81,25 @@ void print_binary(uint32_t number, uint8_t Length) {
 
 void print_uint32(uint32_t dword32) {
   char buff[64];
-  sprintf(buff, "dec: %10u, hex: %08X, oct: %011o, 32bin: ", dword32, dword32, dword32, dword32);
+  sprintf(buff, "dec: %10u, hex: %08X, oct: %011o", dword32, dword32, dword32);
   Serial.print(buff);
-  print_binary(dword32, 32);  Serial.print(", bin: ");
+  print_binary(dword32, 32);  Serial.print(", 32bin: ");
   Serial.println(dword32, BIN); // print as an ASCII-encoded binary
 }
 
 void print_uint16(uint16_t word16) {
   char buff[64];
-  sprintf(buff, "dec: %5u, hex: %04X, oct: %06o, 16bin: ", word16, word16, word16, word16);
+  sprintf(buff, "dec: %5u, hex: %04X, oct: %06o", word16, word16, word16);
   Serial.print(buff);
-  print_binary(word16, 16); Serial.print(", bin: ");
+  print_binary(word16, 16); Serial.print(", bin16: ");
   Serial.println(word16, BIN); // print as an ASCII-encoded binary
 }
 
 void print_uint8(byte byte8) {
   char buff[64];
-  sprintf(buff, "dec: %3u, hex: %02X, oct: %03o, 08bin: ", byte8, byte8, byte8, byte8);
+  sprintf(buff, "dec: %3u, hex: %02X, oct: %03o", byte8, byte8, byte8);
   Serial.print(buff);
-  print_binary(byte8, 8); Serial.print(", bin: ");
+  print_binary(byte8, 8); Serial.print(", bin08: ");
   Serial.println(byte8, BIN); // print as an ASCII-encoded binary
 }
 

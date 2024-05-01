@@ -41,15 +41,25 @@ uint32_t LastSyncTime;
 uint32_t NTPfracTime;
 uint32_t NTPlocalTime;
 
-const int NTP_PACKET_SIZE = 48;      // NTP time is in the first 48 bytes of message
-byte packetBuffer[NTP_PACKET_SIZE];  //buffer to hold incoming & outgoing packets
+// The NTP timestamp packet is 48 bytes long
+
+// define packet size in bytes
+const int NTP_PACKET_SIZE = 48;
+
+// create a buffer (an array of bytes) to hold the incoming & outgoing packets
+byte packetBuffer[NTP_PACKET_SIZE];
+
+// define the packet size in 32-bit unsigned inegers
+// to convert from (8-bit) bytes to 32-bit unsigned integers, divide by 32/8=4
 const int NTP_PACKET_LENGTH = NTP_PACKET_SIZE / 4;
+
+// create an array of 32-bit unsigned integers to parse the packets
 uint32_t packetWords[NTP_PACKET_LENGTH];
 
-constexpr uint8_t NTP_UNIX_OFFSET_YEARS = 70;
-constexpr uint16_t DAYS_IN_YEAR = 365;
-constexpr uint8_t NUMBER_OF_LEAP_YEARS = 17;
-constexpr uint32_t SECONDS_IN_DAY = 86400;
+constexpr uint8_t  NTP_UNIX_OFFSET_YEARS = 70;
+constexpr uint16_t DAYS_IN_YEAR          = 365;
+constexpr uint8_t  NUMBER_OF_LEAP_YEARS  = 17;
+constexpr uint32_t SECONDS_IN_DAY        = 86400;
 constexpr uint32_t NTP_UNIX_OFFSET_SECONDS =
   (NTP_UNIX_OFFSET_YEARS * DAYS_IN_YEAR + NUMBER_OF_LEAP_YEARS) * SECONDS_IN_DAY;
 
@@ -64,26 +74,31 @@ void udp_start() {
   Serial.println(Udp.localPort());
 }
 
+// parse the NPT packet into 12 32-bit "words"
 void readNTP_packet() {
   char buff[64];
+  sprintf(buff, "Parsing %i-byte packet into %i 32-bit words... ",NTP_PACKET_SIZE,NTP_PACKET_LENGTH);
+  Serial.print(buff);  
   // read packet
   for (int i = 0; i < NTP_PACKET_LENGTH; i++) {
     packetWords[i] = getWord(packetBuffer, i * 4);
   }
+  Serial.println("done");
 }
 
 void parseNTP_header(uint32_t words[]) {
   char buff[64];
+  Serial.println("Parsing NTP header...");
   // define raw variables
-  byte LI = getBits32(words[0], 0, 2);
-  byte VN = getBits32(words[0], 2, 3);
-  byte Mode = getBits32(words[0], 5, 3);
-  byte Stratum = getBits32(words[0], 8, 8);
-  byte Poll = getBits32(words[0], 16, 8);
-  byte Precision = getBits32(words[0], 24, 8);
-  uint32_t rootDelay = words[1];
-  uint32_t rootDispersion = words[2];
-  uint32_t referenceIdentifier = words[3];
+  byte LI = getBits32(words[0], 0, 2); // Leap Indicator (2 bits)
+  byte VN = getBits32(words[0], 2, 3); // Version Number (3 bits)
+  byte Mode = getBits32(words[0], 5, 3); // Mode (3 bits)
+  byte Stratum = getBits32(words[0], 8, 8); // Stratum (8 bits)
+  byte Poll = getBits32(words[0], 16, 8); // Poll interval (8 bits)
+  byte Precision = getBits32(words[0], 24, 8); // Precision (8 bits)
+  uint32_t rootDelay = words[1]; // Root Delay (32 bits)
+  uint32_t rootDispersion = words[2]; // Root Dispersion (32 bits)
+  uint32_t referenceIdentifier = words[3]; // Reference Identifier (32 bits)
 
   // define converted variables
   int8_t Poll_interval = int8_t(Poll);
@@ -147,25 +162,30 @@ void parseNTP_header(uint32_t words[]) {
   print_binary(LI, 2);
   sprintf(buff, "       %3d ", LI);
   Serial.print(buff);
-  //Serial.print("\t");
-  //Serial.print(LI, DEC);
-  //Serial.print("\t");
+  // Serial.print("\t");
+  // Serial.print(LI, DEC);
+  // Serial.print("\t");
   switch (LI) {
-    case 0:
-      Serial.print("no leap second");
-      break;
-    case 1:
-      Serial.print("+1 leap second");
-      break;
-    case 2:
-      Serial.print("-1 leap second");
-      break;
-    case 3:
-      Serial.print("unsynced");
-      break;
-    default:
-      Serial.print("UNDEFINED");
-      break;
+    // Warns of impending leap second adjustments.
+  case 0:
+    // no warning
+    Serial.print("no leap second");
+    break;
+  case 1:
+    // Last minute of the day has 61 seconds
+    Serial.print("+1 leap second");
+    break;
+  case 2:
+    // Last minute of the day has 59 seconds
+    Serial.print("-1 leap second");
+    break;
+  case 3:
+    // Alarm condition (clock not synchronized)
+    Serial.print("unsynced");
+    break;
+  default:
+    Serial.print("UNDEFINED");
+    break;
   }
   Serial.println();
 
@@ -201,8 +221,9 @@ void parseNTP_header(uint32_t words[]) {
   print_binary(Stratum, 8);
   sprintf(buff, " %3d ", Stratum);
   Serial.print(buff);
+  // Indicates the distance of the device from a primary reference clock.
   if (Stratum == 1)
-    Serial.print("primary");
+    Serial.print("primary"); // reference clock
   if (Stratum > 1 && Stratum < 16)
     Serial.print("secondary");
   if (Stratum == 16)
@@ -241,7 +262,8 @@ void parseNTP_header(uint32_t words[]) {
 }
 
 void parseNTP_time(uint32_t words[]) {
-  char buff[64];
+  char buff[64]; 
+  
   if (debug > 0) {
     // print raw NTP time
     Serial.println("\nraw 64-bit timestamps");
@@ -251,7 +273,7 @@ void parseNTP_time(uint32_t words[]) {
     }
   }
 
-  //calculate times
+  // calculate times
   uint32_t secsSince1900[4];
   uint32_t secsSince1970[4];
   uint32_t localTime[4];
@@ -296,6 +318,7 @@ void parseNTP_time(uint32_t words[]) {
 }
 
 void parseNTP_fraction(uint32_t words[]) {
+  Serial.println("Parsing 32-bit fractional part of timestamp...");
   char buff[64];
   uint32_t fracSecs[4];
   // print raw NTP time
