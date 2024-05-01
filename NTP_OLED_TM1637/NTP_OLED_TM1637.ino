@@ -46,7 +46,7 @@
 */
 
 //-------------------------------
-const int debug = 1;
+const int debug = 0;
 //-------------------------------
 
 // custom library headers
@@ -70,6 +70,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial)
     ;  // Needed for Leonardo only
+  // pause for Serial Monitor
   delay(PRINT_DELAY);
   // Serial welcome message
   Serial.println();
@@ -381,7 +382,7 @@ time_t getNtpTime() {
     ;  // discard any previously received packets
   // Serial sync message
   Serial.println(serdiv);
-  Serial.println("Transmit NTP Request");
+  Serial.println("Transmiting NTP request...");
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
@@ -395,13 +396,18 @@ time_t getNtpTime() {
   // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
+  const uint32_t udp_timeout = 1500;
+  uint32_t udp_time;
 
   // wait for response
-  while (millis() - beginWait < 1500) {
+  while (millis() - beginWait < udp_timeout) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
       // print status
-      Serial.println("Receive NTP Response");
+      Serial.print("Received NTP response after ");
+      udp_time = millis() - beginWait;
+      Serial.print(udp_time);
+      Serial.println(" ms");
 
       // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
@@ -417,7 +423,9 @@ time_t getNtpTime() {
       return NTPlocalTime;
     }
   }
-  Serial.println("No NTP Response :-(");
+  Serial.println("No NTP response after ");
+  Serial.print(udp_timeout);
+  Serial.println(" ms :-(");
   Serial.println(serdiv);
   return 0;  // return 0 if unable to get the time
 }
