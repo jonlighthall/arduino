@@ -87,6 +87,7 @@ void readNTP_packet() {
 }
 
 void parseNTP_header(uint32_t words[]) {
+  static int debug=3;
   char buff[64];
   Serial.println("Parsing NTP header...");
   // define raw variables
@@ -149,8 +150,7 @@ void parseNTP_header(uint32_t words[]) {
 
   if (debug > 0) {
     Serial.print("\nheader: ");
-    print_uint32(words[0]);
-    Serial.println();
+    print_uint32(words[0]);    
   }
   // Print variables
   Serial.print("\n       LI: ");
@@ -190,20 +190,30 @@ void parseNTP_header(uint32_t words[]) {
   }
   Serial.println();
 
+  // time.nist.gov uses NTPv3
+  // NTPv3 uses 32-bit timestamps
+  // This program assumes a 32-bit timestamp  
   Serial.print("  Version: ");
   if (debug > 0) {
     print_uint8(VN);
-    Serial.println("should be dec 4 or bin 100");
+    Serial.println("must be dec 3 or bin 011");
   }
   Serial.print("  ");
   print_binary(VN, 3);
   sprintf(buff, "    %3d\n", VN);
   Serial.print(buff);
 
+  Serial.print("Version number is... ");
+  if (VN == 3 ) {
+    Serial.println("OK")  ;  
+  } else {
+    Serial.println("INCOMPATIBLE");
+  }
+
   Serial.print("     Mode: ");
   if (debug > 0) {
     print_uint8(Mode);
-    Serial.println("should be dec 3 or bin 011");
+    Serial.println("should be dec 4 or bin 100");
   }
   Serial.print("     ");
   print_binary(Mode, 3);
