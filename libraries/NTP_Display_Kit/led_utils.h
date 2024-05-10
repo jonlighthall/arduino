@@ -6,8 +6,13 @@
 #include <seven-segment_text.h>
 
 // set LED connection pins
+#ifdef WEMOS_V4
+const int CLK = D1;               // Set the CLK pin connection to the display
+const int DIO = D2;               // Set the DIO pin connection to the display
+#else
 const int CLK = D6;               // Set the CLK pin connection to the display
 const int DIO = D5;               // Set the DIO pin connection to the display
+#endif
 TM1637Display display(CLK, DIO);  // set up the 4-Digit Display.
 
 // Set LED display options
@@ -61,18 +66,18 @@ void DigitalClockDisplayOpt() {
       // brighten display and show options
       brite=7;
 
-    }  	  
+    }
   }
   if (debug > 0) {
     Serial.print("setting brightness to ");
     Serial.println(brite);
   }
-  
+
   display.setBrightness(brite);
   DigitalClockDisplay();
 
   if ((hour() < 20) && (hour() > 6)) {  // day
-    // show options  
+    // show options
     int dig_time;
     if ((do_cyc) && (second() == 30)) {  // nixie tube cycling
       for (int i = 0; i < 10; i++) {
