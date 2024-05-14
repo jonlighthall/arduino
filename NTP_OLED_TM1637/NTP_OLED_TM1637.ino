@@ -54,11 +54,14 @@ const int debug = 0;
 
 // project library headers
 #include <dst.h>
-#include <led_utils.h>
 #include <ntp_utils.h>
 #include <oled_utils.h>
 #include <serial_utils.h>
 #include <wifi_utils.h>
+
+// LED display options
+#define LED1
+#include <led_utils.h>
 
 void setup() {
   // initialize on-board LED
@@ -193,7 +196,8 @@ void setup() {
 
   // wait for time to be set
   setSyncProvider(getNtpTime);
-  if (timeStatus() == timeNotSet) setSyncInterval(0);
+  if (timeStatus() == timeNotSet)
+    setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
     Serial.print(".");
   }
@@ -257,9 +261,11 @@ void loop() {
 
       // check DST
       if (do_DST) {
-        if (debug > 0) Serial.print("   checking DST status... ");
+        if (debug > 0)
+          Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
-        if (debug > 0) Serial.println();
+        if (debug > 0)
+          Serial.println();
       } else {
         SetTimeZone = timeZone;
       }
@@ -289,9 +295,9 @@ void loop() {
                   ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
           sprintf(buff, "Sync delay percentage = %7.3f%%", syncWait * 100);
+          Serial.print(buff);
           // define OLED sync bar
           syncBar = syncWait * disphei;
-          Serial.print(buff);
           sprintf(buff, " or %2d pixels", syncBar);
           Serial.println(buff);
         }
@@ -416,6 +422,7 @@ time_t getNtpTime() {
 
       // parse packet
       parseNTP_time(packetWords);
+      parseNTP_header(packetWords);
 
       Serial.println(serdiv);
 
