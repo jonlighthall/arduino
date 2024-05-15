@@ -1,6 +1,8 @@
 #ifndef DST_UTILS
 #define DST_UTILS
 
+#include <Arduino.h>
+#include <Print.h>
 #include <TimeLib.h>
 
 int isDST(int default_debugDST = 0); // set default function value

@@ -1,8 +1,8 @@
 /*
   NB: do not commit changes to this file which include sensitive information!
-  
+
   Use the following command to ignore changes to this files, both local and upstream
-  
+
   >   git update-index --skip-worktree credentials.h
 
   Use the following command to track changes to the file

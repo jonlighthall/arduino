@@ -2,10 +2,10 @@
 #define NTP_UTILS
 
 // standard library headers
-#include <WiFiUdp.h>
-
-// custom library headers
+#include <Arduino.h>
+//#include <Print.h>
 #include <TimeLib.h>
+#include <WiFiUdp.h>
 
 // project library headers
 #include <wifi_utils.h>
@@ -105,7 +105,7 @@ void parseNTP_header(uint32_t words[]) {
   int8_t poll_interval_log = int8_t(Poll);
   int16_t poll_interval = pow(2, poll_interval_log);
   int8_t precision_log = int8_t(Precision);
-  double precision_seconds = pow(2, precision_log);  
+  double precision_seconds = pow(2, precision_log);
   uint8_t a = getBits32(referenceIdentifier, 0, 8);
   uint8_t b = getBits32(referenceIdentifier, 8, 8);
   uint8_t c = getBits32(referenceIdentifier, 16, 8);
@@ -150,7 +150,7 @@ void parseNTP_header(uint32_t words[]) {
 
   if (debug > 0) {
     Serial.print("\nheader: ");
-    print_uint32(words[0]);    
+    print_uint32(words[0]);
   }
   // Print variables
   Serial.print("\n       LI: ");
@@ -192,7 +192,7 @@ void parseNTP_header(uint32_t words[]) {
 
   // time.nist.gov uses NTPv3
   // NTPv3 uses 32-bit timestamps
-  // This program assumes a 32-bit timestamp  
+  // This program assumes a 32-bit timestamp
   Serial.print("  Version: ");
   if (debug > 0) {
     print_uint8(VN);
@@ -205,7 +205,7 @@ void parseNTP_header(uint32_t words[]) {
 
   Serial.print("Version number is... ");
   if (VN == 3 ) {
-    Serial.println("OK")  ;  
+    Serial.println("OK")  ;
   } else {
     Serial.println("INCOMPATIBLE");
   }
@@ -252,7 +252,7 @@ void parseNTP_header(uint32_t words[]) {
   default:
     Serial.print("UNDEFINED");
     break;
-  } 
+  }
   Serial.println();
 
   Serial.print("  Stratum: ");
@@ -379,6 +379,7 @@ void parseNTP_fraction(uint32_t words[]) {
   double frac_secs[4];
   for (int i = 0; i < 4; i++) {
     ifrac_secs[i] = words[5 + i * 2];
+    frac_secs[i] = ifrac_secs[i]/(0xFFFFFFFF);
   }
 
   NTPfracTime = ((uint64_t)fracSecs[3] * 1000) >> 32;

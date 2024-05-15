@@ -2,9 +2,9 @@
 #define OLED_UTILS
 
 // OLED packages
-#include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
+#include <ESP8266WiFi.h>
 
 // OLED display options
 const bool do_RSSI_Bars = false;
@@ -53,7 +53,8 @@ void OLED_RSSI_Bars () {
 
 void OLEDClockDisplay() {
   // define OLED variables
-  int xpos, ypos;
+  int xpos;
+  int ypos;
   char buff[dispwid];
 
   u8g2.clearBuffer();

@@ -1,3 +1,5 @@
+#include <TM1637Display.h>
+
 const uint8_t SEG_DONE[] = {
   SEG_B | SEG_C | SEG_D | SEG_E | SEG_G,           // d
   SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,   // O
@@ -56,7 +58,7 @@ const uint8_t SEG_letb[] = {
 };
 
 const uint8_t SEG_letC[] = {
-  SEG_A | SEG_F | SEG_E | SEG_D 
+  SEG_A | SEG_F | SEG_E | SEG_D
 };
 
 const uint8_t SEG_bad[] = {
@@ -69,7 +71,7 @@ const uint8_t SEG_bad[] = {
 const uint8_t SEG_scan[] = {
   SEG_A | SEG_C | SEG_D | SEG_F | SEG_G ,          // S
   SEG_A | SEG_D | SEG_E | SEG_F,                   // C
-  SEG_A | SEG_B | SEG_F | SEG_G | SEG_E | SEG_C,   // a    
+  SEG_A | SEG_B | SEG_F | SEG_G | SEG_E | SEG_C,   // a
   SEG_C | SEG_E | SEG_G                            // n
 };
 
@@ -82,7 +84,7 @@ const uint8_t SEG_good[] = {
 
 const uint8_t SEG_fail[] = {
   SEG_A | SEG_E | SEG_F | SEG_G,                   // F
-  SEG_A | SEG_B | SEG_F | SEG_G | SEG_E | SEG_C,   // A      
-  SEG_E | SEG_F,                                   // i 
+  SEG_A | SEG_B | SEG_F | SEG_G | SEG_E | SEG_C,   // A
+  SEG_E | SEG_F,                                   // i
   SEG_D | SEG_E | SEG_F                            // L
 };

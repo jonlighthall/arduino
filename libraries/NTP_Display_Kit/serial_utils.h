@@ -1,11 +1,16 @@
 #ifndef SERIAL_UTILS
 #define SERIAL_UTILS
 
+
+// custom library headers
+#include <TimeLib.h>
+#include <dst.h>
+
 // Serial display settings
-#define PRINT_DELAY 250 // print delay in milliseconds
+const int PRINT_DELAY=250 // print delay in milliseconds
 const bool do_milliseconds = true;
 const bool do_RSSI = false;
-char serdiv[] = "----------------------------"; // serial print divider
+const char serdiv[] = "----------------------------"; // serial print divider
 
 void serialClockDisplay() {
   // send date/time to Serial Monitor

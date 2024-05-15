@@ -5,23 +5,27 @@
 #ifndef WIFI_UTILS
 #define WIFI_UTILS
 
+// located in %AppData%\Local\Arduino15\packages
 #include <ESP8266WiFi.h>
+
+#include <Arduino.h>
+//#include <Print.h>
 
 // Wi-Fi settings:
 #include "wifi_credentials.h"
-const char* ssid = WIFI_SSID;          //from credentials.h file
-const char* pass = WIFI_PASSWORD;      //from credentials.h file
+const char* ssid = WIFI_SSID;      // from credentials.h file
+const char* pass = WIFI_PASSWORD;  // from credentials.h file
 
-int rssi = 0; // Wifi signal strengh variable
+int rssi = 0;  // Wifi signal strengh variable
 
 void wifi_start() {
   Serial.print("Connecting to ");
   Serial.print(ssid);
-  
+
   WiFi.begin(ssid, pass);
-  while ( WiFi.status() != WL_CONNECTED ) {
-    delay ( 500 );
-    Serial.print ( "." );
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
 }
 
