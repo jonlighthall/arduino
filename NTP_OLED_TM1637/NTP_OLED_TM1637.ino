@@ -114,12 +114,7 @@ void setup() {
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
 
-  // initialize LED display
-  display.clear();
-  display.setBrightness(7);
-
-  // print LED welcome message
-  display.setSegments(SEG_hEllo);
+  LED_init();
 
   // pause for readability
   delay(PRINT_DELAY);
@@ -134,8 +129,8 @@ void setup() {
   ypos += texthei + 2;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  // LED connecting message
-  display.setSegments(SEG_CONN);
+
+  LED_conn();
 
   WiFi.begin(ssid, pass);
 
@@ -191,8 +186,8 @@ void setup() {
   ypos += texthei + 1;
   u8g2.drawStr(xpos, ypos, buff);
   u8g2.sendBuffer();
-  // LED sync message
-  display.setSegments(SEG_SYNC);
+
+  LED_sync();
 
   // wait for time to be set
   setSyncProvider(getNtpTime);
@@ -396,8 +391,8 @@ time_t getNtpTime() {
   // OLED sync message (cue light)
   u8g2.drawBox(0, 0, 2, 2);
   u8g2.sendBuffer();
-  // LED sync message
-  display.setSegments(SEG_SYNC);
+
+  LED_sync();
 
   // send packet
   sendNTPpacket(ntpServerIP);

@@ -69,6 +69,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial)
     ;  // Needed for Leonardo only
+  // pause for Serial Monitor
   delay(PRINT_DELAY);
   // Serial welcome message
   Serial.println();
@@ -180,7 +181,8 @@ void setup() {
 
   // wait for time to be set
   setSyncProvider(getNtpTime);
-  if (timeStatus() == timeNotSet) setSyncInterval(0);
+  if (timeStatus() == timeNotSet)
+    setSyncInterval(0);
   while (timeStatus() == timeNotSet) {
     Serial.print(".");
   }
@@ -244,9 +246,11 @@ void loop() {
 
       // check DST
       if (do_DST) {
-        if (debug > 0) Serial.print("   checking DST status... ");
+        if (debug > 0)
+          Serial.print("   checking DST status... ");
         SetTimeZone = timeZone + isDST(debug);
-        if (debug > 0) Serial.println();
+        if (debug > 0)
+          Serial.println();
       } else {
         SetTimeZone = timeZone;
       }
@@ -276,9 +280,9 @@ void loop() {
                   ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
           sprintf(buff, "Sync delay percentage = %7.3f%%", syncWait * 100);
+          Serial.print(buff);
           // define OLED sync bar
           syncBar = syncWait * disphei;
-          Serial.print(buff);
           sprintf(buff, " or %2d pixels", syncBar);
           Serial.println(buff);
         }
@@ -367,7 +371,7 @@ time_t getNtpTime() {
     ;  // discard any previously received packets
   // Serial sync message
   Serial.println(serdiv);
-  Serial.println("Transmit NTP Request");
+  Serial.println("Transmiting NTP request...");
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
@@ -379,13 +383,18 @@ time_t getNtpTime() {
   // send packet
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
+  const uint32_t udp_timeout = 1500;
+  uint32_t udp_time;
 
   // wait for response
-  while (millis() - beginWait < 1500) {
+  while (millis() - beginWait < udp_timeout) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
       // print status
-      Serial.println("Receive NTP Response");
+      Serial.print("Received NTP response after ");
+      udp_time = millis() - beginWait;
+      Serial.print(udp_time);
+      Serial.println(" ms");
 
       // read packet
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
@@ -394,6 +403,7 @@ time_t getNtpTime() {
 
       // parse packet
       parseNTP_time(packetWords);
+      parseNTP_header(packetWords);
 
       Serial.println(serdiv);
 
@@ -401,7 +411,9 @@ time_t getNtpTime() {
       return NTPlocalTime;
     }
   }
-  Serial.println("No NTP Response :-(");
+  Serial.println("No NTP response after ");
+  Serial.print(udp_timeout);
+  Serial.println(" ms :-(");
   Serial.println(serdiv);
   return 0;  // return 0 if unable to get the time
 }

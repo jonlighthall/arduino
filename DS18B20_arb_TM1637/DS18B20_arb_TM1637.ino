@@ -1,8 +1,52 @@
-// Include the libraries we need
+/*
+
+  Wemos D1 Mini Pin Connections
+
+  +-----+--------+-------+----------------+
+  | Pin | ESP    | Use   |
+  +-----+--------+-------+----------------+
+  | RST | RST    | Reset |
+  +-----+--------+-------+----------------+
+  | A0  | A0     | ADC   |
+  +-----+--------+-------+----------------+
+  | D0  | GPIO16 | WAKE  |
+  +-----+--------+-------+----------------+
+  | D5  | GPIO14 | SCLK  | LED display DIO
+  +-----+--------+-------+----------------+
+  | D6  | GPIO12 | MISO  | LED display CLK
+  +-----+--------+-------+----------------+
+  | D7  | GPIO13 | MOSI  |
+  +-----+--------+-------+----------------+
+  | D8  | GPIO15 | CS    |
+  +-----+--------+-------+----------------+
+  | 3V3 | 3.3V   |       | LED VCC
+  +-----+--------+-------+----------------+
+  | TX  | GPIO1  | TX    |
+  +-----+--------+-------+----------------+
+  | RX  | GPIO3  | RX    |
+  +-----+--------+-------+----------------+
+  | D1  | GPIO5  | SCL   |
+  +-----+--------+-------+----------------+
+  | D2  | GPIO4  | SDA   |
+  +-----+--------+-------+----------------+
+  | D3  | GPIO0  | FLASH |
+  +-----+--------+-------+----------------+
+  | D4  | GPIO2  | LED   | sync cue
+  +-----+--------+-------+----------------+
+  | G   | GND    | GND   | LED GND
+  +-----+--------+-------+----------------+
+  | 5V  | N/A    | VCC   |
+  +-----+--------+-------+----------------+
+
+*/
+
+// standard library headers
+#include <OneWire.h>
+#include <DallasTemperature.h>  // Dallas Temperature Requires OneWire
+
+// project library headers
 #include <wifi_utils.h>
 bool ssid_found = false;
-#include <OneWire.h>
-#include <DallasTemperature.h>
 
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 4
@@ -24,6 +68,11 @@ int idx_probe = -1;
 #include <TM1637Display.h>
 const int CLK = D6;               //Set the CLK pin connection to the display
 const int DIO = D5;               //Set the DIO pin connection to the display
+
+// Wemos v4
+//const int CLK = D1;               //Set the CLK pin connection to the display
+//const int DIO = D2;               //Set the DIO pin connection to the display
+
 TM1637Display display(CLK, DIO);  //set up the 4-Digit Display.
 #include <seven-segment_text.h>
 #define PRINT_DELAY 1250  // print delay in milliseconds
@@ -37,16 +86,25 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, LOW);
 
-  // start serial port
+  // initialize Serial
   Serial.begin(9600);
+  // pause for Serial Monitor
+  delay(PRINT_DELAY);
+  // Serial welcome message
+  Serial.println();
+  Serial.println("---------------");
+  Serial.println("Dallas Temperature IC Control Library Demo");
+  Serial.println("---------------");
 
   // initialize LED display
   display.clear();
-  display.setBrightness(0);
-  display.setSegments(SEG_hEllo);
-  delay(PRINT_DELAY);
+  display.setBrightness(7);
 
-  Serial.println("Dallas Temperature IC Control Library Demo");
+  // print LED welcome message
+  display.setSegments(SEG_hEllo);
+
+  // pause for readability
+  delay(PRINT_DELAY);
 
   // Start up the library
   sensors.begin();
@@ -158,34 +216,37 @@ void loop() {
   Serial.print("ADC value = ");
   Serial.println(ADCvalue);
   const int ADCmax = 1024;
-  float ADCscale = ADCvalue / ADCmax;
-  Serial.print("ADC scale = ");
-  Serial.println(ADCscale);
 
-  // connect to wi-fi if connected to power
-  if (ADCvalue == ADCmax) {
-    Serial.println("Battery connected to power.");
-    if (ssid_found) {
-      Serial.print(" Connecting to Wi-Fi...");
-      if (WiFi.status() != WL_CONNECTED) {
-        display.setSegments(SEG_CONN);
-        wifi_con();
+  if (true) {
+    float ADCscale = ADCvalue / ADCmax;
+    Serial.print("ADC scale = ");
+    Serial.println(ADCscale);
+
+    // connect to wi-fi if connected to power
+    if (ADCvalue == ADCmax) {
+      Serial.println("Battery connected to power.");
+      if (ssid_found) {
+        Serial.print(" Connecting to Wi-Fi...");
+        if (WiFi.status() != WL_CONNECTED) {
+          display.setSegments(SEG_CONN);
+          wifi_con();
+        } else {
+          Serial.println("Wi-Fi already connected. Continuing...");
+        }
       } else {
-        Serial.println("Wi-Fi already connected. Continuing...");
+        Serial.print(ssid);
+        Serial.println(" not found");
       }
-    } else {
-      Serial.print(ssid);
-      Serial.println(" not found");
-    }
 
-  }
-  // otherwise turn off modem
-  else if (ADCvalue < 100) {
-    Serial.println("Battery removed from power. Disconnecting from  Wi-Fi...");
-    if (WiFi.status() == WL_CONNECTED) {
-      wifi_discon();
-    } else {
-      Serial.println("Wi-Fi already disconnected. Continuing...");
+    }
+    // otherwise turn off modem
+    else if (ADCvalue < 100) {
+      Serial.println("Battery removed from power. Disconnecting from  Wi-Fi...");
+      if (WiFi.status() == WL_CONNECTED) {
+        wifi_discon();
+      } else {
+        Serial.println("Wi-Fi already disconnected. Continuing...");
+      }
     }
   }
 
@@ -294,11 +355,15 @@ void wifi_con() {
     Serial.println(WiFi.status());
     if (counter == wait_lim) {
       Serial.println("timeout");
+      display.setSegments(SEG_fail, 4, 0);
+      delay(PRINT_DELAY);
     }
   }
 
   // print status
   Serial.print("connected\n");
+  display.setSegments(SEG_good, 4, 0);
+  delay(PRINT_DELAY);
   Serial.print("Wi-Fi status : ");
   Serial.println(WiFi.status());
   Serial.print("gateway IP address: ");

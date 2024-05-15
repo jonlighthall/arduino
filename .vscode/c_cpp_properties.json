@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Arduino",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/mnt/c/Program Files (x86)/Arduino",
+                "/mnt/c/Program Files (x86)/Arduino/libraries",
+                "/mnt/c/Program Files (x86)/Arduino/hardware"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "defines": [
+                "ARDUINO=10810"
+            ]
+        }
+    ],
+    "version": 4
+}

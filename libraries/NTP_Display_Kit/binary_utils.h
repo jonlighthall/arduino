@@ -103,9 +103,8 @@ void print_uint8(byte byte8) {
   Serial.println(byte8, BIN); // print as an ASCII-encoded binary
 }
 
-uint16_t getBits16(uint16_t word16, uint8_t bit_start, uint8_t bit_len) {
-  uint16_t mask, out;
-  char buff[64];
+uint16_t getBits16(uint16_t word16) {
+  uint16_t out;
   if (debug > 2) {
     uint8_t high, low;
     high = (word16 >> 8);
@@ -158,19 +157,18 @@ uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
   out3 = shift32(out2, bit_start, bit_len);
 
   if (debug > 2) {
-    char buff[64];
     uint16_t high, low;
     //equivalent to start 0, length 16
     high = (dword32 << 0) >> 16;
     Serial.print("high 16: ");
     print_uint16(high);
-    getBits16(high, 0, 0);
+    getBits16(high);
 
     //equivalent to start 16, length 16
     low = (dword32 << 16) >> 16;
     Serial.print(" low 16: ");
     print_uint16(low);
-    getBits16(low, 0, 0);
+    getBits16(low);
     Serial.println("shift dword to starting point");
     out = (dword32 << bit_start);
     print_binary(out, bit_len); Serial.print(", full: "); print_binary(out, 32); Serial.print(", bin: ");
@@ -184,7 +182,8 @@ uint32_t getBits32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {
     print_uint32(out);
 
     if (out != out3) {
-      exit;
+      Serial.print("something didn't work...\n");
+      return -1;
     }
     else
       Serial.print("shifting methods work!\n");
