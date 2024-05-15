@@ -1,4 +1,5 @@
 {
+    "C_Cpp.errorSquiggles": "enabled",
     "makefile.compileCommandsPath": ".vscode/compile_commands.json",
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/.vscode/compile_commands.json",
     "sonarlint.connectedMode.project": {

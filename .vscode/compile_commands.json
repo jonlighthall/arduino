@@ -1,0 +1,7 @@
+[
+    {
+        "command": "g++  -Wall -c hello.cpp -o obj/hello.o",
+        "directory": "/mnt/c/Users/jonli/OneDrive/Documents/Arduino",
+        "file": "/mnt/c/Users/jonli/OneDrive/Documents/Arduino/hello.cpp"
+    }
+]

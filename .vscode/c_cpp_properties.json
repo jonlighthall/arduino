@@ -4,16 +4,26 @@
             "name": "Arduino",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/mnt/c/Program Files (x86)/Arduino",
-                "/mnt/c/Program Files (x86)/Arduino/libraries",
-                "/mnt/c/Program Files (x86)/Arduino/hardware"
+                "/mnt/c/Program Files (x86)/Arduino/**",
+                "/mnt/c/Program Files (x86)/Arduino/libraries/**",
+                "/mnt/c/Program Files (x86)/Arduino/hardware/**",
+                "/mnt/c/Users/jonli/OneDrive/Documents/Arduino/libraries/**",
+                "/mnt/c/Users/jonli/AppData/Local/Arduino15/**",
+                "C:/Program Files (x86)/Arduino/**",
+                "C:/Program Files (x86)/Arduino/libraries/**",
+                "C:/Program Files (x86)/Arduino/hardware/**",
+                "C:/Users/jonli/OneDrive/Documents/Arduino/libraries/**",
+                "C:/Users/jonli/AppData/Local/Arduino15/**"
             ],
             "intelliSenseMode": "gcc-x64",
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
             "cppStandard": "c++11",
             "defines": [
-                "ARDUINO=10810"
+                "ARDUINO=10810",
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
             ]
         }
     ],
