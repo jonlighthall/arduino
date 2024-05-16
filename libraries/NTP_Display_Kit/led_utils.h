@@ -1,11 +1,6 @@
 #ifndef LED_UTILS
 #define LED_UTILS
 
-#include <Arduino.h>
-
-// custom library headers
-#include <TimeLib.h>
-
 // load LED libraries
 #include <TM1637Display.h>
 #include <seven-segment_text.h>
@@ -42,8 +37,8 @@ const bool do_sec_top = false;
 const bool do_cyc = false;
 const bool do_sec_mod = false;
 
- // print delay in milliseconds
-const int DISP_DELAY = 250
+// print delay in milliseconds
+const int DISP_DELAY = 250;
 
 // LDR variables
 #ifdef LDR
@@ -54,7 +49,7 @@ const bool do_ldr = false;
 int brite;
 
 void LED_init() {
-// initialize LED display
+  // initialize LED display
 #ifdef LED1
   display.clear();
   display.setBrightness(7);
@@ -75,12 +70,12 @@ void LED_init() {
 }
 
 void LED_conn() {
-// LED connecting message
+  // LED connecting message
 #ifdef LED1
   display.setSegments(SEG_CONN);
 #endif
 #ifdef LED2
-  display2.setSegments(SEG_CONN);
+  display2.setSegments(SEG_ecti);
 #endif
 }
 
@@ -90,7 +85,7 @@ void LED_sync() {
   display.setSegments(SEG_SYNC);
 #endif
 #ifdef LED2
-  display2.setSegments(SEG_SYNC);
+  display2.setSegments(SEG_hron);
 #endif
 }
 
@@ -114,7 +109,7 @@ void DigitalClockDisplay() {
   }
 
   if (debug > 0) {
-    string buff[64];
+    char buff[64];
     sprintf(buff, "   digital time: %d", dig_time);
     Serial.println(buff);
   }
@@ -135,12 +130,12 @@ void DigitalClockDisplayOpt() {
     // read sensor
     int sensorValue = analogRead(A0);
     float scale = sensorValue / 1023.;
-    auto vmax = (float) 3.3;
-    float voltage = (scale)*vmax;
+    float vmax = 3.3;
+    float voltage = (scale) * vmax;
     float bstep = (scale) * 7;
     brite = (int(floor(bstep)));
-
-    string buff[64];
+    
+    char buff[64];
     if (debug > 0) {
       Serial.println("calculating brightness...");
       sprintf(buff, "ADC = %04d\n", sensorValue);
@@ -153,7 +148,7 @@ void DigitalClockDisplayOpt() {
       Serial.print(buff);
       sprintf(buff, "brite = %d\n", brite);
       Serial.print(buff);
-    }
+    }    
   } else {
     Serial.println("using default brightness");
     if ((hour() >= 20) || (hour() <= 6)) {  // night
@@ -174,7 +169,7 @@ void DigitalClockDisplayOpt() {
 #ifdef LED2
   display2.setBrightness(brite);
 #endif
-
+  
   if ((hour() < 20) && (hour() > 6)) {  // day
     // show options
     int dig_time;
@@ -188,7 +183,7 @@ void DigitalClockDisplayOpt() {
         display2.showNumberDecEx(dig_time, 0, true);
 #endif
         delay(DISP_DELAY);
-      }  // nixie loop
+      } // nixie loop
     } else if (do_sec_top &&
                ((second() >= 57) ||
                 (second() <= 2))) {  // show seconds at the top of the minute
@@ -211,7 +206,7 @@ void DigitalClockDisplayOpt() {
       }
 #endif
     }
-  }  // end day/night
+  } // end day/night
   DigitalClockDisplay();
 }
 #endif
