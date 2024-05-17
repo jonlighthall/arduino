@@ -1,0 +1,70 @@
+##########################################
+# Syntax Coloring Map For NTP_Display_Kit
+##########################################
+
+##########################################
+# Datatypes (KEYWORD1)
+##########################################
+
+##########################################
+# Methods and Functions (KEYWORD2)
+##########################################
+print_binary_spc	KEYWORD2
+print_binary	KEYWORD2
+print_uint32	KEYWORD2
+print_uint16	KEYWORD2
+print_uint8	KEYWORD2
+testDST	KEYWORD2
+testDST	KEYWORD2
+add_recip	KEYWORD2
+set_config	KEYWORD2
+add_recip	KEYWORD2
+set_config	KEYWORD2
+hello	KEYWORD2
+hello	KEYWORD2
+OLEDClockDisplay	KEYWORD2
+OLED_init	KEYWORD2
+OLED_TZ	KEYWORD2
+OLED_Sync_Bar	KEYWORD2
+OLED_sync	KEYWORD2
+OLED_RSSI_Bars	KEYWORD2
+OLEDClockDisplay	KEYWORD2
+serialClockDisplay	KEYWORD2
+serial_sync	KEYWORD2
+wifi_start	KEYWORD2
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+PRINT_DELAY	LITERAL1
+SEG_CONN	LITERAL1
+SEG_DONE	LITERAL1
+SEG_HEllO	LITERAL1
+SEG_SYNC	LITERAL1
+SEG_bad	LITERAL1
+SEG_degC	LITERAL1
+SEG_degF	LITERAL1
+SEG_ecti	LITERAL1
+SEG_fail	LITERAL1
+SEG_good	LITERAL1
+SEG_hEllo	LITERAL1
+SEG_hron	LITERAL1
+SEG_letA	LITERAL1
+SEG_letC	LITERAL1
+SEG_letF	LITERAL1
+SEG_letb	LITERAL1
+SEG_scan	LITERAL1
+debug	LITERAL1
+do_BigTime	LITERAL1
+do_RSSI	LITERAL1
+do_RSSI_Bars	LITERAL1
+do_Seconds	LITERAL1
+do_SecondsBar	LITERAL1
+do_SyncBar	LITERAL1
+do_milliseconds	LITERAL1
+pass	LITERAL1
+serdiv	LITERAL1
+ssid	LITERAL1
