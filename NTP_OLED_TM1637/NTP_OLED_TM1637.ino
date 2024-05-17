@@ -12,7 +12,7 @@
   +-----+--------+-------+----------------+
   | RST | RST    | Reset |
   +-----+--------+-------+----------------+
-  | A0  | A0     | ADC   |
+  | A0  | A0     | ADC   | middle leg of POT
   +-----+--------+-------+----------------+
   | D0  | GPIO16 | WAKE  |
   +-----+--------+-------+----------------+
@@ -38,21 +38,20 @@
   +-----+--------+-------+----------------+
   | D4  | GPIO2  | LED   | sync cue
   +-----+--------+-------+----------------+
-  | G   | GND    | GND   | LED GND
+  | G   | GND    | GND   | LED GND, POT
   +-----+--------+-------+----------------+
   | 5V  | N/A    | VCC   |
   +-----+--------+-------+----------------+
 
 */
 
-//-------------------------------
-const int debug = 0;
-//-------------------------------
+
 
 // custom library headers
 #include <TimeLib.h>
 
 // project library headers
+#include <debug.h>
 #include <dst.h>
 #include <ntp_utils.h>
 #include <oled_utils.h>
@@ -65,9 +64,8 @@ const int debug = 0;
 
 void setup() {
   // initialize on-board LED
-  pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(LED_BUILTIN,
-               HIGH);  // Turn the LED off by making the voltage HIGH
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize Serial
   Serial.begin(9600);
@@ -290,8 +288,8 @@ void loop() {
                   ToSyncTime, ToSyncTime / 1e3);
           Serial.print(buff);
           sprintf(buff, "Sync delay percentage = %7.3f%%", syncWait * 100);
-          Serial.print(buff);
           // define OLED sync bar
+          Serial.print(buff);
           syncBar = syncWait * disphei;
           sprintf(buff, " or %2d pixels", syncBar);
           Serial.println(buff);

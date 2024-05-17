@@ -1,9 +1,12 @@
 #ifndef LED_UTILS
 #define LED_UTILS
 
+#include <debug.h>
+
 // load LED libraries
 #include <TM1637Display.h>
 #include <seven-segment_text.h>
+#include <TimeLib.h>
 
 // set LED connection pins
 #ifdef LED1
@@ -134,7 +137,7 @@ void DigitalClockDisplayOpt() {
     float voltage = (scale) * vmax;
     float bstep = (scale) * 7;
     brite = (int(floor(bstep)));
-    
+
     char buff[64];
     if (debug > 0) {
       Serial.println("calculating brightness...");
@@ -148,7 +151,7 @@ void DigitalClockDisplayOpt() {
       Serial.print(buff);
       sprintf(buff, "brite = %d\n", brite);
       Serial.print(buff);
-    }    
+    }
   } else {
     Serial.println("using default brightness");
     if ((hour() >= 20) || (hour() <= 6)) {  // night
@@ -169,7 +172,7 @@ void DigitalClockDisplayOpt() {
 #ifdef LED2
   display2.setBrightness(brite);
 #endif
-  
+
   if ((hour() < 20) && (hour() > 6)) {  // day
     // show options
     int dig_time;

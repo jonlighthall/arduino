@@ -8,9 +8,10 @@
 #include <WiFiUdp.h>
 
 // project library headers
-#include <wifi_utils.h>
-#include <dst.h>
+#include <debug.h>
 #include <binary_utils.h>
+#include <dst.h>
+#include <wifi_utils.h>
 
 // ESP8266 Wi-Fi UDP settings
 WiFiUDP Udp;
@@ -87,6 +88,7 @@ void readNTP_packet() {
 }
 
 void parseNTP_header(uint32_t words[]) {
+  // set local debug level
   static int debug=3;
   char buff[64];
   Serial.println("Parsing NTP header...");
@@ -308,7 +310,6 @@ void parseNTP_header(uint32_t words[]) {
 
 void parseNTP_time(uint32_t words[]) {
   char buff[64];
-
   if (debug > 0) {
     // print raw NTP time
     Serial.println("\nraw 64-bit timestamps");
