@@ -251,21 +251,31 @@ void check_clock_buttons() {
 #ifdef CLOCK_BUTTONS
   int bHOUR = digitalRead(hourPin);
   int bMIN = digitalRead(minPin);
-  Serial.print("hour button = ");
-  Serial.println(bHOUR);
-  Serial.print("minute button = ");
-  Serial.println(bMIN);
+  if (debug > 0) {
+    Serial.print("hour button = ");
+    Serial.println(bHOUR);
+    Serial.print("minute button = ");
+    Serial.println(bMIN);
+  }
   if (bHOUR == LOW) {
-    Serial.println("HOUR LOW");
+    if (debug > 0) {
+      Serial.println("HOUR LOW");
+    }
     do_mil = !do_mil;
   } else {
-    Serial.println("HOUR HIGH");
+    if (debug > 0) {
+      Serial.println("HOUR HIGH");
+    }
   }
   if (bMIN == LOW) {
-    Serial.println("MIN LOW");
+    if (debug > 0) {
+      Serial.println("MIN LOW");
+    }
     do_sec_mod = !do_sec_mod;
   } else {
-    Serial.println("MIN HIGH");
+    if (debug > 0) {
+      Serial.println("MIN HIGH");
+    }
   }
 #endif
 }

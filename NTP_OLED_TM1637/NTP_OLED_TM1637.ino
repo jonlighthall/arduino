@@ -10,7 +10,7 @@
   +-----+--------+-------+----------------+
   | Pin | ESP    | Use   |
   +-----+--------+-------+----------------+
-  | RST | RST    | Reset |
+  | RST | RST    | Reset | TIME button on clock
   +-----+--------+-------+----------------+
   | A0  | A0     | ADC   | middle leg of POT (if LDR defined)
   +-----+--------+-------+----------------+
@@ -62,6 +62,7 @@
 //   LED2 - enable seconds and fractional seconds on second LED
 //   LDR  - use LDR to adjust brightness level
 //   WEMOS_V4 - use I2C port (requires LED1, conflicts with LED2)
+//   CLOCK_BUTTONS - use the buttons on the clock to set options
 
 #define LED1
 #define LDR
@@ -325,7 +326,9 @@ void loop() {
           }
         }
       }  // end do_milliseconds
-
+     
+      check_clock_buttons();
+      
       //-------------------------------
       // Output updated time
       //-------------------------------
