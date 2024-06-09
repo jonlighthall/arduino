@@ -11,17 +11,19 @@
 
 // set LED connection pins
 #ifdef LED1
+// enable LED display
 #ifdef WEMOS_V4
+// use I2C port
 const int CLK = D1;  // Set the CLK pin connection to the display
 const int DIO = D2;  // Set the DIO pin connection to the display
 #else
 const int CLK = D6;  // Set the CLK pin connection to the display
 const int DIO = D5;  // Set the DIO pin connection to the display
-#endif
-TM1637Display display(CLK, DIO);  // set up the 4-Digit Display.
-#endif
 
+// WEMOS_V4 and LED2 both use the same pins
+// only define LED2 if WEMOS_V4 is not defined
 #ifdef LED2
+// enable fractional seconds display
 // LED display2 settings
 const int CLK2 = D1;  // Set the CLK pin connection to the display
 const int DIO2 = D2;  // Set the DIO pin connection to the display
@@ -31,6 +33,11 @@ TM1637Display display2(CLK2, DIO2);  // set up the 4-Digit Display.
 int prev_disp_ms;
 float sec_frac;
 #endif
+
+#endif
+TM1637Display display(CLK, DIO);  // set up the 4-Digit Display.
+#endif
+
 
 // Set LED display options
 // use military time (24 hour clock)
