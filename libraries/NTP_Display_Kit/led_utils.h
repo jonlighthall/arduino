@@ -9,6 +9,17 @@
 #include <seven-segment_text.h>
 #include <TimeLib.h>
 
+// LED display options
+// Possible options are:
+//   LED1 - enable clock-like time display on 4-bit 7-segment LED
+//   LED2 - enable seconds and fractional seconds on second LED
+//   LDR  - use LDR to adjust brightness level
+//   WEMOS_V4 - use I2C port (requires LED1, conflicts with LED2)
+//   CLOCK_BUTTONS - use the buttons on the clock to set options
+//     TIME - reset
+//     HOUR - toggle millitary time
+//     MIN  - toggle seconds display
+
 // set LED connection pins
 #ifdef LED1
 // enable LED display
@@ -16,12 +27,20 @@
 // use I2C port
 const int CLK = D1;  // Set the CLK pin connection to the display
 const int DIO = D2;  // Set the DIO pin connection to the display
-#else
+#else // WEMOS v4
+// don't use IC2 port
 const int CLK = D6;  // Set the CLK pin connection to the display
 const int DIO = D5;  // Set the DIO pin connection to the display
 
-// WEMOS_V4 and LED2 both use the same pins
-// only define LED2 if WEMOS_V4 is not defined
+#ifdef CLOCK_BUTTONS
+// use clock bottons
+const int hourPin = D1;
+const int minPin = D2;
+
+#else // BUTTONS
+// don't use clock buttons (and don't use IC2 port)
+// WEMOS_V4, CLOCK_BUTTONS, and LED2 all use the same pins
+// only define LED2 if WEMOS_V4 and CLOCK_BUTTONS are not defined
 #ifdef LED2
 // enable fractional seconds display
 // LED display2 settings
@@ -32,21 +51,21 @@ TM1637Display display2(CLK2, DIO2);  // set up the 4-Digit Display.
 // fractional seconds
 int prev_disp_ms;
 float sec_frac;
-#endif
-
-#endif
+#endif // LED2
+#endif // BUTTONS
+#endif // WEMOS v4
 TM1637Display display(CLK, DIO);  // set up the 4-Digit Display.
-#endif
-
+#endif // LED
 
 // Set LED display options
 // use military time (24 hour clock)
-const bool do_mil = false;
+bool do_mil = false;
 // show seconds at the top of the minute (for setting/synchronizing watches)
 const bool do_sec_top = false;
 // nixie tube cycling
 const bool do_cyc = false;
-const bool do_sec_mod = false;
+// occasionally show seconds (e.g., flash the seconds at 15, 30, and 45 past the minute)
+bool do_sec_mod = false;
 
 // print delay in milliseconds
 const int DISP_DELAY = 250;
@@ -71,12 +90,18 @@ void LED_init() {
   display2.setBrightness(7);
 #endif
 
-// print LED welcome message
+  // print LED welcome message
 #ifdef LED1
   display.setSegments(SEG_hEllo);
 #endif
 #ifdef LED2
   display2.setSegments(SEG_hEllo);
+#endif
+
+  // define inputs
+#ifdef CLOCK_BUTTONS
+  pinMode(hourPin, INPUT);
+  pinMode(minPin, INPUT);
 #endif
 }
 
@@ -219,5 +244,29 @@ void DigitalClockDisplayOpt() {
     }
   } // end day/night
   DigitalClockDisplay();
+}
+
+void check_clock_buttons() {
+  // check buttons
+#ifdef CLOCK_BUTTONS
+  int bHOUR = digitalRead(hourPin);
+  int bMIN = digitalRead(minPin);
+  Serial.print("hour button = ");
+  Serial.println(bHOUR);
+  Serial.print("minute button = ");
+  Serial.println(bMIN);
+  if (bHOUR == LOW) {
+    Serial.println("HOUR LOW");
+    do_mil = !do_mil;
+  } else {
+    Serial.println("HOUR HIGH");
+  }
+  if (bMIN == LOW) {
+    Serial.println("MIN LOW");
+    do_sec_mod = !do_sec_mod;
+  } else {
+    Serial.println("MIN HIGH");
+  }
+#endif
 }
 #endif
