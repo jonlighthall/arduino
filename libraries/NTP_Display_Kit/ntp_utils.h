@@ -33,6 +33,7 @@ const bool do_DST = true;
 
 // NTP Servers:
 static const char ntpServerName[] = "time.nist.gov";
+IPAddress ntpServerIP;  // NTP server's ip address
 
 //void sendNTPpacket(IPAddress &address);
 
