@@ -12,35 +12,35 @@
   +-----+--------+-------+----------------+
   | RST | RST    | Reset |
   +-----+--------+-------+----------------+
-  | A0  | A0     | ADC   |
+  | A0  | A0     | ADC   | middle leg of POT (if LDR defined)
   +-----+--------+-------+----------------+
   | D0  | GPIO16 | WAKE  |
   +-----+--------+-------+----------------+
-  | D5  | GPIO14 | SCLK  | LED display DIO
+  | D5  | GPIO14 | SCLK  | LED DIO (display if LED1 defined)
   +-----+--------+-------+----------------+
-  | D6  | GPIO12 | MISO  | LED display CLK
+  | D6  | GPIO12 | MISO  | LED CLK (display if LED1 defined)
   +-----+--------+-------+----------------+
   | D7  | GPIO13 | MOSI  |
   +-----+--------+-------+----------------+
   | D8  | GPIO15 | CS    |
   +-----+--------+-------+----------------+
-  | 3V3 |  3.3V  |       |
+  | 3V3 | 3.3V   |       | LED VCC (for some 0.36 LEDs), LDR (if LDR defined)
   +-----+--------+-------+----------------+
   | TX  | GPIO1  | TX    |
   +-----+--------+-------+----------------+
   | RX  | GPIO3  | RX    |
   +-----+--------+-------+----------------+
-  | D1  | GPIO5  | SCL   | LED display2 CLK
+  | D1  | GPIO5  | SCL   | LED CLK (display if WEMOS_V4 defined) (display2 if LED2 defined)
   +-----+--------+-------+----------------+
-  | D2  | GPIO4  | SDA   | LED display2 DIO
+  | D2  | GPIO4  | SDA   | LED DIO (display if WEMOS_V4 defined) (display2 if LED2 defined)
   +-----+--------+-------+----------------+
   | D3  | GPIO0  | FLASH |
   +-----+--------+-------+----------------+
   | D4  | GPIO2  | LED   | sync cue
   +-----+--------+-------+----------------+
-  | G   | GND    | GND   | LED GND
+  | G   | GND    | GND   | LED GND, POT (if LDR defined)
   +-----+--------+-------+----------------+
-  | 5V  | N/A    |       | LED 5V
+  | 5V  | N/A    | VCC   | LED 5V
   +-----+--------+-------+----------------+
 
 */
@@ -49,24 +49,29 @@
 #include <TimeLib.h>
 
 // project library headers
-#include <debug.h>
-#include <dst.h>
-#include <ntp_utils.h>
-#include <oled_utils.h>
-#include <serial_utils.h>
-#include <wifi_utils.h>
+#include "debug.h"
+#include "dst.h"
+#include "ntp_utils.h"
+#include "oled_utils.h"
+#include "serial_utils.h"
+#include "wifi_utils.h"
 
 // LED display options
+// Possible options are:
+//   LED1 - enable clock-like time display on 4-bit 7-segment LED
+//   LED2 - enable seconds and fractional seconds on second LED
+//   LDR  - use LDR to adjust brightness level
+//   WEMOS_V4 - use I2C port (requires LED1, conflicts with LED2)
+
 #define LED1
 #define LED2
 #define LDR
-#include <led_utils.h>
+#include "led_utils.h"
 
 void setup() {
   // initialize on-board LED
-  pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(LED_BUILTIN,
-               HIGH);  // Turn the LED off by making the voltage HIGH
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize Serial
   Serial.begin(9600);
@@ -107,7 +112,6 @@ void setup() {
   WiFi.begin(ssid, pass);
 
   // print text throbber
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -294,7 +298,9 @@ void loop() {
             sprintf(buff, "delaying display by %d...", offsetTime);
             Serial.print(buff);
           }
-          //   delay(offsetTime);
+#ifndef LED2
+          delay(offsetTime);
+#endif
           if (debug > 1) {
             Serial.println("done");
             Serial.println(serdiv);
@@ -312,7 +318,9 @@ void loop() {
             int delayInterval = min(10, delayDiff);
             sprintf(buff, "waiting %d ms...", delayInterval);
             Serial.print(buff);
-            // delay(delayInterval);
+#ifndef LED2
+            delay(delayInterval);
+#endif
             Serial.println("done");
             Serial.println(serdiv);
           }
@@ -333,9 +341,10 @@ void loop() {
       // Display time, LED
       DigitalClockDisplayOpt();
 
+#ifdef LED2
       // save previous display time
       prev_disp_ms = millis();  // milliseconds
-
+#endif
       if (debug > 1) {
         sprintf(buff, "serialClockDisplay takes %d\n", midTime - beforeTime);
         Serial.print(buff);
@@ -350,6 +359,7 @@ void loop() {
         Serial.println(millis());
       }
     }  // end prevDisplay
+#ifdef LED2
     else {
       // caclculate fractional seconds between displaying whole seconds
       int t_diff_ms = millis() - prev_disp_ms;
@@ -362,17 +372,15 @@ void loop() {
         Serial.print(", dig sec = ");
         Serial.println(sec_frac);
       }
-      #ifdef LED2
       display2.showNumberDecEx(dig_sec, 0b01000000, true);
-      #endif
     }
+#endif
   }  // end timeNotSet
 }  // end loop
 
 /*-------- NTP code ----------*/
 
 time_t getNtpTime() {
-  IPAddress ntpServerIP;  // NTP server's ip address
 
   while (Udp.parsePacket() > 0)
     ;  // discard any previously received packets
