@@ -2,7 +2,7 @@
 #define BIN_UTILS
 
 // project library headers
-#include <debug.h>
+#include "debug.h"
 
 uint32_t getWord(byte packet[48], int idx) {
   // extract a 32-bit segment of a 48-byte packet
@@ -106,8 +106,7 @@ void print_uint8(byte byte8) {
   Serial.println(byte8, BIN); // print as an ASCII-encoded binary
 }
 
-uint16_t getBits16(uint16_t word16) {
-  uint16_t out;
+void getBits16(uint16_t word16) {
   if (debug > 2) {
     uint8_t high, low;
     high = (word16 >> 8);
@@ -118,7 +117,6 @@ uint16_t getBits16(uint16_t word16) {
     Serial.print(" low byte: ");
     print_uint8(low);
   }
-  return out;
 }
 
 uint32_t mask32(uint32_t dword32, uint8_t bit_start, uint8_t bit_len) {

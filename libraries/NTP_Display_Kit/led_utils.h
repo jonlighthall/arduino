@@ -2,7 +2,7 @@
 #define LED_UTILS
 
 // project library headers
-#include <debug.h>
+#include "debug.h"
 
 // load LED libraries
 #include <TM1637Display.h>

@@ -7,7 +7,7 @@
 #include <ESP8266WiFi.h>
 
 // project library headers
-#include <debug.h>
+#include "debug.h"
 
 // OLED display options
 const bool do_RSSI_Bars = false;
@@ -120,8 +120,6 @@ void OLED_RSSI_Bars () {
 
 void OLEDClockDisplay() {
   // define OLED variables
-  int xpos;
-  int ypos;
   char buff[dispwid];
 
   u8g2.clearBuffer();

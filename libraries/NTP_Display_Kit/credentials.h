@@ -13,7 +13,7 @@
 #ifndef CREDENTIALS
 #define CREDENTIALS
 
-#include <wifi_credentials.h>
-#include <esp_mail_credentials.h>
+#include "wifi_credentials.h"
+#include "esp_mail_credentials.h"
 
 #endif

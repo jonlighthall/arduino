@@ -1,16 +1,33 @@
 #ifndef SERIAL_UTILS
 #define SERIAL_UTILS
 
-
-// custom library headers
+// standard library headers
 #include <TimeLib.h>
-#include <dst.h>
+
+// project library headers
+#include "hello.h"
+#include "ntp_utils.h"
 
 // Serial display settings
-const int PRINT_DELAY=250 // print delay in milliseconds
+const int PRINT_DELAY=250; // print delay in milliseconds
 const bool do_milliseconds = true;
 const bool do_RSSI = false;
+const char weldiv[] = "-------------"; // serial print divider for welcom message
 const char serdiv[] = "----------------------------"; // serial print divider
+
+void serial_init() {
+  // initialize Serial
+  Serial.begin(9600);
+  while (!Serial)
+    ;  // Needed for Leonardo only
+  // pause for Serial Monitor
+  delay(PRINT_DELAY);
+  // Serial welcome message
+  Serial.println();
+  Serial.println(weldiv);
+  hello();
+  Serial.println(weldiv);
+}
 
 void serialClockDisplay() {
   // send date/time to Serial Monitor
@@ -43,6 +60,16 @@ void serialClockDisplay() {
   }
 
   Serial.println();
+}
+
+void serial_sync() {
+  // Serial sync message
+  Serial.println(serdiv);
+  Serial.println("Transmiting NTP request...");
+  WiFi.hostByName(ntpServerName, ntpServerIP);
+  Serial.print(ntpServerName);
+  Serial.print(": ");
+  Serial.println(ntpServerIP);
 }
 
 #endif

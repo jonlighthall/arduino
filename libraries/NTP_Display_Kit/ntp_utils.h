@@ -8,10 +8,10 @@
 #include <WiFiUdp.h>
 
 // project library headers
-#include <debug.h>
-#include <binary_utils.h>
-#include <dst.h>
-#include <wifi_utils.h>
+#include "debug.h"
+#include "binary_utils.h"
+#include "dst.h"
+#include "wifi_utils.h"
 
 // ESP8266 Wi-Fi UDP settings
 WiFiUDP Udp;
@@ -113,9 +113,9 @@ void parseNTP_header(uint32_t words[]) {
   uint8_t b = getBits32(referenceIdentifier, 8, 8);
   uint8_t c = getBits32(referenceIdentifier, 16, 8);
   uint8_t d = getBits32(referenceIdentifier, 24, 8);
-  char RefID[4];
+  char RefID[5];
   sprintf(RefID, "%c%c%c%c", a, b, c, d);
-
+  
   // print header
   if (debug > -1) {
     // print raw packet
@@ -382,6 +382,10 @@ void parseNTP_fraction(uint32_t words[]) {
   for (int i = 0; i < 4; i++) {
     ifrac_secs[i] = words[5 + i * 2];
     frac_secs[i] = ifrac_secs[i]/(0xFFFFFFFF);
+    Serial.print("int = ");
+    Serial.print(ifrac_secs[i]);
+    Serial.print(", frac = ");
+    Serial.println(frac_secs[i]);
   }
 
   NTPfracTime = ((uint64_t)fracSecs[3] * 1000) >> 32;
