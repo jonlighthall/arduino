@@ -1,6 +1,9 @@
 #ifndef BIN_UTILS
 #define BIN_UTILS
 
+// project library headers
+#include <debug.h>
+
 uint32_t getWord(byte packet[48], int idx) {
   // extract a 32-bit segment of a 48-byte packet
   uint32_t bit_word;
