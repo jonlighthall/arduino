@@ -76,18 +76,21 @@ const bool do_ldr = true;
 #else
 const bool do_ldr = false;
 #endif
-int brite;
+
+uint8_t brite;
+const uint8_t brite_min=0;
+const uint8_t brite_max=7;
 
 void LED_init() {
   // initialize LED display
 #ifdef LED1
   display.clear();
-  display.setBrightness(7);
+  display.setBrightness(brite_max);
 #endif
 
 #ifdef LED2
   display2.clear();
-  display2.setBrightness(7);
+  display2.setBrightness(brite_max);
 #endif
 
   // print LED welcome message
@@ -168,8 +171,8 @@ void DigitalClockDisplayOpt() {
     float scale = sensorValue / 1023.;
     float vmax = 3.3;
     float voltage = (scale) * vmax;
-    float bstep = (scale) * 7;
-    brite = (int(floor(bstep)));
+    float fbrite = (scale) * brite_max;
+    brite = (int(round(fbrite)));
 
     char buff[64];
     if (debug > 0) {
@@ -180,19 +183,21 @@ void DigitalClockDisplayOpt() {
       Serial.print(buff);
       sprintf(buff, "voltage = %7.3f V\n", voltage);
       Serial.print(buff);
-      sprintf(buff, "bstep = %7.3f\n", bstep);
+      sprintf(buff, "fbrite = %7.3f\n", fbrite);
       Serial.print(buff);
       sprintf(buff, "brite = %d\n", brite);
       Serial.print(buff);
     }
   } else {
-    Serial.println("using default brightness");
+    if (debug > 0) {
+      Serial.println("using default brightness");
+    }
     if ((hour() >= 20) || (hour() <= 6)) {  // night
       // dim display and show time only
-      brite = 0;
+      brite = brite_min;
     } else {  // day
       // brighten display and show options
-      brite = 7;
+      brite = brite_max;
     }
   }
   if (debug > 0) {
