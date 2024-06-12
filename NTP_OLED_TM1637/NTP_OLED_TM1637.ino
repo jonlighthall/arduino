@@ -48,14 +48,6 @@
 // custom library headers
 #include <TimeLib.h>
 
-// project library headers
-#include "debug.h"
-#include "dst.h"
-#include "ntp_utils.h"
-#include "oled_utils.h"
-#include "serial_utils.h"
-#include "wifi_utils.h"
-
 // LED display options
 // Possible options are:
 //   LED1 - enable clock-like time display on 4-bit 7-segment LED
@@ -65,8 +57,17 @@
 //   CLOCK_BUTTONS - use the buttons on the clock to set options
 
 #define LED1
-#define LDR
+//#define LDR
+//#define LED2
+
+// project library headers
+#include "debug.h"
+#include "dst.h"
 #include "led_utils.h"
+#include "ntp_utils.h"
+#include "oled_utils.h"
+#include "serial_utils.h"
+#include "wifi_utils.h"
 
 void setup() {
   // initialize on-board LED
@@ -74,13 +75,7 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 
   // initialize Serial
-  Serial.begin(9600);
-  while (!Serial)
-    ;  // Needed for Leonardo only
-  // pause for Serial Monitor
-  delay(PRINT_DELAY);
-  // Serial welcome message
-  Serial.println();
+  serial_init();
   Serial.println("---------------");
   char buff[64];
   sprintf(buff, "TimeNTP Example");
@@ -277,6 +272,7 @@ void loop() {
           Serial.println(buff);
         }
 
+        // wait until top of second to print time
         if (debug > 0) {
           sprintf(buff, "   NTPfracTime = %d\n", NTPfracTime);
           Serial.print(buff);
