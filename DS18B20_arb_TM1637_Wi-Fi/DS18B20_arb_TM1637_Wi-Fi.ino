@@ -51,6 +51,7 @@
 #include "debug.h"
 #include "led_utils.h"
 #include "serial_utils.h"
+#include "wifi_utils.h"
 
 bool ssid_found = false;
 
@@ -69,6 +70,10 @@ DeviceAddress therm[array_size];
 int no_therm;
 int no_therm_sum;
 int idx_probe = -1;
+
+// define ADC
+const int ADC = A0;
+int ADCvalue = -1;
 
 void setup() {
   // initialize on-board LED
@@ -97,6 +102,7 @@ void setup() {
   Serial.print("Checking number of sensors vs array length: ");
   if (no_therm > array_size) {
     Serial.println("ERROR, make array larger!");
+    exit;
   } else {
     Serial.print("OK ");
     Serial.print(no_therm);
@@ -132,6 +138,8 @@ void setup() {
     Serial.print(sensors.getResolution(therm[i]), DEC);
     Serial.println();
   }
+
+  wifi_scan();
 
   // clear displays
   display.clear();
@@ -177,13 +185,52 @@ void printData(DeviceAddress deviceAddress) {
 }
 
 void loop() {
-  //float atempC[array_size];
+  float atempC[array_size];
   float atempF[array_size];
   float temp_sum = 0;
   float temp_mean = 0;
   float temp_std = 0;
   float temp_var_sum = 0;
   float temp_var_mean = 0;
+
+  // read the value from the sensor:
+  ADCvalue = analogRead(ADC);
+  Serial.print("ADC value = ");
+  Serial.println(ADCvalue);
+  const int ADCmax = 1024;
+
+  if (true) {
+    float ADCscale = ADCvalue / ADCmax;
+    Serial.print("ADC scale = ");
+    Serial.println(ADCscale);
+
+    // connect to wi-fi if connected to power
+    if (ADCvalue == ADCmax) {
+      Serial.println("Battery connected to power.");
+      if (ssid_found) {
+        Serial.print(" Connecting to Wi-Fi...");
+        if (WiFi.status() != WL_CONNECTED) {
+          display.setSegments(SEG_CONN);
+          wifi_con();
+        } else {
+          Serial.println("Wi-Fi already connected. Continuing...");
+        }
+      } else {
+        Serial.print(ssid);
+        Serial.println(" not found");
+      }
+
+    }
+    // otherwise turn off modem
+    else if (ADCvalue < 100) {
+      Serial.println("Battery removed from power. Disconnecting from  Wi-Fi...");
+      if (WiFi.status() == WL_CONNECTED) {
+        wifi_discon();
+      } else {
+        Serial.println("Wi-Fi already disconnected. Continuing...");
+      }
+    }
+  }
 
   // call sensors.requestTemperatures() to issue a global temperature
   // request to all devices on the bus
@@ -237,4 +284,95 @@ void loop() {
   }
 
   delay(PRINT_DELAY);
+}
+
+void wifi_scan() {
+  Serial.print("Wi-Fi status : ");
+  Serial.println(WiFi.status());
+  Serial.print("scaning networks...");
+  display.setSegments(SEG_scan, 4, 0);
+  int n = WiFi.scanNetworks();
+  Serial.println("done");
+  Serial.print("Wi-Fi status : ");
+  Serial.println(WiFi.status());
+  if (n == 0)
+    Serial.println("no networks found");
+  else {
+    Serial.print(n);
+    Serial.println(" networks found");
+    for (int i = 0; i < n; ++i) {
+      // Print SSID and RSSI for each network found
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.println(WiFi.SSID(i));
+      if (WiFi.SSID(i) == ssid) {  //enter the ssid which you want to search
+        Serial.print(ssid);
+        Serial.println(" is available");
+        ssid_found = true;
+        break;
+      }
+    }
+  }
+}
+
+void wifi_con() {
+  WiFi.forceSleepWake();  // Wifi on
+  Serial.println("Exit modem sleep mode");
+  Serial.print("MAC address : ");
+  Serial.println(WiFi.macAddress());
+  Serial.print("Wi-Fi status : ");
+  Serial.println(WiFi.status());
+  WiFi.mode(WIFI_STA);  // station mode
+  Serial.print("Connecting to ");
+  Serial.print(ssid);
+  Serial.print("...");
+  WiFi.begin(ssid, pass);
+  int counter = 0;
+  const int wait_lim = 10000 / PRINT_DELAY;
+  while ((WiFi.status() != WL_CONNECTED) && (counter < wait_lim)) {
+    delay(PRINT_DELAY);
+    Serial.print(".");
+    counter++;
+    Serial.print("Wi-Fi status : ");
+    Serial.println(WiFi.status());
+    if (counter == wait_lim) {
+      Serial.println("timeout");
+      display.setSegments(SEG_fail, 4, 0);
+      delay(PRINT_DELAY);
+    }
+  }
+
+  // print status
+  Serial.print("connected\n");
+  display.setSegments(SEG_good, 4, 0);
+  delay(PRINT_DELAY);
+  Serial.print("Wi-Fi status : ");
+  Serial.println(WiFi.status());
+  Serial.print("gateway IP address: ");
+  Serial.println(WiFi.gatewayIP());
+  Serial.print("  local IP address: ");
+  Serial.println(WiFi.localIP());
+  int rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI): ");
+  Serial.println(rssi);
+}
+
+void wifi_discon() {
+  Serial.print("Wi-Fi status : ");
+  Serial.println(WiFi.status());
+  Serial.print("Disconnecting from ");
+  Serial.print(WiFi.SSID());
+  Serial.print("...");
+  WiFi.disconnect();
+  while (WiFi.status() == WL_CONNECTED) {
+    delay(PRINT_DELAY);
+    Serial.print(".");
+  }
+  Serial.print("disconnected\n");
+  Serial.print("Wi-Fi status : ");
+  Serial.println(WiFi.status());
+
+  Serial.println("Enter modem sleep mode...");
+  WiFi.forceSleepBegin();  // Wifi off
+  delay(1);                //the modem won't go to sleep unless you do a delay
 }

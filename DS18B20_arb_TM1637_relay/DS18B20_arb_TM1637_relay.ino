@@ -46,11 +46,13 @@
 
 // define options
 #define LED1
+const int temp_cutoff = 90.0;
 
 // project library headers
 #include "debug.h"
 #include "led_utils.h"
 #include "serial_utils.h"
+#include "wifi_utils.h"
 
 bool ssid_found = false;
 
@@ -70,6 +72,8 @@ int no_therm;
 int no_therm_sum;
 int idx_probe = -1;
 
+const int relayPin = D1;
+
 void setup() {
   // initialize on-board LED
   pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
@@ -77,7 +81,7 @@ void setup() {
 
   serial_init();
   LED_init();
-  
+
   Serial.println();
   Serial.println("---------------");
   Serial.println("Dallas Temperature IC Control Library Demo");
@@ -132,6 +136,8 @@ void setup() {
     Serial.print(sensors.getResolution(therm[i]), DEC);
     Serial.println();
   }
+
+  pinMode(relayPin, OUTPUT);
 
   // clear displays
   display.clear();
@@ -194,11 +200,20 @@ void loop() {
   // print the device information
   for (int i = 0; i < no_therm; i++) {
     printData(therm[i]);
-    atempC[i] = sensors.getTempC(therm[i]);
+    //atempC[i] = sensors.getTempC(therm[i]);
     atempF[i] = sensors.getTempF(therm[i]);
     if (i != idx_probe) temp_sum += atempF[i];
   }
   temp_mean = temp_sum / no_therm_sum;
+
+  Serial.print("   Relay ");
+  if (temp_mean > temp_cutoff) {
+    digitalWrite(relayPin, LOW);
+    Serial.println("relay inactive: switcheds in normal positions (LOW)");
+  } else {
+    digitalWrite(relayPin, HIGH);
+    Serial.println("relay active: switches in inverted positions (HIGH)");
+  }
 
   // print average temperature and calculate standard deviation
   if (no_therm_sum > 1) {
