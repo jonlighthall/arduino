@@ -3,10 +3,10 @@
 
 // project library headers
 #include "debug.h"
+#include "seven-segment_text.h"
 
 // load LED libraries
 #include <TM1637Display.h>
-#include <seven-segment_text.h>
 #include <TimeLib.h>
 
 // LED display options
