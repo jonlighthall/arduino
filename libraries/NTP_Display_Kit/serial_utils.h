@@ -1,13 +1,6 @@
 #ifndef SERIAL_UTILS
 #define SERIAL_UTILS
 
-// standard library headers
-#include <TimeLib.h>
-
-// project library headers
-#include "hello.h"
-#include "ntp_utils.h"
-
 // Serial display settings
 const int PRINT_DELAY=250; // print delay in milliseconds
 const bool do_milliseconds = true;
@@ -25,7 +18,11 @@ void serial_init() {
   // Serial welcome message
   Serial.println();
   Serial.println(weldiv);
+#ifdef HELLO
   hello();
+#else
+  Serial.println("Serial Initialized");
+#endif
   Serial.println(weldiv);
 }
 
@@ -47,17 +44,27 @@ void serialClockDisplay() {
   Serial.print(buff);
 
   // print time zone
-  sprintf(buff, "UTC%d (", SetTimeZone);
+#ifdef NTP_UTILS
+  sprintf(buff, "UTC%d", SetTimeZone);
+  Serial.print(buff);
+#endif
+
+  // print DST status
+#ifdef DST_UTILS
+  sprintf(buff, " (");
   Serial.print(buff);
   isDST(1);
   Serial.print(")");
+#endif
 
+#ifdef WIFI_UTILS
   if (do_RSSI) {
     // print signal strength
     rssi = WiFi.RSSI();
     Serial.print(" RSSI: ");
     Serial.print(rssi);
   }
+#endif
 
   Serial.println();
 }
@@ -65,11 +72,15 @@ void serialClockDisplay() {
 void serial_sync() {
   // Serial sync message
   Serial.println(serdiv);
+#ifdef NTP_UTILS
   Serial.println("Transmiting NTP request...");
   WiFi.hostByName(ntpServerName, ntpServerIP);
   Serial.print(ntpServerName);
   Serial.print(": ");
   Serial.println(ntpServerIP);
+#else
+  Serial.println("NTP not defined");
+#endif
 }
 
 #endif
