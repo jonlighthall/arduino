@@ -17,13 +17,62 @@
   These functions are generated with the Thing and added at the end of this sketch.
 */
 
-#include "thingProperties.h"
-// Include the libraries we need
-#include <OneWire.h>
-#include <DallasTemperature.h>
+/*
 
-// Data wire is plugged into port 2 on the Arduino
-#define ONE_WIRE_BUS 4
+  Wemos D1 Mini Pin Connections
+
+  +-----+--------+-------+----------------+
+  | Pin | ESP    | Use   |
+  +-----+--------+-------+----------------+
+  | RST | RST    | Reset |
+  +-----+--------+-------+----------------+
+  | A0  | A0     | ADC   |
+  +-----+--------+-------+----------------+
+  | D0  | GPIO16 | WAKE  |
+  +-----+--------+-------+----------------+
+  | D5  | GPIO14 | SCLK  | LED display DIO
+  +-----+--------+-------+----------------+
+  | D6  | GPIO12 | MISO  | LED display CLK
+  +-----+--------+-------+----------------+
+  | D7  | GPIO13 | MOSI  |
+  +-----+--------+-------+----------------+
+  | D8  | GPIO15 | CS    |
+  +-----+--------+-------+----------------+
+  | 3V3 | 3.3V   |       |
+  +-----+--------+-------+----------------+
+  | TX  | GPIO1  | TX    |
+  +-----+--------+-------+----------------+
+  | RX  | GPIO3  | RX    |
+  +-----+--------+-------+----------------+
+  | D1  | GPIO5  | SCL   |
+  +-----+--------+-------+----------------+
+  | D2  | GPIO4  | SDA   | OneWire Bus
+  +-----+--------+-------+----------------+
+  | D3  | GPIO0  | FLASH |
+  +-----+--------+-------+----------------+
+  | D4  | GPIO2  | LED   | sync cue
+  +-----+--------+-------+----------------+
+  | G   | GND    | GND   | ground
+  +-----+--------+-------+----------------+
+  | 5V  | N/A    | VCC   | LED VCC
+  +-----+--------+-------+----------------+
+
+*/
+
+#include "thingProperties.h"
+// standard library headers
+#include <OneWire.h>
+#include <DallasTemperature.h>  // Dallas Temperature Requires OneWire
+
+// define options
+#define LED1
+
+// project library headers
+#include "led_utils.h"
+#include "serial_utils.h"
+
+// Data wire is plugged into port D2 on the Wemos D1 mini
+#define ONE_WIRE_BUS 4  // GPIO4 -> D2
 #define TEMPERATURE_PRECISION 12
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
@@ -32,15 +81,24 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 
-const int array_size = 4;
+const int array_size = 5;
 DeviceAddress therm[array_size];
-int no_therm;
+int no_therm;      // total number of sensors
+int no_therm_sum;  // number of sensors, excluding probe
+int idx_probe = -1;
 
 void setup() {
-  // Initialize serial and wait for port to open:
-  Serial.begin(9600);
-  // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
-  delay(1500);
+  // initialize on-board LED
+  pinMode(LED_BUILTIN, OUTPUT);  // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(LED_BUILTIN, LOW);
+
+  serial_init();
+  LED_init();
+
+  Serial.println();
+  Serial.println(weldiv);
+  Serial.println("Dallas Temperature IC Control Library Demo");
+  Serial.println(weldiv);
 
   // Defined in thingProperties.h
   initProperties();
@@ -58,8 +116,6 @@ void setup() {
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
 
-   Serial.println("Dallas Temperature IC Control Library Demo");
-
   // Start up the library
   sensors.begin();
 
@@ -67,15 +123,14 @@ void setup() {
   Serial.print("Locating devices...");
   Serial.print("Found ");
   no_therm = sensors.getDeviceCount();
+  no_therm_sum = no_therm;
   Serial.print(no_therm);
   Serial.println(" devices.");
 
   Serial.print("Checking number of sensors vs array length: ");
   if (no_therm > array_size) {
     Serial.println("ERROR, make array larger!");
-    exit ;
-  }
-  else {
+  } else {
     Serial.print("OK ");
     Serial.print(no_therm);
     Serial.print(" < ");
@@ -92,8 +147,7 @@ void setup() {
     if (!oneWire.search(therm[i])) {
       Serial.print("Unable to find address for sensor ");
       Serial.println(i);
-    }
-    else {
+    } else {
       Serial.print("Device ");
       Serial.print(i);
       Serial.print(" Address: ");
@@ -112,9 +166,13 @@ void setup() {
     Serial.print(sensors.getResolution(therm[i]), DEC);
     Serial.println();
   }
+
+  // clear displays
+  display.clear();
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
 }
-  
-  // function to print a device address
+
+// function to print a device address
 void printAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
     // zero pad the address if necessary
@@ -145,7 +203,7 @@ void printResolution(DeviceAddress deviceAddress) {
 
 // main function to print information about a device
 void printData(DeviceAddress deviceAddress) {
-  Serial.print("Device Address: ");
+  Serial.print(" Device Address: ");
   printAddress(deviceAddress);
   Serial.print(" ");
   printTemperature(deviceAddress);
@@ -157,53 +215,76 @@ void loop() {
   // Your code here
   float atempC[array_size];
   float atempF[array_size];
-  float temp_sum = 0;
-  float temp_mean = 0;
-  float temp_std = 0;
-  float temp_var_sum = 0;
-  float temp_var_mean = 0;
+  float tempF_sum = 0;
+  float tempF_mean = 0;
+  float tempF_std = 0;
+  float tempF_var_sum = 0;
+  float tempF_var_mean = 0;
+
   // call sensors.requestTemperatures() to issue a global temperature
   // request to all devices on the bus
-  Serial.print("Requesting temperatures...");
+  Serial.print("Requesting temperatures... ");
   sensors.requestTemperatures();
-  Serial.println("DONE");
+  Serial.println("OK");
 
   // print the device information
-  for (int i = 0 ; i < no_therm; i++) {
+  for (int i = 0; i < no_therm; i++) {
     printData(therm[i]);
     atempC[i] = sensors.getTempC(therm[i]);
     atempF[i] = sensors.getTempF(therm[i]);
-    temp_sum += atempF[i];
+    if (i != idx_probe) {
+      tempF_sum += atempF[i];
+    }
   }
-  temp_mean = temp_sum / no_therm;
+  tempF_mean = tempF_sum / no_therm_sum;
+
+  // print average temperature and calculate standard deviation
+  if (no_therm_sum > 1) {
     Serial.print("Average temperature = ");
-  Serial.print(temp_mean);
-
-  for (int i = 0 ; i < no_therm; i++) {
-    temp_var_sum += sq(atempF[i] - temp_mean);
+    Serial.print(tempF_mean);
+    for (int i = 0; i < no_therm; i++) {
+      if (i != idx_probe) {
+        tempF_var_sum += sq(atempF[i] - tempF_mean);
+      }
+    }
+    tempF_var_mean = tempF_var_sum / no_therm_sum;
+    tempF_std = sqrt(tempF_var_mean);
+    Serial.print(" +/- ");
+    Serial.print(tempF_std);
+    Serial.print(" °F");
+    Serial.print(" (N = ");
+    Serial.print(no_therm_sum);
+    Serial.println(")");
   }
-  temp_var_mean = temp_var_sum / no_therm;
-  temp_std = sqrt(temp_var_mean);
-  Serial.print(" +/- ");
-  Serial.print(temp_std);
-  Serial.println(" °F");
-  
-  atticTemperature = temp_mean;
+  if (no_therm_sum > 0) {
+    // update LED display
+    if ((tempF_mean >= 0) && (tempF_mean < 100)) {
+      display.setSegments(SEG_degF, 2, 2);
+      display.showNumberDec(tempF_mean, false, 2, 0);
+    }
+
+    if ((tempF_mean >= 100) || ((tempF_mean < 0) && (tempF_mean > -100))) {
+      display.setSegments(SEG_letF, 1, 3);
+      display.showNumberDec(tempF_mean, false, 3, 0);
+    }
+
+    if (tempF_mean <= -100) {
+      display.showNumberDec(tempF_mean, false, 4, 0);
+    }
+  } else {
+    display.setSegments(SEG_bad, 4, 0);
+    Serial.println(" No temperature sensors found!");
+  }
+
+  delay(PRINT_DELAY);
+
+  atticTemperature = tempF_mean;
 }
-
-
-
-
-
-
-
-
-
 
 /*
   Since AtticTempMean is READ_WRITE variable, onAtticTempMeanChange() is
   executed every time a new value is received from IoT Cloud.
 */
-void onAtticTempMeanChange()  {
+void onAtticTempMeanChange() {
   // Add your code here to act upon AtticTempMean change
 }
